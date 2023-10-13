@@ -19,7 +19,7 @@ export default class IndexingService {
 		try {
 			// For demo purposes
 			await sleep(2000);
-      await this.indexStream(
+			await this.indexStream(
 				"kjzl6hvfrbw6cb8b9j326870su0gmlziwepl5nu8jk9tybwxe7mobm67cqd58a3",
 				"k2t6wzhkhabz2suoe70986m3u5su4nut7cki3kb9p3mpmonq9odf5a98z003km"
 			);
@@ -48,7 +48,7 @@ export default class IndexingService {
   async indexStream(model, streamId) {
 		console.log("Enter indexStream with: ", streamId);
 		// Load the stream details from Ceramic
-    let stream = await this.ceramic.loadStream(streamId);
+		let stream = await this.ceramic.loadStream(streamId);
 
 		// Go through all of the pre-processor and validator plugins to process them.
     if (stream) {
@@ -76,14 +76,14 @@ export default class IndexingService {
 			}
 
 			// Save the stream content and indexing data in the specified database
-      await this.database.save(model, content, stream.indexingData);
+			await this.database.save(model, content, stream.indexingData);
 
 			// Finally go through the post-processor plugins.
-      for (const plugin of this.plugins) {
-        if (plugin.type === 'post-processor') {
-          await plugin.process(stream);
-        }
-      }
+			for (const plugin of this.plugins) {
+			  if (plugin.type === 'post-processor') {
+			    await plugin.process(stream);
+			  }
+			}
     }
   }
 }
