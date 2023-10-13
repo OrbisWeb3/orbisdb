@@ -21,7 +21,7 @@ let database = new Supabase("url_example", "key_example");
 export const MainnetIndexing = new IndexingService(
   "mainnet",  // Ceramic network to subscribe to
   plugins,    // Plugins to use
-  database    // Database instance to use (Supabase was the simplest example sicne we are currently using it)
+  database    // Database instance to use (Supabase was the simplest example since we are currently using it)
 );
 
 // Create an instance of the express application

@@ -7,12 +7,12 @@ import { sleep, getCeramicFromNetwork, getTopicFromNetwork } from "../utils/help
  */
 export default class IndexingService {
 	constructor(network, plugins = [], database) {
-    console.log("Initialized new IndexingService class for " + network);
+		console.log("Initialized new IndexingService class for " + network);
 		this.ceramic = getCeramicFromNetwork(network);
 		this.topic = getTopicFromNetwork(network);
 		this.plugins = plugins;
 		this.database = database;
-  }
+	}
 
 	// Will subscribe to the IPFS pubsub topic specified in the constructor
 	async subscribe() {
