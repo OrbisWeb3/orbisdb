@@ -11,21 +11,15 @@ import HelloWorldPlugin from "./plugins/HelloWorld.mjs";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-/**
- * Specifying the plugins to use.
- * Q: How to assign those dynamically based on the user selection in the OrbisDB UI?
- */
+/** Specify the current settings file path which will contain all of the settings of the orbisdb instance */
+const settingsFilePath = path.join(__dirname, '../orbisdb-settings.json');
+
+/** Instantiate the plugins to use. Once finalized this will load the plugins saved in the "orbisdb-settings.json" file */
 let plugins = [
   new HelloWorldPlugin()
 ];
 
-/** Specify the current settings file path which will contain all of the settings of the orbisdb instance */
-const settingsFilePath = path.join(__dirname, '../orbisdb-settings.json');
-
-/**
- * Specifyng the database to use.
- * Q: Same question as for plugins, what's the best way to assign the correct one selected in the OrbisDB UI?
- */
+/** Instantiate the database to use which should be saved in the "orbisdb-settings.json" file */
 let database = new Supabase("url_example", "key_example");
 
 /** Initialize the mainnet indexing service while specifying the plugins to use and database type */
