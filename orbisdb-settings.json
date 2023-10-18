@@ -1,0 +1,17 @@
+{
+  "models": [
+    {
+      "name": "SocialPost",
+      "stream_id": ""
+    },
+    {
+      "name": "SocialReaction",
+      "stream_id": ""
+    },
+    {
+      "name": "SocialProfile",
+      "stream_id": ""
+    }
+  ],
+  "plugins": []
+}
