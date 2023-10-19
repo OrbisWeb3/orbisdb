@@ -3,7 +3,7 @@ import { DashIcon } from "./Icons";
 export default function Header() {
   return(
     <div className="bg-white px-12 border-b border-slate-200 w-full flex flex-row items-center">
-      <p className="font-monospace mr-4">orbisDB</p>
+      <p className="font-monospace mr-4 font-medium">orbisDB</p>
       <DashIcon />
       <div className="flex space-x-9 flex-row items-center ml-6 text-sm text-slate-500 h-full">
         <NavItem title="Project" selected={true} />

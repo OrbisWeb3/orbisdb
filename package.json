@@ -4,7 +4,8 @@
   "description": "OrbisDB is an open database built on top of Ceramic allowing you to index and query your Ceramic data while extanding Ceramic capabilities with plugins. ",
   "main": "index.js",
   "scripts": {
-    "start": "node server/index.mjs",
+    "start": "node server/index.mjs && cd client && npm run dev",
+    "dev": "node server/index.mjs",
     "build": "cd client && npm install && npm run build",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -12,8 +13,19 @@
   "license": "MIT",
   "dependencies": {
     "@ceramicnetwork/http-client": "^2.33.0",
+    "@orbisclub/orbis-sdk": "^0.4.88",
     "@supabase/supabase-js": "^2.38.1",
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
     "express": "^4.18.2",
-    "ipfs-http-client": "^60.0.1"
+    "ipfs-http-client": "^60.0.1",
+    "next": "^13.5.6",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.16",
+    "postcss": "^8.4.31",
+    "tailwindcss": "^3.3.3"
   }
 }

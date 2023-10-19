@@ -11,6 +11,23 @@
     {
       "name": "SocialProfile",
       "stream_id": ""
+    },
+    {
+      "name": "OamoProfileV1",
+      "stream_id": "kjzl6hvfrbw6c8tvfz7lavsv4niyx2t5fypwmg8ovtrulqwke6gmj0olj7y4r0d"
+    },
+    {
+      "name": "Page",
+      "stream_id": "kjzl6hvfrbw6cb3f0gw4cjkijrb52ik1qx4th12tseoioud5f8slp57hezer3my"
+    },
+    {
+      "name": "OamoWalletV1",
+      "stream_id": "kjzl6hvfrbw6c7ukto3sug7z4zfokwk98s0bxkulfe2k5jgd004f1nzadhnea7g"
+    },
+    {
+      "name": "OamoSocialV1",
+      "stream_id": "kjzl6hvfrbw6cb8b9j326870su0gmlziwepl5nu8jk9tybwxe7mobm67cqd58a3",
+      "status": 0
     }
   ],
   "plugins": []

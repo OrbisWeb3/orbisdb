@@ -4,6 +4,7 @@
 
 html {
   height: 100%;
+  background: rgb(248 250 252 / 1);
 }
 
 body {
@@ -16,7 +17,7 @@ body {
   height: 100%;
 }
 
-#root {
+#__next {
   height: 100%;
 }
 code {
