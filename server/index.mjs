@@ -3,8 +3,6 @@ import express from 'express';
 import next from 'next';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
-import bodyParser from 'body-parser';
-import cors from 'cors';
 import fs from 'fs';
 
 import IndexingService from "./indexing/index.mjs";
@@ -33,12 +31,10 @@ export const MainnetIndexing = new IndexingService(
 );
 
 
-// Create an instance of the express application using Next JS
-//const app = express();
+// Create an instance of the application using Next JS pointing to the front-end files located in the client folder
 const dev = process.env.NODE_ENV !== 'production';
 const app = next({
     dev,
-    // Confirms where the project files are located
     dir: './client',
 });
 const handle = app.getRequestHandler();
