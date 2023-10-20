@@ -5,12 +5,12 @@ import { CheckIcon, CloseIcon, QuestionMarkIcon } from "../../components/Icons";
 import AddModelModal from "../../components/Modals/AddModel";
 import Button from "../../components/Button";
 
-export default function Plugins() {
+export default function Contexts() {
   const [addModalVis, setAddModalVis] = useState(false);
   const [plugins, setPlugins] = useState([]);
 
   useEffect(() => {
-    loadPlugins();
+    //loadPlugins();
     async function loadPlugins() {
       try {
         let result = await fetch("/api/plugins/get");
@@ -30,11 +30,11 @@ export default function Plugins() {
   return(
     <>
       <div className="px-16 py-12 w-2/3">
-        <h1 className="text-3xl font-bold text-slate-900">Plugins</h1>
-        <p className="text-slate-600 mt-1 text-base">Plugins can be used to extand Ceramic possibilities. Select the plugins you would like to use here.</p>
-        <div className="grid grid-cols-3 gap-4 mt-4 items-start">
+        <h1 className="text-3xl font-bold text-slate-900">Contexts</h1>
+        <p className="text-slate-600 mt-1 text-base">Contexts can be used to scope your applications into multiple different parts that can have different rules.</p>
+        {/**<div className="grid grid-cols-3 gap-4 mt-4 items-start">
           <LoopPlugins plugins={plugins} />
-        </div>
+        </div>*/}
       </div>
     </>
   )

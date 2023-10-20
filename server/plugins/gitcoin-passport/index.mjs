@@ -1,7 +1,9 @@
 
 export default class GitcoinPassportPlugin {
-  constructor() {
+  constructor({api_key, scorer_id}) {
     this.id = "GitcoinPassportPlugin";
+    this.api_key = api_key;
+    this.scorer_id = scorer_id;
   }
 
   /**
@@ -63,12 +65,12 @@ export default class GitcoinPassportPlugin {
         body: JSON.stringify(
           {
             address: address,
-            scorer_id: "899"
+            scorer_id: this.scorer_id
           }
         ),
         headers: {
           "Content-Type": "application/json",
-          "X-API-Key": "G5WwLzpf.HCYtZLKZ9yGq4tOnyLf9OYxejgFXxaSb"
+          "X-API-Key": this.api_key
         }
       });
       passport_details = await res.json();
@@ -82,7 +84,7 @@ export default class GitcoinPassportPlugin {
   async getPassportScore(address) {
     let res_score_details;
     try {
-      let res_score = await fetch('https://api.scorer.gitcoin.co/registry/score/899/' + address, {
+      let res_score = await fetch('https://api.scorer.gitcoin.co/registry/score/'+ this.scorer_id +'/' + address, {
         method: 'GET',
         headers: {
           "Content-Type": "application/json",

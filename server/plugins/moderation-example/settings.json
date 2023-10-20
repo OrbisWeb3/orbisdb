@@ -1,6 +1,6 @@
 {
   "id": "moderation-example",
-  "name": "ModerationExample",
+  "name": "Moderation Example",
   "description": "Example of a plugin to moderate content.",
   "hooks": ["validate", "add_metadata"]
 }

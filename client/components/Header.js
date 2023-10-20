@@ -38,7 +38,9 @@ const NavItem = ({ item, href }) => {
 
   if (selected) {
     return (
-      <div className="text-slate-900 text-base border-b border-slate-900 h-full py-4">{item.title}</div>
+      <Link href={item.path} passHref>
+        <div className="text-slate-900 text-base border-b border-slate-900 h-full py-4">{item.title}</div>
+      </Link>
     );
   } else {
     return (

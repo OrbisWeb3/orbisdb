@@ -1,6 +1,6 @@
 import { LoadingCircle } from "./Icons";
 
-export default function Button({type = "primary", status = 0, onClick, title}) {
+export default function Button({type = "primary", status = 0, onClick, title, successTitle}) {
   switch (type) {
     /** Primary blue button */
     case "primary":
@@ -20,7 +20,7 @@ export default function Button({type = "primary", status = 0, onClick, title}) {
         // Success state
         case 2:
           return (
-            <button className="bg-green-500 text-white text-sm px-2.5 py-1.5 rounded-md font-medium pointer flex flex-row items-center justify-center" onClick={onClick}>{title}</button>
+            <button className="bg-green-500 text-white text-sm px-2.5 py-1.5 rounded-md font-medium pointer flex flex-row items-center justify-center" onClick={onClick}>{successTitle ? successTitle : title}</button>
           );
 
         /// Error state

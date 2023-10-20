@@ -1,0 +1,18 @@
+{
+  "id": "gitcoin-passport",
+  "name": "Gitcoin Passport",
+  "description": "Add sybil resistance to your app using Gitcoin Passport.",
+  "full_description": "Add sybil resistance to your app using Gitcoin Passport.",
+  "hooks": ["validate", "add_metadata"],
+  "variables": [
+    {
+      "name": "API Key",
+      "id": "api_key"
+    },
+    {
+      "name": "Scorer ID",
+      "description": "Your unique scorer ID to make sure your user's score are computed based on your rules.",
+      "id": "scorer_id"
+    }
+  ]
+}

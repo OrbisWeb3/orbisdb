@@ -36,5 +36,21 @@
       "status": 2
     }
   ],
-  "plugins": []
+  "plugins": [
+    {
+      "plugin_id": "gitcoin-passport",
+      "variables": {
+        "api_key": "G5WwLzpf.HCYtZLKZ9yGq4tOnyLf9OYxejgFXxaSb",
+        "scorer_id": "899"
+      }
+    },
+    {
+      "plugin_id": "hello-world",
+      "variables": {}
+    },
+    {
+      "plugin_id": "hello-world",
+      "variables": {}
+    }
+  ]
 }
