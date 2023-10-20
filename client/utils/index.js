@@ -13,3 +13,11 @@ export function shortAddress(address, number = 5) {
   const lastChars = address.substr(address.length - number);
   return firstChars.concat('-', lastChars);
 }
+
+/** Use enum instead of magic numbers for statuses */
+export const STATUS = {
+  ACTIVE: 0,
+  LOADING: 1,
+  SUCCESS: 2,
+  ERROR: 3,
+};

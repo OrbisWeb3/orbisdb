@@ -1,4 +1,4 @@
-import { ceramic_mainnet, ceramic_testnet } from '../ceramic/config.mjs';
+import { ceramic_mainnet, ceramic_testnet } from '../ceramic/config.js';
 
 /** Helpful to delay a function for a few seconds */
 export const sleep = (milliseconds) => {

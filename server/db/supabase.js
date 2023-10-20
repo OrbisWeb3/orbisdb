@@ -10,15 +10,13 @@ export default class Supabase {
   }
 
   // Save the content in the database
-  async save(model, content, indexingData) {
-    console.log("Content to save in Supabase DB:");
-
+  async save(model, content, pluginsData) {
     /** Generate variables to insert */
     let variables = {
       ...content,
-      indexingData
+      pluginsData
     }
-    console.log("variables:", variables);
+    console.log("Saving in DB::", variables);
 
     /** The database would have one table per model indexed, those tables would be created when the project is initialized in the UI */
     try {

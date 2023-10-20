@@ -5,9 +5,11 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import fs from 'fs';
 
-import IndexingService from "./indexing/index.mjs";
-import Supabase from "./db/supabase.mjs";
-import HelloWorldPlugin from "./plugins/HelloWorld.mjs";
+import IndexingService from "./indexing/index.js";
+import Supabase from "./db/supabase.js";
+import HookHandler from "./utils/hookHandler.js";
+import HelloWorldPlugin from "./plugins/HelloWorld.js"; // Simple class plugin
+import HookModerationExample from "./plugins/HookModerationExample.js"; // More flexible hook approach
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -15,9 +17,13 @@ const __dirname = dirname(__filename);
 /** Specify the current settings file path which will contain all of the settings of the orbisdb instance */
 const settingsFilePath = path.join(__dirname, '../orbisdb-settings.json');
 
+/** Initialize the hook handler */
+let hookHandler = new HookHandler();
+
 /** Instantiate the plugins to use. Once finalized this will load the plugins saved in the "orbisdb-settings.json" file */
 let plugins = [
-  new HelloWorldPlugin()
+  new HelloWorldPlugin(),
+  new HookModerationExample()
 ];
 
 /** Instantiate the database to use which should be saved in the "orbisdb-settings.json" file */
@@ -27,7 +33,8 @@ let database = new Supabase("url_example", "key_example");
 export const MainnetIndexing = new IndexingService(
   "mainnet",  // Ceramic network to subscribe to
   plugins,    // Plugins to use
-  database    // Database instance to use (Supabase was the simplest example since we are currently using it)
+  database,   // Database instance to use (Supabase was the simplest example since we are currently using it)
+  hookHandler // Hookhandler
 );
 
 
