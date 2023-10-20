@@ -9,7 +9,6 @@ export default class ExampleModerationPlugin {
    * A plugin can register multiple hooks, each hook being linked to a function that will be executed when the hook is triggered
    */
   async init() {
-    console.log("Initializing plugin: ", this.id);
     return {
       HOOKS: {
         "stream:validate": (stream) => this.isValid(stream),
@@ -21,7 +20,6 @@ export default class ExampleModerationPlugin {
   // Can check a moderation API to verify whether or not the stream should be indexed
   async isValid(stream) {
     let score = Math.random();
-    console.log("score:", score);
     // Will terminate (stream should be moderated) if score is higher than 0.6
     if(score > 0.6) {
       return false;

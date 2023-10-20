@@ -9,7 +9,6 @@ export default class HelloWorldPlugin {
    * A plugin can register multiple hooks, each hook being linked to a function that will be executed when the hook is triggered
    */
   async init() {
-    console.log("Initializing plugin: ", this.id);
     return {
       HOOKS: {
         "stream:validate": (stream) => this.isValid(stream),

@@ -1,5 +1,5 @@
-import { initIPFS } from '../ipfs/config.js';
-import { sleep, getCeramicFromNetwork, getTopicFromNetwork } from "../utils/helpers.js"
+import { initIPFS } from '../ipfs/config.mjs';
+import { sleep, getCeramicFromNetwork, getTopicFromNetwork } from "../utils/helpers.mjs"
 
 /**
  * The indexing service class would be responsible for indexing the content while going through all of the plugins "installed"
@@ -17,6 +17,7 @@ export default class IndexingService {
 		// Go through the list of all plugins used and enable them
 		this.plugins.forEach(async (plugin, i) => {
 			let { HOOKS } = await plugin.init();
+			console.log("Initialized plugin: ", plugin.id);
 			if(HOOKS) {
 	      for (const [hook, handler] of Object.entries(HOOKS)) {
 	        this.hookHandler.addHookHandler(hook, plugin.id, handler);
@@ -69,7 +70,7 @@ export default class IndexingService {
 			let processedData = {
 				stream_id: streamId,
 				model: model,
-				controller: stream.metadata.controller,
+				controller: stream.metadata.controller ? stream.metadata.controller : stream.metadata.controllers[0],
 				content: stream.content
 			};
 
@@ -88,7 +89,7 @@ export default class IndexingService {
 				let content = {
 					stream_id: streamId,
 					model: model,
-					controller: stream.metadata.controller,
+					controller: stream.metadata.controller ? stream.metadata.controller : stream.metadata.controllers[0],
 					...stream.content
 				}
 
@@ -107,10 +108,6 @@ export default class IndexingService {
 }
 
 const fakeStreams = [
-  {
-    streamId: "k2t6wzhkhabz67tknkbeexqw1ykb8t89e8eryl4gm3yqoljpryy8yw3aqr1dxs",
-    model: "kjzl6hvfrbw6cb8b9j326870su0gmlziwepl5nu8jk9tybwxe7mobm67cqd58a3",
-  },
   {
     streamId: "k2t6wzhkhabz0s4vdakn4fozuitrenqs79s68czilgzpa4m0nmnt52nyvhi3gj",
     model: "kjzl6hvfrbw6cb8b9j326870su0gmlziwepl5nu8jk9tybwxe7mobm67cqd58a3",
@@ -132,4 +129,8 @@ const fakeStreams = [
     streamId: "k2t6wzhkhabz5i8k99qxvxs9bhe9zdekc9wd56ymoqpqeziloa030luut9h7r8",
     model: "kjzl6hvfrbw6cb8b9j326870su0gmlziwepl5nu8jk9tybwxe7mobm67cqd58a3",
   },
+	{
+    streamId: "kjzl6cwe1jw146xgihee2prr7ns1oij3quqc1a06crwl29m0h5ufopd2eg5a5m6",
+    model: "k1dpgaqe3i64kk0894kb0j6w3oznbcz99blyot3fjkpl3t12zuj0a05yx15yodie1fnsskh5fmcas76fqqjx98lio3yqhce4za88vpbr7f0eda2oebxsga7hx",
+  }
 ];

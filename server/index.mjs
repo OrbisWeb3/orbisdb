@@ -2,21 +2,23 @@ import path from 'path';
 import express from 'express';
 import next from 'next';
 
-import IndexingService from "./indexing/index.js";
-import Supabase from "./db/supabase.js";
-import HookHandler from "./utils/hookHandler.js";
+import IndexingService from "./indexing/index.mjs";
+import Supabase from "./db/supabase.mjs";
+import HookHandler from "./utils/hookHandler.mjs";
 
 /** Load plugins (will need to find a different way to enable those when we migrate to plugins stored in the settings file) */
-import HelloWorldPlugin from "./plugins/HelloWorld.js"; // Default HelloWorld plugin
-import HookModerationExample from "./plugins/HookModerationExample.js"; // Example plugin used for moderation
+import HelloWorldPlugin from "./plugins/HelloWorld.mjs"; // Default HelloWorld plugin
+import HookModerationExample from "./plugins/HookModerationExample.mjs"; // Example plugin used for moderation
+import GitcoinPassportPlugin from "./plugins/GitcoinPassport.mjs"; // Gitcoin Passport plugin
 
 /** Initialize the hook handler */
 let hookHandler = new HookHandler();
 
 /** Instantiate the plugins to use. Once finalized this will load the plugins saved in the "orbisdb-settings.json" file */
 let plugins = [
-  new HelloWorldPlugin(),
-  new HookModerationExample()
+  //new HelloWorldPlugin(),
+  //new HookModerationExample(),
+  new GitcoinPassportPlugin()
 ];
 
 /** Instantiate the database to use which should be saved in the "orbisdb-settings.json" file */
