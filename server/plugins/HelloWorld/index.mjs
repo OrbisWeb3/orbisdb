@@ -11,8 +11,8 @@ export default class HelloWorldPlugin {
   async init() {
     return {
       HOOKS: {
-        "stream:validate": (stream) => this.isValid(stream),
-        "stream:add_metadata": (stream) => this.hello(stream),
+        "validate": (stream) => this.isValid(stream),
+        "add_metadata": (stream) => this.hello(stream),
       },
     };
   }

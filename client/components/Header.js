@@ -5,11 +5,11 @@ import { DashIcon } from "./Icons";
 export default function Header() {
   // Define navigation items and their paths
   const navItems = [
-    { title: 'Project', path: '/' },
-    { title: 'Data', path: '/data' },
-    { title: 'Contexts', path: '/contexts' },
-    { title: 'Plugins', path: '/plugins' },
-    { title: 'Settings', path: '/settings' }
+    { title: 'Project', path: '/', type: "equal" },
+    { title: 'Data', path: '/data', type: "includes" },
+    { title: 'Contexts', path: '/contexts', type: "includes" },
+    { title: 'Plugins', path: '/plugins', type: "includes" },
+    { title: 'Settings', path: '/settings', type: "equal" }
   ];
 
   return(
@@ -18,27 +18,32 @@ export default function Header() {
       <DashIcon />
       <div className="flex space-x-9 flex-row items-center ml-6 text-sm text-slate-500 h-full">
         {navItems.map((item) => (
-          <NavItem key={item.title} title={item.title} href={item.path} />
+          <NavItem key={item.title} item={item} />
         ))}
       </div>
     </div>
   )
 }
 
-const NavItem = ({ title, href }) => {
+const NavItem = ({ item, href }) => {
   const router = useRouter();
 
   // Determine whether the current route matches the item's link
-  const selected = router.pathname === href;
+  let selected = false;
+  if(item.type == "equal") {
+    selected = router.pathname === item.path;
+  } else if(item.type == "includes") {
+    selected = router.pathname.includes(item.path);
+  }
 
   if (selected) {
     return (
-      <div className="text-slate-900 text-base border-b border-slate-900 h-full py-4">{title}</div>
+      <div className="text-slate-900 text-base border-b border-slate-900 h-full py-4">{item.title}</div>
     );
   } else {
     return (
-      <Link href={href} passHref>
-        <div className="cursor-pointer hover:text-slate-800 h-full py-4">{title}</div>
+      <Link href={item.path} passHref>
+        <div className="cursor-pointer hover:text-slate-800 h-full py-4">{item.title}</div>
       </Link>
     );
   }

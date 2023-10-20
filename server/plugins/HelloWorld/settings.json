@@ -1,0 +1,6 @@
+{
+  "id": "hello-world",
+  "name": "HelloWorld",
+  "description": "Useless demo plugin. Don't use.",
+  "hooks": ["add_metadata"]
+}

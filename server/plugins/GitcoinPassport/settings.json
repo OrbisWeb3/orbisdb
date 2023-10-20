@@ -1,0 +1,6 @@
+{
+  "id": "gitcoin-passport",
+  "name": "GitcoinPassport",
+  "description": "Add sybil resistance to your app using Gitcoin Passport.",
+  "hooks": ["validate", "add_metadata"]
+}

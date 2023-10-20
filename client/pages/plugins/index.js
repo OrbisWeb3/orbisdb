@@ -7,43 +7,41 @@ import Button from "../../components/Button";
 
 export default function Plugins() {
   const [addModalVis, setAddModalVis] = useState(false);
+  const [plugins, setPlugins] = useState([]);
+
+  useEffect(() => {
+    loadPlugins();
+    async function loadPlugins() {
+      try {
+        let result = await fetch("/api/plugins/get");
+        result = await result.json();
+        console.log("plugins:", result);
+        if(result.status == 200) {
+          setPlugins(result.plugins);
+        } else {
+          console.log("Error retrieving plugins available.");
+        }
+      } catch(e) {
+        console.log("Error retrieving plugins available:", e);
+      }
+    }
+  }, [])
 
   return(
     <>
       <div className="px-16 py-12 w-2/3">
         <h1 className="text-3xl font-bold text-slate-900">Plugins</h1>
         <p className="text-slate-600 mt-1 text-base">Plugins can be used to extand the possibilities of Ceramic. Select the plugins you would like to use here.</p>
-        <div className="grid grid-cols-3 gap-4 mt-4">
-          <LoopPlugins />
+        <div className="grid grid-cols-3 gap-4 mt-4 items-start">
+          <LoopPlugins plugins={plugins} />
         </div>
       </div>
     </>
   )
 }
 
-let pluginsAvailable = [
-  {
-    id: "openaimoderation",
-    name: "Moderation with Open AI",
-    description: "Use Open AI to the moderate the fields of your choice.",
-    hooks: ["Validator"]
-  },
-  {
-    id: "googleclassify",
-    name: "Google Classify",
-    description: "Classify your text with Google Natural Language API.",
-    hooks: ["Enhancer"]
-  },
-  {
-    id: "gitcoinpassport",
-    name: "Gitcoin Passport",
-    description: "Make your app sybil resistant by using Gitcoin Passport.",
-    hooks: ["Validator", "Enhancer"]
-  }
-]
-
-const LoopPlugins = () => {
-  return pluginsAvailable.map((plugin, key) => {
+const LoopPlugins = ({plugins}) => {
+  return plugins.map((plugin, key) => {
     return (
         <div className="flex flex-col items-center space-x-2 bg-white px-4 py-3 border border-slate-200 rounded-md" key={key}>
           <Link className="text-[#4483FD] text-center font-medium text-base hover:underline" href={"/plugins/" + plugin.id}>{plugin.name}</Link>

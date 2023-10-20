@@ -11,8 +11,8 @@ export default class ExampleModerationPlugin {
   async init() {
     return {
       HOOKS: {
-        "stream:validate": (stream) => this.isValid(stream),
-        "stream:add_metadata": (stream) => this.analyzeSentiment(stream),
+        "validate": (stream) => this.isValid(stream),
+        "add_metadata": (stream) => this.analyzeSentiment(stream),
       },
     };
   }

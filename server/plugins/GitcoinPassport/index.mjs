@@ -11,7 +11,7 @@ export default class GitcoinPassportPlugin {
   async init() {
     return {
       HOOKS: {
-        "stream:validate": (stream) => this.isValid(stream),
+        "validate": (stream) => this.isValid(stream),
         //"stream:add_metadata": (stream) => this.hello(stream),
       },
     };

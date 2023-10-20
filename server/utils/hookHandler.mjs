@@ -2,9 +2,9 @@
  * Those are all of the hooks used by OrbisDB (others might be added in the future).
  */
 const hooks = [
-  ["stream:validate", { isValidator: true }], // Updated the `terminateOnResult` logic. I feel that validators plugins should only be able to return true or false.
-  ["stream:add_metadata", {}],
-  ["stream:post_process", {}],
+  ["validate", { isValidator: true }], // Updated the `terminateOnResult` logic. I feel that validators plugins should only be able to return true or false.
+  ["add_metadata", {}],
+  ["post_process", {}],
 ];
 
 /**
