@@ -44,7 +44,12 @@ app.prepare().then(() => {
   // Here you might use various middleware (for cookies, auth, etc.)
 
   // Custom handling of some specific URLs may also go here. For example:
-  // server.get('/specific-route', (req, res) => { /* handle route */ });
+  server.get('/specific-route', (req, res) => {
+    res.json({
+      status: "200",
+      result: "specific route"
+    });
+  });
 
   // Default catch-all handler to allow Next.js to handle all other routes:
   server.all('*', (req, res) => {
