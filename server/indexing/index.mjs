@@ -76,14 +76,14 @@ export default class IndexingService {
 
 			if (stream) {
 				// Will execute all of the validator hooks and terminate if one of them reject the stream
-				const { isValid } = await this.hookHandler.executeHook("stream:validate", processedData);
+				const { isValid } = await this.hookHandler.executeHook("validate", processedData);
 				console.log("Is stream valid? ", isValid);
 				if(isValid == false) {
 					return console.log("This stream is not valid, don't index:", streamId);
 				}
 
 				// Will execute all of the "metadata" plugins and return a pluginsData object which will contain all of the metadata added by the different plugins
-				const { pluginsData } = await this.hookHandler.executeHook("stream:add_metadata", processedData);
+				const { pluginsData } = await this.hookHandler.executeHook("add_metadata", processedData);
 
 				// Add additional fields to the content which will be saved in the database
 				let content = {
@@ -97,7 +97,7 @@ export default class IndexingService {
 				await this.database.save(model, content, pluginsData);
 
 				// Finally will execute all of the post-processor plugins.
-				this.hookHandler.executeHook("stream:post_process", processedData);
+				this.hookHandler.executeHook("post_process", processedData);
 	    }
 		} catch(e) {
 			console.log("Error indexing stream:", e);

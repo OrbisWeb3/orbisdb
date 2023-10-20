@@ -62,6 +62,35 @@ app.prepare().then(() => {
     }
   });
 
+  // API endpoint to get details of a specific plugin
+  server.get('/api/plugins/:plugin_id', async (req, res) => {
+    const { plugin_id } = req.params;
+
+    try {
+        const plugins = await loadPlugins(); // This loads all available plugins
+        const plugin = plugins.find(p => p.id === plugin_id); // Find the plugin with the corresponding id
+
+        if (plugin) {
+            res.json({
+                status: "200",
+                plugin: plugin // Return the found plugin
+            });
+        } else {
+            // If no plugin matches the provided id, send an appropriate response
+            res.status(404).json({
+                status: "404",
+                result: `Plugin with id "${plugin_id}" not found.`
+            });
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            status: "500",
+            result: "Internal server error while loading plugins."
+        });
+    }
+});
+
   // Default catch-all handler to allow Next.js to handle all other routes:
   server.all('*', (req, res) => {
     return handle(req, res);
