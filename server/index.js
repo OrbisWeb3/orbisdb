@@ -1,21 +1,14 @@
 import path from 'path';
 import express from 'express';
 import next from 'next';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
-import fs from 'fs';
 
 import IndexingService from "./indexing/index.js";
 import Supabase from "./db/supabase.js";
 import HookHandler from "./utils/hookHandler.js";
-import HelloWorldPlugin from "./plugins/HelloWorld.js"; // Simple class plugin
-import HookModerationExample from "./plugins/HookModerationExample.js"; // More flexible hook approach
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-/** Specify the current settings file path which will contain all of the settings of the orbisdb instance */
-const settingsFilePath = path.join(__dirname, '../orbisdb-settings.json');
+/** Load plugins (will need to find a different way to enable those when we migrate to plugins stored in the settings file) */
+import HelloWorldPlugin from "./plugins/HelloWorld.js"; // Default HelloWorld plugin
+import HookModerationExample from "./plugins/HookModerationExample.js"; // Example plugin used for moderation
 
 /** Initialize the hook handler */
 let hookHandler = new HookHandler();
@@ -36,7 +29,6 @@ export const MainnetIndexing = new IndexingService(
   database,   // Database instance to use (Supabase was the simplest example since we are currently using it)
   hookHandler // Hookhandler
 );
-
 
 // Create an instance of the application using Next JS pointing to the front-end files located in the client folder
 const dev = process.env.NODE_ENV !== 'production';
@@ -65,12 +57,6 @@ app.prepare().then(() => {
     console.log(`> Ready on http://localhost:${PORT}`);
   });
 });
-
-
-
-
-
-
 
 /** Subscribe to streams created on Mainnet */
 MainnetIndexing.subscribe();
