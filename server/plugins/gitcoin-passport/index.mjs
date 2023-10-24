@@ -1,9 +1,10 @@
 
 export default class GitcoinPassportPlugin {
-  constructor({api_key, scorer_id}) {
-    this.id = "GitcoinPassportPlugin";
+  constructor({api_key, scorer_id, min_score}) {
+    this.id = "gitcoin-passport";
     this.api_key = api_key;
     this.scorer_id = scorer_id;
+    this.min_score = min_score;
   }
 
   /**

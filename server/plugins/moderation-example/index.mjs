@@ -1,7 +1,8 @@
 
 export default class ExampleModerationPlugin {
-  constructor() {
-    this.id = "ExampleModerationPlugin";
+  constructor({secret_key}) {
+    this.id = "moderation-example";
+    this.secret_key = secret_key;
   }
 
   /**

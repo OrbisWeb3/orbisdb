@@ -2,5 +2,12 @@
   "id": "moderation-example",
   "name": "Moderation Example",
   "description": "Example of a plugin to moderate content.",
-  "hooks": ["validate", "add_metadata"]
+  "hooks": ["validate", "add_metadata"],
+  "variables": [
+    {
+      "name": "OpenAI Secret Key",
+      "description": "The API key that will be used by this plugin when communicating with OpenAI.",
+      "id": "secret_key"
+    }
+  ]
 }

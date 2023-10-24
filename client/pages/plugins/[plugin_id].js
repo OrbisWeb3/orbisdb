@@ -81,7 +81,7 @@ export default function PluginDetails() {
 
       if(response.status == 200) {
         setStatus(STATUS.SUCCESS);
-        setSettings(response.settings);
+        setSettings(response.updatedSettings);
       } else {
         console.log("Error adding plugin.");
       }

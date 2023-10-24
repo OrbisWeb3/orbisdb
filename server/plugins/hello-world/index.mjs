@@ -1,7 +1,7 @@
 
 export default class HelloWorldPlugin {
   constructor() {
-    this.id = "HelloWorldPlugin";
+    this.id = "hello-world-plugin";
   }
 
   /**

@@ -41,7 +41,8 @@
       "plugin_id": "gitcoin-passport",
       "variables": {
         "api_key": "G5WwLzpf.HCYtZLKZ9yGq4tOnyLf9OYxejgFXxaSb",
-        "scorer_id": "899"
+        "scorer_id": "899",
+        "min_score": "5"
       }
     },
     {
@@ -51,6 +52,12 @@
     {
       "plugin_id": "hello-world",
       "variables": {}
+    }
+  ],
+  "contexts": [
+    {
+      "name": "Orbis Forum",
+      "stream_id": "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94j"
     }
   ]
 }

@@ -13,6 +13,12 @@
       "name": "Scorer ID",
       "description": "Your unique scorer ID to make sure your user's score are computed based on your rules.",
       "id": "scorer_id"
+    },
+    {
+      "name": "Score required",
+      "description": "The Gitcoin Passport score required.",
+      "per_context": true,
+      "id": "min_score"
     }
   ]
 }

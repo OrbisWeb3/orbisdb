@@ -40,7 +40,12 @@ export default function App({ Component, pageProps }) {
     <GlobalContext.Provider value={{ settings, setSettings, orbis }}>
       <div className="h-full w-full">
         <Header />
-        <Component {...pageProps} />
+        {settings ?
+          <Component {...pageProps} />
+        :
+          <p className="text-base w-full text-center pt-12">Loading settings...</p>
+        }
+
       </div>
     </GlobalContext.Provider>
   )
