@@ -35,6 +35,33 @@ export default function Button({type = "primary", status = 0, onClick, title, su
 
     /** Secondary blue border button */
     case "secondary":
+      switch (status) {
+        // Active state
+        case 0:
+          return (
+            <button className="bg-white hover:bg-slate-50 text-sm px-2.5 py-1.5 rounded-md font-medium pointer flex flex-row items-center justify-center border border-color-[#4483FD] text-[#4483FD]" onClick={onClick}>{title}</button>
+          );
+
+        // Loading state
+        case 1:
+          return (
+            <button className="bg-slate-50 text-sm px-2.5 py-1.5 rounded-md font-medium pointer flex flex-row items-center justify-center border border-color-[#4483FD] text-[#4483FD]"><LoadingCircle />{title}</button>
+          );
+
+        // Success state
+        case 2:
+          return (
+            <button className="bg-white text-sm px-2.5 py-1.5 rounded-md font-medium pointer flex flex-row items-center justify-center border border-green-500 text-green-500" onClick={onClick}>{successTitle ? successTitle : title}</button>
+          );
+
+        /// Error state
+        case 3:
+          return (
+            <button className="bg-red-500 text-white text-sm px-2.5 py-1.5 rounded-md font-medium pointer flex flex-row items-center justify-center" onClick={onClick}>{title}</button>
+          );
+        default:
+
+      }
       break;
     default:
 

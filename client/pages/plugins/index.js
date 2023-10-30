@@ -46,10 +46,10 @@ const LoopPlugins = ({plugins}) => {
         <div className="flex flex-col items-center space-x-2 bg-white px-4 py-3 border border-slate-200 rounded-md" key={key}>
           <Link className="text-[#4483FD] text-center font-medium text-base hover:underline" href={"/plugins/" + plugin.id}>{plugin.name}</Link>
           <div className="text-slate-500 text-base text-center">{plugin.description}</div>
-          <div className="mt-2 flex flex-row flex-wrap justify-center">
+          <div className="mt-2 flex flex-row flex-wrap justify-center space-x-2">
             {/** Display hooks used by this plugin */}
             {plugin.hooks && plugin.hooks.map((hook, index) => (
-              <div className="bg-slate-100 rounded-full px-3 py-1 text-xs font-medium text-slate-800 m-0.5" key={index}>
+              <div className="bg-slate-100 rounded-full px-3 py-1 text-xs font-medium text-slate-800" key={index}>
                 {hook}
               </div>
             ))}

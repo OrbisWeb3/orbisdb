@@ -1,10 +1,15 @@
 import React, { useState, useEffect, useContext } from "react";
 import { GlobalContext } from "../../contexts/Global";
-import { CheckIcon, CloseIcon, QuestionMarkIcon } from "../../components/Icons";
+import { CheckIcon, SettingsIcon, DashIcon, AlertIcon } from "../../components/Icons";
 import AddModelModal from "../../components/Modals/AddModel";
+import PluginSettingsModal from "../../components/Modals/PluginSettings";
+import AssignContextModal from "../../components/Modals/AssignContext";
+import Modal from "../../components/Modals";
 import Button from "../../components/Button";
+import InternalNavigation from "../../components/InternalNavigation";
 import { useRouter } from 'next/router'
-import { STATUS, sleep } from "../../utils";
+import { STATUS, sleep, findContextById } from "../../utils";
+import useContextDetails from "../../hooks/useContextDetails";
 
 export default function PluginDetails() {
   const { settings, setSettings } = useContext(GlobalContext);
@@ -13,10 +18,15 @@ export default function PluginDetails() {
   const [status, setStatus] = useState(STATUS.ACTIVE);
   const [defaultVariables, setDefaultVariables] = useState();
   const [isInstalled, setIsInstalled] = useState(false);
+  const [nav, setNav] = useState("Overview");
+  const [installPluginModalVis, setInstallPluginModalVis] = useState(false);
+  const [assignContextModalVis, setAssignContextModalVis] = useState(false);
 
   /** Use Next router to get conversation_id */
   const router = useRouter();
   const { plugin_id } = router.query;
+
+  const existingPluginIndex = settings.plugins.findIndex(p => p.plugin_id === plugin_id);
 
   useEffect(() => {
     if(plugin_id) {
@@ -39,7 +49,6 @@ export default function PluginDetails() {
       }
 
       /** Check if plugin is already installed or not */
-      const existingPluginIndex = settings.plugins.findIndex(p => p.plugin_id === plugin_id);
       if (existingPluginIndex !== -1) {
         // Plugin is already installed, assign the default variables
         setIsInstalled(true);
@@ -82,6 +91,8 @@ export default function PluginDetails() {
       if(response.status == 200) {
         setStatus(STATUS.SUCCESS);
         setSettings(response.updatedSettings);
+        await sleep(1500);
+        setInstallPluginModalVis(false);
       } else {
         console.log("Error adding plugin.");
       }
@@ -93,45 +104,176 @@ export default function PluginDetails() {
   }
 
   return(
-    <>
+    <div className="flex flex-row space-x-8">
+      {/** Plugin content */}
       <div className="px-16 py-12 md:w-2/3">
         {pluginDetails ?
           <>
-            <h1 className="text-3xl font-bold text-slate-900">{pluginDetails.name}</h1>
-            <p className="text-slate-600 mt-1 text-base">{pluginDetails.description}</p>
-            <div className="flex flex-col space-y-4 mt-4 lg:w-2/5">
-              <form onSubmit={savePlugin}>
-                {/** If this plugin is requiring variables we show those here */}
-                {pluginDetails.variables &&
-                  <LoopPluginVariables variables={pluginDetails.variables} defaultVariables={defaultVariables} />
-                }
-                <div className="flex flex-row justify-center">
-                  <Button title={isInstalled ? "Update plugin settings" : "Install plugin"} status={status} successTitle="Plugin added" />
-                </div>
-              </form>
+            <div className="flex flex-row items-center">
+              {pluginDetails.logo &&
+                <img src={pluginDetails.logo} className="mr-3 h-20 w-20" />
+              }
+              <h1 className="text-3xl font-bold text-slate-900">{pluginDetails.name}</h1>
             </div>
 
+            {/** Plugin Navigation */}
+            <div className="flex justify-start mt-3 mb-3">
+              <InternalNavigation items={[
+                { label: 'Overview', active: true },
+                { label: 'Contexts', active: isInstalled }
+              ]} nav={nav} setNav={setNav} />
+            </div>
+
+            {/** Show overview tab content */}
+            {nav == "Overview" &&
+              <p className="text-slate-600 mt-1 text-base">{pluginDetails.full_description ? pluginDetails.full_description : pluginDetails.description}</p>
+            }
+
+            {/** Show contexts tab content */}
+            {nav == "Contexts" &&
+              <>
+                  {(settings?.plugins?.[existingPluginIndex]?.contexts?.length > 0) ?
+                    <>
+                      <p className="text-slate-600 mt-3 text-base">Enable this plugin on your contexts to start using it:</p>
+                      <div className="flex flex-row flex-wrap mt-2 items-start">
+                        {settings.plugins[existingPluginIndex].contexts?.map((context, index) => (
+                          <OneContext context={context} key={index} />
+                        ))}
+                      </div>
+                    </>
+                  :
+                    <div className="bg-amber-100 rounded-md border-dashed border border-amber-200 w-full py-4 justify-center flex mt-4">
+                      <span className="text-center text-amber-800 text-base">You haven't assigned this plugin to a context yet.</span>
+                    </div>
+                  }
+
+
+                <div className="flex w-full justify-center mt-4">
+                  <Button type="secondary" title="Assign to a new context" onClick={() => setAssignContextModalVis(true)}/>
+                </div>
+
+              </>
+            }
+
+            {/** Show settings tab content */}
+            {nav == "Settings" &&
+              <div className="flex flex-col space-y-4 mt-4 lg:w-2/5">
+                <form onSubmit={savePlugin}>
+                  {/** If this plugin is requiring variables we show those here */}
+                  {pluginDetails.variables &&
+                    <LoopPluginVariables variables={pluginDetails.variables} defaultVariables={defaultVariables} />
+                  }
+                  <div className="flex flex-row justify-center">
+                    <Button title="Save" status={status} successTitle="Saved" />
+                  </div>
+                </form>
+              </div>
+            }
           </>
         :
           <p>Loading...</p>
         }
 
       </div>
-    </>
+
+      {/** Plugin right-side */}
+      {pluginDetails &&
+        <div className="flex flex-col py-12 md:w-1/3 pr-16">
+          {/** Install block */}
+          <div className="rounded-md bg-white border border-slate-200 p-6 py-5 w-full">
+            <h2 className="font-medium text-lg">Installation</h2>
+            <p className="text-slate-500 text-base">Install this plugin to start using it on your contexts.</p>
+
+            <p className="text-base font-medium mt-3 mb-0.5">Hooks used:</p>
+            <div className="flex flex-row space-x-2">
+              {pluginDetails.hooks && pluginDetails.hooks.map((hook, index) => (
+                <div className="bg-slate-100 rounded-full px-3 py-1 text-xs font-medium text-slate-800" key={index}>
+                  {hook}
+                </div>
+              ))}
+            </div>
+
+            {/** Main install button */}
+            <div className="flex flex-row mt-4 justify-center">
+              {isInstalled ?
+                <div className="flex flex-col space-y-2">
+                  <div className="bg-green-500 text-white text-sm px-2.5 py-1.5 rounded-md font-medium pointer flex flex-row items-center justify-center space-x-1"><CheckIcon /> <span>Plugin installed</span></div>
+                  <div className="text-slate-900 hover:underline text-sm cursor-pointer font-medium" onClick={() => setInstallPluginModalVis(true)}>Update plugin setings</div>
+                </div>
+              :
+                <Button title={isInstalled ? "Update plugin settings" : "Install plugin"} status={status} successTitle="Plugin added" onClick={() => setInstallPluginModalVis(true)} />
+              }
+
+            </div>
+          </div>
+        </div>
+      }
+
+      {/** Modals */}
+      {installPluginModalVis &&
+        <PluginSettingsModal
+          hide={() => setInstallPluginModalVis(false)}
+          savePlugin={savePlugin}
+          status={status}
+          pluginDetails={pluginDetails}
+          defaultVariables={defaultVariables} />
+      }
+
+      {assignContextModalVis &&
+        <AssignContextModal hide={() => setAssignContextModalVis(false)} plugin_id={plugin_id} />
+      }
+    </div>
   )
 }
 
-const LoopPluginVariables = ({variables, defaultVariables}) => {
-  console.log("defaultVariables:", defaultVariables);
-  return variables.map((variable, key) => {
-    return (
-        <div className="flex flex-col mb-4" key={key}>
-          <p className="text-base font-medium text-slate-900">{variable.name}:</p>
-          {variable.description &&
-            <p className="text-base text-slate-500">{variable.description}</p>
-          }
-          <input type="text" placeholder={variable.name} name={variable.id} value={defaultVariables ? defaultVariables[variable.id] : "" } className="bg-white px-2 py-1 rounded-md border border-slate-300 text-base text-slate-900 mt-1" />
-        </div>
-    );
-  });
+
+const OneContext = ({context}) => {
+  const { settings } = useContext(GlobalContext);
+  console.log("In OneContext: context =>", context);
+
+  const getContextName = (id) => {
+    let details = findContextById(settings.contexts, id);
+    console.log("details:", details);
+    return details?.name;
+  }
+  const getContextLogo = (id) => {
+    let details = findContextById(settings.contexts, id);
+    console.log("details:", details);
+    return details?.logo;
+  }
+
+  return(
+    <div className="rounded-md bg-white border border-slate-200 flex flex-col overflow-hidden mb-3 mr-3">
+
+      {/** Context details */}
+      <div className="flex flex-row px-4 py-3 items-center space-x-1.5">
+        {context.path.map((context_id, index) => {
+          const { name, logo } = useContextDetails(context_id);
+          return (
+            <>
+              <div className="flex items-center">
+                {/** Display context logo if any */}
+                {logo &&
+                  <img
+                    src={logo}
+                    alt={name}
+                    className="h-5 w-5 flex-shrink-0 mr-1.5 rounded-full" />
+                }
+                <span className="text-base font-normal block truncate">{name}</span>
+              </div>
+              {context_id != context.context &&
+                <DashIcon />
+              }
+            </>
+          );
+        })}
+      </div>
+
+      {/** Configure CTA */}
+      <div className="flex flex-row bg-[#FBFBFB] text-[#989494] hover:text-[#807878] cursor-pointer border-t border-slate-200 space-x-1 px-3 py-1.5 items-center justify-center">
+        <SettingsIcon />
+        <span className="text-sm font-medium">Configure</span>
+      </div>
+    </div>
+  )
 }

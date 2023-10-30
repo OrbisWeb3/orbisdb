@@ -9,7 +9,7 @@ import { GlobalContext } from "../contexts/Global";
 import '../styles/globals.css'
 
 /** Initialize the Orbis class object */
-const orbis = new Orbis();
+const orbis = new Orbis({useLit: false});
 
 
 let defaultSettings = {

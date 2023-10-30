@@ -1,8 +1,9 @@
 {
   "id": "gitcoin-passport",
   "name": "Gitcoin Passport",
+  "logo": "/img/gitcoin-passport-logo.png",
   "description": "Add sybil resistance to your app using Gitcoin Passport.",
-  "full_description": "Add sybil resistance to your app using Gitcoin Passport.",
+  "full_description": "Passport is a tool that allows users to present evidence that they are real, unique humans and signal their trustworthiness to apps. It is a way to collect and present data without exposing it or giving up ownership. Under the hood, it is a unique decentralized identifier (a DID) associated with your Ethereum address, stored on the Ceramic network. The DID can be used to look up a user's Stamp data, which exists as a collection of Verified Credentials. Verified Credentials do not contain any personal identifying information! They simply demonstrate, using a cryptographic signature, that the user gave access to a specific app and that some criteria were met.",
   "hooks": ["validate", "add_metadata"],
   "variables": [
     {

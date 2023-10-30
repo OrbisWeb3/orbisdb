@@ -14,6 +14,29 @@ export function shortAddress(address, number = 5) {
   return firstChars.concat('-', lastChars);
 }
 
+/** Will fint the context using the stream id in the contexts and sub-contexts */
+export function findContextById(contexts, streamId) {
+  if(contexts && Array.isArray(contexts)) {
+    for (let context of contexts) {
+        // Check if the current context's stream_id matches the target
+        if (context.stream_id === streamId) {
+            return context;
+        }
+
+        // If this context has sub-contexts, recursively search them
+        if (context.contexts && Array.isArray(context.contexts)) {
+            let found = findContextById(context.contexts, streamId);
+            if (found) {
+                return found;
+            }
+        }
+    }
+  }
+
+  // If we've looped through all contexts and haven't found a match, return null
+  return null;
+}
+
 /** Use enum instead of magic numbers for statuses */
 export const STATUS = {
   ACTIVE: 0,

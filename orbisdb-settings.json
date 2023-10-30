@@ -42,12 +42,57 @@
       "variables": {
         "api_key": "G5WwLzpf.HCYtZLKZ9yGq4tOnyLf9OYxejgFXxaSb",
         "scorer_id": "899",
-        "min_score": "5"
-      }
+        "min_score": "6"
+      },
+      "contexts": [
+        {
+          "path": [
+            "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94j",
+            "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94jgeneral"
+          ],
+          "context": "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94jgeneral"
+        },
+        {
+          "path": [
+            "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94c"
+          ],
+          "context": "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94c"
+        },
+        {
+          "path": [
+            "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94j",
+            "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94jtechnical"
+          ],
+          "context": "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94jtechnical"
+        }
+      ]
     },
     {
       "plugin_id": "hello-world",
-      "variables": {}
+      "variables": {},
+      "contexts": [
+        {
+          "path": [
+            "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94j",
+            "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94jgeneral"
+          ],
+          "context": "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94jgeneral"
+        },
+        {
+          "path": [
+            "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94j",
+            "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94jtechnical"
+          ],
+          "context": "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94jtechnical"
+        },
+        {
+          "path": [
+            "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94j",
+            "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94jtechnical"
+          ],
+          "context": "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94jtechnical"
+        }
+      ]
     },
     {
       "plugin_id": "hello-world",
@@ -57,7 +102,23 @@
   "contexts": [
     {
       "name": "Orbis Forum",
-      "stream_id": "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94j"
+      "logo": "/img/orbis-logo.png",
+      "stream_id": "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94j",
+      "contexts": [
+        {
+          "name": "General",
+          "stream_id": "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94jgeneral"
+        },
+        {
+          "name": "Technical questions",
+          "stream_id": "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94jtechnical"
+        }
+      ]
+    },
+    {
+      "name": "Cerscan Community Chat",
+      "logo": "/img/cerscan-logo.png",
+      "stream_id": "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94c"
     }
   ]
 }
