@@ -8,7 +8,7 @@ const settingsFilePath = path.resolve(process.cwd(), 'orbisdb-settings.json');
 
 export default async function handler(req, res) {
   if (req.method === 'POST') {
-    const { plugin_id, path } = req.body;
+    const { plugin_id, path, variables, context_id } = req.body;
     console.log("plugin_id:", plugin_id);
     console.log("path:", path);
 
@@ -20,36 +20,37 @@ export default async function handler(req, res) {
 
       let settings = JSON.parse(fs.readFileSync(settingsFilePath, 'utf8'));
 
-      // 01. Find plugin in array using the plugin id field
-      let plugin = findPlugin(settings.plugins, plugin_id);
-      console.log("plugin retrieved:", plugin);
 
-      // 02. Create or update contexts object
-      let assigned_context = {
-        path: path,
-        context: path[path.length - 1]
+      // Find the plugin by plugin_id
+      const pluginIndex = settings.plugins.findIndex(plugin => plugin.plugin_id === plugin_id);
+      if (pluginIndex === -1) {
+        throw new Error('Plugin not found');
       }
 
-      // 03. Update object to assign new context to installed plugin
-      let plugin_contexts;
-      if(!plugin.contexts) {
-        plugin_contexts = [assigned_context];
+      // Update or add the context
+      const contextIndex = settings.plugins[pluginIndex].contexts.findIndex(c => c.context === context_id);
+      if (contextIndex === -1) {
+        let val = {
+          path: path,
+          context: path[path.length - 1]
+        };
+
+        if (Object.keys(variables).length > 0) { // Check if variables is not empty
+          val.variables = variables;
+        }
+
+        // Update settings
+        settings.plugins[pluginIndex].contexts.push(val);
       } else {
-        plugin_contexts = [...plugin.contexts, assigned_context];
+        settings.plugins[pluginIndex].contexts[contextIndex].variables = variables;
       }
-      plugin.contexts = plugin_contexts;
 
-      console.log("New settings:", settings);
+      console.log("settings:", settings)
 
-      // Rewrite the settings file
+      // Write the updated settings back to the file
       fs.writeFileSync(settingsFilePath, JSON.stringify(settings, null, 2));
 
-      // Send the response
-      res.status(200).json({
-        status: 200,
-        settings,
-        result: "Model added to the settings file."
-      });
+      res.status(200).json({ message: 'Context updated successfully', settings: settings });
 
     } catch (err) {
       console.error(err);

@@ -44,6 +44,13 @@ const LoopPlugins = ({plugins}) => {
   return plugins.map((plugin, key) => {
     return (
         <div className="flex flex-col items-center space-x-2 bg-white px-4 py-3 border border-slate-200 rounded-md" key={key}>
+          {/** Optional plugin logo */}
+          {plugin.logo &&
+            <Link href={"/plugins/" + plugin.id}>
+              <img src={plugin.logo} className="mr-3 h-12 w-12 rounded-md mb-1" />
+            </Link>
+          }
+
           <Link className="text-[#4483FD] text-center font-medium text-base hover:underline" href={"/plugins/" + plugin.id}>{plugin.name}</Link>
           <div className="text-slate-500 text-base text-center">{plugin.description}</div>
           <div className="mt-2 flex flex-row flex-wrap justify-center space-x-2">

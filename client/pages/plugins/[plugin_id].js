@@ -21,6 +21,7 @@ export default function PluginDetails() {
   const [nav, setNav] = useState("Overview");
   const [installPluginModalVis, setInstallPluginModalVis] = useState(false);
   const [assignContextModalVis, setAssignContextModalVis] = useState(false);
+  const [selectedContext, setSelectedContext] = useState(null);
 
   /** Use Next router to get conversation_id */
   const router = useRouter();
@@ -111,7 +112,7 @@ export default function PluginDetails() {
           <>
             <div className="flex flex-row items-center">
               {pluginDetails.logo &&
-                <img src={pluginDetails.logo} className="mr-3 h-20 w-20" />
+                <img src={pluginDetails.logo} className="mr-3 h-20 w-20 rounded-md" />
               }
               <h1 className="text-3xl font-bold text-slate-900">{pluginDetails.name}</h1>
             </div>
@@ -137,7 +138,7 @@ export default function PluginDetails() {
                       <p className="text-slate-600 mt-3 text-base">Enable this plugin on your contexts to start using it:</p>
                       <div className="flex flex-row flex-wrap mt-2 items-start">
                         {settings.plugins[existingPluginIndex].contexts?.map((context, index) => (
-                          <OneContext context={context} key={index} />
+                          <OneContext context={context} key={index} setSelectedContext={setSelectedContext} />
                         ))}
                       </div>
                     </>
@@ -219,15 +220,21 @@ export default function PluginDetails() {
           defaultVariables={defaultVariables} />
       }
 
+      {/** Modal to assign a plugin to a context */}
       {assignContextModalVis &&
         <AssignContextModal hide={() => setAssignContextModalVis(false)} plugin_id={plugin_id} />
+      }
+
+      {/** Modal to assign a plugin to a context */}
+      {selectedContext != null &&
+        <AssignContextModal hide={() => setSelectedContext(null)} selectedContext={selectedContext} plugin_id={plugin_id} />
       }
     </div>
   )
 }
 
 
-const OneContext = ({context}) => {
+const OneContext = ({context, setSelectedContext}) => {
   const { settings } = useContext(GlobalContext);
   console.log("In OneContext: context =>", context);
 
@@ -269,8 +276,19 @@ const OneContext = ({context}) => {
         })}
       </div>
 
+      {/** Display context variables if any */}
+      {context.variables &&
+        <div className="flex flex-col px-4 text-sm border-t border-slate-100 py-2 text-slate-600 space-y-1">
+          {Object.entries(context.variables).map(([key, value]) => (
+            <div key={key}>
+              <span className="font-medium text-slate-900">{key}:</span> {value}
+            </div>
+          ))}
+        </div>
+      }
+
       {/** Configure CTA */}
-      <div className="flex flex-row bg-[#FBFBFB] text-[#989494] hover:text-[#807878] cursor-pointer border-t border-slate-200 space-x-1 px-3 py-1.5 items-center justify-center">
+      <div className="flex flex-row bg-[#FBFBFB] text-[#989494] hover:text-[#807878] cursor-pointer border-t border-slate-200 space-x-1 px-3 py-1.5 items-center justify-center" onClick={() => setSelectedContext(context)}>
         <SettingsIcon />
         <span className="text-sm font-medium">Configure</span>
       </div>

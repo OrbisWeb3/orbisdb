@@ -4,71 +4,165 @@ import Modal from "../Modals";
 import Button from "../Button";
 import { STATUS, sleep, findContextById } from "../../utils";
 import { DropdownArrow } from "../Icons";
+import LoopPluginVariables from "../PluginVariables";
+import StepsProgress from "../StepsProgress";
 
-export default function AssignContextModal({hide, plugin_id}) {
+export default function AssignContextModal({hide, plugin_id, selectedContext}) {
   const { settings, setSettings } = useContext(GlobalContext);
   const [status, setStatus] = useState(STATUS.ACTIVE);
+  const [pluginDetails, setPluginDetails] = useState();
   const [selectedContextIds, setSelectedContextIds] = useState([]);
+  const [step, setStep] = useState(selectedContext ? 2 : 1);
 
-  async function assignContext() {
-      if(!selectedContextIds || selectedContextIds.length == 0) {
-        alert("Please select a context first.");
-        return null;
+  useEffect(() => {
+    if(plugin_id) {
+      loadPluginDetails();
+    }
+    async function loadPluginDetails() {
+      /** Load plugin details */
+      try {
+        let result = await fetch("/api/plugins/" + plugin_id);
+        result = await result.json();
+        console.log("plugin details:", result);
+        if(result.status == 200) {
+          setPluginDetails(result.plugin);
+        } else {
+          console.log("Error retrieving plugin details.");
+        }
+      } catch(e) {
+        console.log("Error retrieving plugin details:", e);
       }
+    }
+  }, [plugin_id]);
 
-      setStatus(STATUS.LOADING);
-      event.preventDefault(); // Prevents the default form submit behavior
+  /** Go to the settings step for plugin */
+  function nextStep() {
+    if(!selectedContextIds || selectedContextIds.length == 0) {
+      alert("Please select a context first.");
+      return null;
+    }
 
-
-      /** Submit assign context form */
-      let response = await fetch('/api/settings/assign-context', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          plugin_id: plugin_id,
-          path: selectedContextIds
-        }),
-      });
-      response = await response.json();
-      console.log("response:", response)
-      setStatus(STATUS.SUCCESS);
-      setSettings(response.settings);
-      await sleep(1500)
-      hide();
+    setStep(2);
   }
 
-  return(
-    <Modal hide={hide} title="Assign to a new context" description="Assign this plugin to a new context.">
-      <form onSubmit={assignContext} className="mt-4">
-        {/** Select the parent context you want to use here */}
-        {(selectedContextIds && selectedContextIds.length >= 1) ?
-          <>
-            {[...selectedContextIds, {}].map((context, index) => (
-              <ContextDropdown
-                index={index}
-                selectedContext={context}
-                selectedContextIds={selectedContextIds}
-                setSelectedContextIds={setSelectedContextIds} />
-            ))}
-          </>
-        :
-          <ContextDropdown
-            selectedContextIds={selectedContextIds}
-            setSelectedContextIds={setSelectedContextIds} />
-        }
+  /** Will either assign a new context to this plugin or add a new one */
+  async function saveOrUpdateContext() {
+    if(!selectedContextIds || selectedContextIds.length == 0) {
+      alert("Please select a context first.");
+      return null;
+    }
 
-        {/** Save button */}
-        <div className="flex flex-row justify-center mt-4">
-          <Button title="Save" status={status} successTitle="Saved" />
+    setStatus(STATUS.LOADING);
+    event.preventDefault(); // Prevents the default form submit behavior
+
+    /** Retrieve form details for variables */
+    const form = event.target;
+    const formData = new FormData(form);
+    const data = {};
+
+    // Loop through the FormData entries
+    for (let [key, value] of formData.entries()) {
+      data[key] = value;
+    }
+    console.log("Variables:", data);
+
+    // Determine if we are updating an existing context or saving a new one
+    let requestBody = {
+      plugin_id: plugin_id,
+      variables: data
+    };
+
+    if (selectedContext) {
+      requestBody.context_id = selectedContext.context;
+    } else {
+      requestBody.path = selectedContextIds;
+    }
+
+    /** Submit assign context form */
+    let response = await fetch('/api/settings/assign-context', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestBody),
+    });
+    response = await response.json();
+    console.log("response:", response)
+    setStatus(STATUS.SUCCESS);
+    setSettings(response.settings);
+    await sleep(1500);
+    hide();
+  }
+
+
+  return(
+    <Modal hide={hide} title={selectedContext ? "Update the context settings" : "Assign to a new context"} description={selectedContext ? "Update the plugin settings for this context."  : "Assign this plugin to a new context." }>
+      {/** Show stepper only if user is assigning a plugin to a new context (not updating it) */}
+      {!selectedContext &&
+        <div className="w-full mt-6">
+          <StepsProgress steps={["Select your context", "Settings"]} currentStep={step} />
         </div>
-      </form>
+      }
+
+
+      {/** Step 1: Select context */}
+      {step == 1 &&
+        <div className="mt-4">
+          {/** Select the parent context you want to use here */}
+          {(selectedContextIds && selectedContextIds.length >= 1) ?
+            <>
+              {[...selectedContextIds, {}].map((context, index) => (
+                <ContextDropdown
+                  index={index}
+                  plugin_id={plugin_id}
+                  selectedContext={context}
+                  selectedContextIds={selectedContextIds}
+                  setSelectedContextIds={setSelectedContextIds} />
+              ))}
+            </>
+          :
+            <ContextDropdown
+              selectedContextIds={selectedContextIds}
+              plugin_id={plugin_id}
+              setSelectedContextIds={setSelectedContextIds} />
+          }
+
+          {/** Save button */}
+          <div className="flex flex-row justify-center mt-4">
+          {(!selectedContextIds || selectedContextIds.length == 0) ?
+            <Button title="Next" status={STATUS.DISABLED} onClick={() => nextStep()} />
+          :
+            <Button title="Next" onClick={() => nextStep()} />
+          }
+
+          </div>
+        </div>
+      }
+
+      {/** Step 2: Set variables */}
+      {step == 2 &&
+        <form onSubmit={saveOrUpdateContext} className="mt-6 flex flex-col">
+          {pluginDetails?.variables ?
+            <LoopPluginVariables variables={pluginDetails?.variables} defaultVariables={selectedContext ? selectedContext.variables : null } per_context={true} />
+          :
+            <div className="bg-amber-100 rounded-md border-dashed border border-amber-200 w-full py-2 justify-center flex mb-4">
+              <span className="text-center text-amber-800 text-base">There aren't any contextualized variables to setup for this plugin.</span>
+            </div>
+          }
+
+
+          {/** Save button */}
+          <div className="flex flex-row justify-center">
+            <Button title="Save" status={status} successTitle="Saved" />
+          </div>
+        </form>
+      }
+
     </Modal>
   )
 }
 
-const ContextDropdown = ({ selectedContext, selectedContextIds, setSelectedContextIds, index }) => {
+const ContextDropdown = ({ selectedContext, selectedContextIds, setSelectedContextIds, index, plugin_id }) => {
   const { settings } = useContext(GlobalContext);
   const [listVis, setListVis] = useState(false);
 
@@ -102,12 +196,12 @@ const ContextDropdown = ({ selectedContext, selectedContextIds, setSelectedConte
   }
 
   return (
-    <div className="w-full relative">
+    <div className="w-full relative mb-2">
       {/* Dropdown selector */}
       <div className="flex flex-row bg-white px-2 py-1 rounded-md border border-slate-300 hover:border-slate-400 cursor-pointer text-base text-slate-900 mt-1 items-center" onClick={() => setListVis(!listVis)}>
         {currentContext ?
           <span className="flex flex-1">
-            <ContextDetails context={currentContext} />
+            <SmContextDetails context={currentContext} />
           </span>
         :
           <span className="flex flex-1">Select your context</span>
@@ -127,11 +221,11 @@ const ContextDropdown = ({ selectedContext, selectedContextIds, setSelectedConte
             aria-labelledby="listbox-label">
           {_contexts.map((context, index) => (
             <li
-              className="text-gray-900 relative select-none py-2 pl-3 pr-9 hover:bg-slate-50 cursor-pointer"
+              className={`relative select-none py-2 pl-3 pr-9 ${isContextUsed(plugin_id, context.stream_id) ? "text-gray-400 italic" : "text-gray-900 hover:bg-slate-50 cursor-pointer" }`}
               role="option"
               key={index}
-              onClick={() => selectContext(context)}>
-              <ContextDetails context={context} />
+              onClick={isContextUsed(plugin_id, context.stream_id) ? console.log("Can't select context") : () => selectContext(context)}>
+              <SmContextDetails context={context} />
             </li>
           ))}
         </ul>
@@ -141,7 +235,7 @@ const ContextDropdown = ({ selectedContext, selectedContextIds, setSelectedConte
 };
 
 
-const ContextDetails = ({context}) => {
+const SmContextDetails = ({context}) => {
   return(
       <div className="flex items-center">
         {/** Display context logo if any */}
@@ -155,4 +249,13 @@ const ContextDetails = ({context}) => {
       </div>
 
   )
+}
+
+
+function isContextUsed(plugin_id, targetContext) {
+  const { settings } = useContext(GlobalContext);
+  const pluginSettings = settings.plugins?.find(plugin => plugin.plugin_id === plugin_id);
+  if (!pluginSettings) return false;
+
+  return pluginSettings.contexts.some(ctx => ctx.context === targetContext);
 }

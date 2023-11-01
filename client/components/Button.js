@@ -20,13 +20,19 @@ export default function Button({type = "primary", status = 0, onClick, title, su
         // Success state
         case 2:
           return (
-            <button className="bg-green-500 text-white text-sm px-2.5 py-1.5 rounded-md font-medium pointer flex flex-row items-center justify-center" onClick={onClick}>{successTitle ? successTitle : title}</button>
+            <button className="bg-green-500 text-white text-sm px-2.5 py-1.5 rounded-md font-medium flex flex-row items-center justify-center" onClick={onClick}>{successTitle ? successTitle : title}</button>
           );
 
         /// Error state
         case 3:
           return (
-            <button className="bg-red-500 text-white text-sm px-2.5 py-1.5 rounded-md font-medium pointer flex flex-row items-center justify-center" onClick={onClick}>{title}</button>
+            <button className="bg-red-500 text-white text-sm px-2.5 py-1.5 rounded-md font-medium flex flex-row items-center justify-center" onClick={onClick}>{title}</button>
+          );
+
+        // Disabled state
+        case 4:
+          return (
+            <button className="bg-[#8fc1ff] text-white text-sm px-2.5 py-1.5 rounded-md font-medium flex flex-row items-center justify-center cursor-not-allowed">{title}</button>
           );
         default:
 

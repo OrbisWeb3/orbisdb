@@ -17,7 +17,7 @@
     },
     {
       "name": "Score required",
-      "description": "The Gitcoin Passport score required.",
+      "description": "The Gitcoin Passport score required for this context.",
       "per_context": true,
       "id": "min_score"
     }

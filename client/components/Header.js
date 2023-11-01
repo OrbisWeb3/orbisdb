@@ -7,7 +7,7 @@ export default function Header() {
   const navItems = [
     { title: 'Project', path: '/', type: "equal" },
     { title: 'Data', path: '/data', type: "includes" },
-    { title: 'Contexts', path: '/contexts', type: "includes" },
+    { title: 'Models', path: '/models', type: "includes" },
     { title: 'Plugins', path: '/plugins', type: "includes" },
     { title: 'Settings', path: '/settings', type: "equal" }
   ];

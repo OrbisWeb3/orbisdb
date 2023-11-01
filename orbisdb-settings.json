@@ -41,8 +41,7 @@
       "plugin_id": "gitcoin-passport",
       "variables": {
         "api_key": "G5WwLzpf.HCYtZLKZ9yGq4tOnyLf9OYxejgFXxaSb",
-        "scorer_id": "899",
-        "min_score": "6"
+        "scorer_id": "899"
       },
       "contexts": [
         {
@@ -50,20 +49,48 @@
             "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94j",
             "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94jgeneral"
           ],
-          "context": "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94jgeneral"
+          "context": "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94jgeneral",
+          "variables": {
+            "min_score": "5"
+          }
         },
         {
           "path": [
             "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94c"
           ],
-          "context": "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94c"
+          "context": "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94c",
+          "variables": {
+            "min_score": "3"
+          }
         },
         {
           "path": [
             "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94j",
             "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94jtechnical"
           ],
-          "context": "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94jtechnical"
+          "context": "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94jtechnical",
+          "variables": {
+            "min_score": "3"
+          }
+        },
+        {
+          "path": [
+            "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94j",
+            "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94jsupport"
+          ],
+          "context": "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94jsupport",
+          "variables": {
+            "min_score": "1"
+          }
+        },
+        {
+          "path": [
+            "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94j"
+          ],
+          "context": "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94j",
+          "variables": {
+            "min_score": "10"
+          }
         }
       ]
     },
@@ -91,6 +118,12 @@
             "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94jtechnical"
           ],
           "context": "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94jtechnical"
+        },
+        {
+          "path": [
+            "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94c"
+          ],
+          "context": "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94c"
         }
       ]
     },
@@ -107,11 +140,33 @@
       "contexts": [
         {
           "name": "General",
-          "stream_id": "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94jgeneral"
+          "stream_id": "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94jgeneral",
+          "contexts": [
+            {
+              "name": "#Questions",
+              "stream_id": "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94jq"
+            }
+          ]
         },
         {
           "name": "Technical questions",
           "stream_id": "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94jtechnical"
+        },
+        {
+          "name": "Support",
+          "stream_id": "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94jsupport"
+        },
+        {
+          "name": "test under orbis forum",
+          "stream_id": "kjzl6cwe1jw149aof1qrp4jvd78qipvdht05h85k5q8rd2qtbus1g2a3x66tyk9",
+          "context": "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94j",
+          "contexts": [
+            {
+              "name": "test under under",
+              "stream_id": "kjzl6cwe1jw149wbslahfvgb42itcdri7uji1deyui3s1nzp8r3u082d76wgabv",
+              "context": "kjzl6cwe1jw149aof1qrp4jvd78qipvdht05h85k5q8rd2qtbus1g2a3x66tyk9"
+            }
+          ]
         }
       ]
     },
@@ -119,6 +174,14 @@
       "name": "Cerscan Community Chat",
       "logo": "/img/cerscan-logo.png",
       "stream_id": "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94c"
+    },
+    {
+      "name": "CoinEasy - Categories",
+      "stream_id": "kjzl6cwe1jw145r8tq50m4jes5fdj1w75drq3r4iobhb79xmao8inldypjijm91"
+    },
+    {
+      "name": "New app",
+      "stream_id": "kjzl6cwe1jw14aaxltycvtnfqvnu261w7vab9wn28kra6ffpxwvh9kn7vizf9vb"
     }
   ]
 }
