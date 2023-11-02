@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useContext } from "react";
 import Link from 'next/link';
 import { GlobalContext } from "../../contexts/Global";
-import { findContextById, getPluginsByContext, findParentContextId } from "../../utils";
+import { STATUS, findContextById, getPluginsByContext, findParentContextId, sleep } from "../../utils";
 import { useRouter } from 'next/router'
-import { ContextTags } from "../../components/ContextDetails";
+import { ContextTags, PluginsCountTag, countSubContexts, countPluginsByContext } from "../../components/ContextDetails";
 import Alert from "../../components/Alert";
 import AddContextModal from "../../components/Modals/AddContext";
 import Button from "../../components/Button";
+import InternalNavigation from "../../components/InternalNavigation";
 
 export default function ContextDetails() {
   const { settings, setSettings } = useContext(GlobalContext);
@@ -14,6 +15,7 @@ export default function ContextDetails() {
   const [plugins, setPlugins] = useState([]);
   const [parentContext, setParentContext] = useState();
   const [addModalVis, setAddModalVis] = useState(false);
+  const [nav, setNav] = useState("Sub-contexts");
 
   /** Use Next router to get conversation_id */
   const router = useRouter();
@@ -23,22 +25,18 @@ export default function ContextDetails() {
     if(context_id) {
       loadContextDetails();
       loadContextPlugins();
-      console.log("settings.contexts", settings.contexts);
       let result = findParentContextId(context_id, settings.contexts ? settings.contexts : null);
-      console.log("result findParentContext:", result);
       setParentContext(result);
     }
 
     async function loadContextDetails() {
       let _context = findContextById(settings.contexts, context_id);
       setContext(_context);
-      console.log("context:", context);
     }
 
     function loadContextPlugins() {
       let results = getPluginsByContext(context_id, settings.plugins);
       setPlugins(results);
-      console.log("plugins installed:", results);
     }
   }, [context_id]);
 
@@ -70,61 +68,89 @@ export default function ContextDetails() {
             }
             <div className="flex flex-col">
               <h1 className="text-3xl font-bold text-slate-900">{context.name}</h1>
-              <div className="mt-2">
-                <ContextTags context={context} />
-              </div>
             </div>
+          </div>
+
+          {/** Context navigation */}
+          <div className="flex flex-row mt-3">
+            <InternalNavigation items={[
+              { label: 'Sub-contexts', title: <span className="flex flex-row items-center space-x-1"><span className="bg-slate-100 py-0.5 text-xs px-1.5 rounded-md font-medium text-slate-900">{countSubContexts(context_id)}</span><span>Sub-context(s)</span></span>, active: true },
+              { label: 'Plugins', title: <span className="flex flex-row items-center space-x-1"><span className="bg-slate-100 py-0.5 text-xs px-1.5 rounded-md font-medium text-slate-900">{countPluginsByContext(context_id)}</span><span>Plugin(s)</span></span>, active: true },
+              { label: 'Settings', active: true }
+            ]} nav={nav} setNav={setNav} />
           </div>
 
           {/** Sub-contexts card */}
-          <div className="w-full bg-white border border-slate-200 rounded-md px-6 py-6 mt-12 flex flex-col">
-            <h2 className="text-lg font-bold text-slate-900">Sub-contexts</h2>
-            <p className="text-base text-slate-600">Create sub-contexts to have a more granular way to manage data in your application.</p>
-            <div className="flex flex-col mt-3 space-y-1">
-              {(context.contexts && context.contexts.length  > 0) ?
-                <Contexts contexts={context.contexts} />
-              :
-                <div className="flex justify-center">
-                  <Alert title="This context doesn't have any sub-contexts." />
-                </div>
-              }
+          {nav == "Sub-contexts" &&
+            <div className="w-full bg-white border border-slate-200 rounded-md px-6 py-6 mt-5 flex flex-col">
+              <h2 className="text-lg font-bold text-slate-900">Sub-contexts</h2>
+              <p className="text-base text-slate-600">Create sub-contexts to have a more granular way to manage data in your application.</p>
+              <div className="flex flex-col mt-3 space-y-2">
+                {(context.contexts && context.contexts.length  > 0) ?
+                  <Contexts contexts={context.contexts} />
+                :
+                  <div className="flex justify-center">
+                    <Alert title="This context doesn't have any sub-contexts." />
+                  </div>
+                }
+              </div>
+              <div className="flex flex-col w-full items-center mt-4">
+                <Button title="+ Add sub-context" onClick={() => setAddModalVis(true)}  />
+              </div>
             </div>
-            <div className="flex flex-col w-full items-center mt-4">
-              <Button title="+ Add sub-context" onClick={() => setAddModalVis(true)}  />
-            </div>
-          </div>
+          }
+
 
           {/** Plugins card */}
-          <div className="w-full bg-white border border-slate-200 rounded-md px-6 py-6 mt-6 flex flex-col">
-            <h2 className="text-lg font-bold text-slate-900">Plugins used</h2>
-            <p className="text-base text-slate-600 mb-1">Manage the plugins being used in this context.</p>
-            {/** Display plugins installed on parent context if this context has a parent context. */}
-            {parentContext &&
-              <>
-                <span className="font-medium text-base mt-2">From parent:</span>
-                <div className="flex flex-col mt-2 space-y-1">
-                  {plugins.parent.length > 0 ?
-                    <PluginsInstalled plugins={plugins.parent} />
-                  :
-                    <div className="flex justify-center">
-                      <Alert title="There aren't any plugins installed on the parents." />
-                    </div>
-                  }
-                </div>
-              </>
-            }
-
-            <span className="font-medium text-base mt-2">Direct:</span>
-            <div className="flex flex-col space-y-1">
-              {plugins.direct.length > 0 ?
-                <PluginsInstalled plugins={plugins.direct} />
-              :
-                <div className="flex justify-center">
-                  <Alert title="There aren't any plugins installed on this context." />
-                </div>
+          {nav == "Plugins" &&
+            <div className="w-full bg-white border border-slate-200 rounded-md px-6 py-6 mt-5 flex flex-col">
+              <h2 className="text-lg font-bold text-slate-900">Plugins used</h2>
+              <p className="text-base text-slate-600 mb-1">Manage the plugins being used in this context.</p>
+              {/** Display plugins installed on parent context if this context has a parent context. */}
+              {parentContext &&
+                <>
+                  <span className="font-medium text-base mt-2">From parent:</span>
+                  <div className="flex flex-col mt-2 space-y-1">
+                    {plugins.parent.length > 0 ?
+                      <PluginsInstalled plugins={plugins.parent} />
+                    :
+                      <div className="flex justify-center">
+                        <Alert title="There aren't any plugins installed on the parents." />
+                      </div>
+                    }
+                  </div>
+                </>
               }
+
+              {/** Display plugins directly used on this context */}
+              <span className="font-medium text-base mt-2">Direct:</span>
+              <div className="flex flex-col space-y-1">
+                {plugins.direct.length > 0 ?
+                  <PluginsInstalled plugins={plugins.direct} />
+                :
+                  <div className="flex justify-center">
+                    <Alert title="There aren't any plugins installed on this context." />
+                  </div>
+                }
+              </div>
+
+              {/** CTA to add a plugin */}
+              <div className="flex w-full justify-center mt-2">
+                <Link href="/plugins">
+                  <Button title="+ Add plugin"  />
+                </Link>
+              </div>
             </div>
-          </div>
+          }
+
+          {/** Plugins card */}
+          {nav == "Settings" &&
+            <div className="w-full bg-white border border-slate-200 rounded-md px-6 py-6 mt-5 flex flex-col">
+              <h2 className="text-lg font-bold text-slate-900">Settings</h2>
+              <p className="text-base text-slate-600 mb-1">Update your context settings here.</p>
+              <ContextSettings context={context} setContext={setContext} />
+            </div>
+          }
         </div>
       </div>
 
@@ -136,19 +162,80 @@ export default function ContextDetails() {
   )
 }
 
+const ContextSettings = ({context, setContext}) => {
+  const { orbis, settings, setSettings } = useContext(GlobalContext);
+  const [status, setStatus] = useState(STATUS.ACTIVE);
+  const [contextName, setContextName] = useState(context.name);
+  const [contextDescription, setContextDescription] = useState(context.description);
+
+  async function updateContext() {
+    setStatus(STATUS.LOADING);
+
+    /** Update Ceramic stream */
+    let content = { ...context };
+    console.log("Previous context:", content);
+    content.name = contextName;
+    content.description = contextDescription ? contextDescription : null;
+    console.log("New context:", content);
+    let res = await orbis.updateContext(context.stream_id, content);
+    console.log("res:", res);
+
+    /** Update local settings file */
+    let response = await fetch('/api/settings/add-context', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        context: content
+      }),
+    });
+    response = await response.json();
+    console.log("response:", response);
+    if(response.status == 200) {
+      /** Update state */
+      setContext(content)
+      setSettings(response.settings);
+      setStatus(STATUS.SUCCESS);
+      await sleep(500);
+      setStatus(STATUS.ACTIVE);
+      hide();
+    } else {
+      setStatus(STATUS.ERROR);
+    }
+  }
+
+  return(
+    <div className="flex flex-col">
+      <input type="text" placeholder="Context name" className="bg-white w-full mt-2 px-2 py-1 rounded-md border border-slate-300 text-base text-slate-900 mb-1.5" onChange={(e) => setContextName(e.target.value)} value={contextName} />
+      <textarea type="text" placeholder="Context description" rows="2" className="bg-white w-full px-2 py-1 rounded-md border border-slate-300 text-base text-slate-900 mb-3" onChange={(e) => setContextDescription(e.target.value)} value={contextDescription} />
+
+      {/** CTA to add a plugin */}
+      <div className="flex w-full justify-center mt-2">
+        <Button title="Save" status={status} onClick={() => updateContext()} />
+      </div>
+    </div>
+  )
+}
+
+/** Loop through all sub-contexts */
 const Contexts = ({contexts}) => {
   return contexts?.map((context, key) => (
-    <>
-      <Link className="text-base text-[#4483FD] hover:underline" href={"/contexts/" + context.stream_id} key={key}>·  {context.name}</Link>
+    <div key={key}>
+      <div className="flex flex-row space-x-1">
+        <Link className="text-base text-[#4483FD] hover:underline" href={"/contexts/" + context.stream_id} key={key}>·  {context.name}</Link>
+        <PluginsCountTag context_id={context.stream_id} />
+      </div>
       {(context.contexts && context.contexts.length > 0) &&
-        <div className="flex flex-col pl-4 mt-1">
+        <div className="flex flex-col pl-4 mt-2">
           <Contexts contexts={context.contexts} />
         </div>
       }
-    </>
+    </div>
   ));
 }
 
+/** Loop through all plugins */
 const PluginsInstalled = ({plugins}) => {
   return plugins?.map((plugin, key) => (
     <Link className="text-base text-[#4483FD] mb-1 hover:underline" href={"/plugins/" + plugin.plugin_id} key={key}>·  {plugin.plugin_id}</Link>

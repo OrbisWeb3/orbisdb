@@ -12,7 +12,7 @@ export default function InternalNavigation({ items = [], nav, setNav }) {
              ${item.label === nav ? 'text-[#4483FD] font-medium' : 'text-[#666666] cursor-pointer hover:underline'}
              ${!item.active ? 'text-[#C2C2C2] cursor-not-allowed' : ''}`}
         >
-          {item.label}
+          {item.title ? item.title : item.label}
         </button>
       ))}
     </div>

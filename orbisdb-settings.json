@@ -136,7 +136,7 @@
     {
       "name": "Orbis Forum",
       "logo": "/img/orbis-logo.png",
-      "stream_id": "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94j",
+      "stream_id": "kjzl6cwe1jw147xm12icjydu88ds5ljx7dclx0z2quqdpocq6fq1wrdttr53hzy",
       "contexts": [
         {
           "name": "General",
@@ -168,7 +168,8 @@
             }
           ]
         }
-      ]
+      ],
+      "description": ""
     },
     {
       "name": "Cerscan Community Chat",
@@ -182,6 +183,11 @@
     {
       "name": "New app",
       "stream_id": "kjzl6cwe1jw14aaxltycvtnfqvnu261w7vab9wn28kra6ffpxwvh9kn7vizf9vb"
+    },
+    {
+      "name": "test new",
+      "description": "",
+      "stream_id": "kjzl6cwe1jw147vkeewf6xeik0jhpoix0bfc8rhtn892hwv09f653qsqub4gfx5"
     }
   ]
 }

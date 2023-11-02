@@ -30,6 +30,7 @@ const AddContextSteps = ({step, setStep, hide, parentContext}) => {
   const [selectedOption, setSelectedOption] = useState(null);
   const [contextId, setContextId] = useState("");
   const [contextName, setContextName] = useState("");
+  const [contextDescription, setContextDescription] = useState("");
   const [status, setStatus] = useState(STATUS.ACTIVE);
   const [contextDetails, setContextDetails] = useState();
 
@@ -43,14 +44,21 @@ const AddContextSteps = ({step, setStep, hide, parentContext}) => {
       if(stream) {
         let content = {
           name: stream.state.content.name,
+          description: stream.state.content.description,
           stream_id: contextId
         };
-        setContextDetails(content)
+        setContextDetails(content);
+        setStatus(STATUS.SUCCESS);
+        await sleep(500);
+        setStep(3);
+        setStatus(STATUS.ACTIVE);
+      } else {
+        alert("Error loading context details.");
+        console.log("Error loading context details and adding it to the settings file:", e);
+        setStatus(STATUS.ERROR);
+        await sleep(500);
+        setStatus(STATUS.ACTIVE);
       }
-      setStatus(STATUS.SUCCESS);
-      await sleep(500);
-      setStep(3);
-      setStatus(STATUS.ACTIVE);
     } catch(e) {
       alert("Couldn't load context details.");
       console.log("Error adding new context to the settings file:", e);
@@ -65,6 +73,7 @@ const AddContextSteps = ({step, setStep, hide, parentContext}) => {
     setStatus(STATUS.LOADING);
     let content = {
       name: contextName,
+      description: contextDescription,
     };
     let res = await orbis.createContext(content);
     console.log("res:", res);
@@ -112,7 +121,7 @@ const AddContextSteps = ({step, setStep, hide, parentContext}) => {
     }
   }
 
-
+  /** Will perform the correct action on submit based on the step the user is on */
   function nextStep() {
     switch (step) {
       case 1:
@@ -136,7 +145,6 @@ const AddContextSteps = ({step, setStep, hide, parentContext}) => {
             createNewContext();
             break;
           default:
-
         }
         break;
       default:
@@ -178,7 +186,8 @@ const AddContextSteps = ({step, setStep, hide, parentContext}) => {
       } else if(selectedOption == "new") {
         return(
           <div className="flex flex-col items-center">
-            <input type="text" placeholder="Context name" className="bg-white w-full mt-2 px-2 py-1 rounded-md border border-slate-300 text-base text-slate-900 mb-2" onChange={(e) => setContextName(e.target.value)} value={contextName} />
+            <input type="text" placeholder="Context name" className="bg-white w-full mt-2 px-2 py-1 rounded-md border border-slate-300 text-base text-slate-900 mb-1.5" onChange={(e) => setContextName(e.target.value)} value={contextName} />
+            <textarea type="text" placeholder="Context description" rows="2" className="bg-white w-full px-2 py-1 rounded-md border border-slate-300 text-base text-slate-900 mb-3" onChange={(e) => setContextDescription(e.target.value)} value={contextDescription} />
             <Button type="primary" onClick={() => nextStep()} status={status} title="Next" />
           </div>
         )

@@ -250,7 +250,7 @@ const OneContext = ({context, setSelectedContext}) => {
   }
 
   return(
-    <div className="rounded-md bg-white border border-slate-200 flex flex-col overflow-hidden mb-3 mr-3">
+    <div className="rounded-md bg-white border border-slate-200 flex flex-col overflow-hidden mb-3 mr-3 min-w-[170px]">
 
       {/** Context details */}
       <div className="flex flex-row px-4 py-3 items-center space-x-1.5">

@@ -96,6 +96,20 @@ export const getPluginsByContext = (contextId, plugins) => {
   };
 }
 
+export const countPluginsByContext = () => {
+  let results = getPluginsByContext(contextId, plugins);
+  console.log("results:", results);
+  let countDirect = results.direct.length;
+  let countParent = results.parent.length;
+  let countTotal = countDirect + countParent;
+
+  return {
+    total: countTotal,
+    direct: countDirect,
+    parent: countTotal
+  };
+}
+
 
 /** Finds and returns the direct parent context of a given context ID. */
 export const findParentContextId = (contextId, contexts, parentId = null) => {

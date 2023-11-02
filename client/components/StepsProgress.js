@@ -1,7 +1,6 @@
 export default function StepsProgress({steps = [], currentStep = 1}) {
-
   return(
-    <ol class="relative flex items-center w-full text-sm font-medium text-center mt-4 mb-3 justify-center">
+    <ol className="relative flex items-center w-full text-sm font-medium text-center mt-4 mb-3 justify-center">
       {steps.map((step, index) => (
         <li key={index} className={`flex items-center justify-center ${index < steps.length - 1 ? 'mr-2' : ''}`}>
           <span className="flex justify-end flex-col items-center">

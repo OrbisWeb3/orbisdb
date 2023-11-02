@@ -17,27 +17,33 @@ export default async function handler(req, res) {
 
       let settings = JSON.parse(fs.readFileSync(settingsFilePath, 'utf8'));
 
-      // Check if the context is a sub-context
+      // Check if the context is a sub-context or already exists
       if (context.context) {
-        console.log("Parent context is:", context.context);
-        // Find the parent context in the existing settings
-        let parentContext = findContextById(context.context, settings.contexts);
+        // Find the parent context or the existing context
+        let parentOrExistingContext = findContextById(context.context, settings.contexts);
 
-        // If parent context is found
-        if (parentContext) {
-          if (!parentContext.contexts) {
-            parentContext.contexts = []; // Initialize sub-contexts array if not present
+        if (parentOrExistingContext) {
+          // Check if we're dealing with a parent context or an existing sub-context
+          if (parentOrExistingContext.stream_id === context.context) {
+            // It's a sub-context, update it
+            updateContext(parentOrExistingContext, context);
+          } else {
+            // It's a parent context, add the new sub-context
+            if (!parentOrExistingContext.contexts) {
+              parentOrExistingContext.contexts = []; // Initialize sub-contexts array if not present
+            }
+            // Update or add the sub-context
+            updateContext(parentOrExistingContext.contexts, context);
           }
-          parentContext.contexts.push(context); // Add the sub-context to the parent context's sub-contexts array
         } else {
-          throw new Error('Parent context not found for:', context.context);
+          throw new Error(`Parent context not found for: ${context.context}`);
         }
       } else {
-        // If it's not a sub-context, add it to the main contexts array
-        settings.contexts = [...settings.contexts, context];
+        // If it's not a sub-context, update or add it to the main contexts array
+        updateContext(settings.contexts, context);
       }
 
-      console.log("New settings:", settings);
+      console.log("Updated settings:", settings);
 
       // Rewrite the settings file
       fs.writeFileSync(settingsFilePath, JSON.stringify(settings, null, 2));
@@ -46,7 +52,7 @@ export default async function handler(req, res) {
       res.status(200).json({
         status: 200,
         settings,
-        result: "Context added to the settings file."
+        result: "Context updated in the settings file."
       });
 
     } catch (err) {
@@ -73,4 +79,16 @@ const findContextById = (id, contexts) => {
     }
   }
   return null;
+};
+
+// Function to update an existing context or add a new one
+const updateContext = (contexts, newContext) => {
+  const index = contexts.findIndex(ctx => ctx.stream_id === newContext.stream_id);
+  if (index !== -1) {
+    // Context already exists, update it
+    contexts[index] = { ...contexts[index], ...newContext };
+  } else {
+    // Context does not exist, add as new
+    contexts.push(newContext);
+  }
 };
