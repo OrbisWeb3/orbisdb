@@ -28,3 +28,15 @@ code {
 .text-base {
   font-size: 0.925rem !important;
 }
+
+/* Custom class for the textarea */
+.private-input {
+  color: transparent;
+  text-shadow: 0 0 8px rgba(0,0,0,0.5);
+}
+
+/* Override styles when the textarea is focused */
+.private-input:focus {
+  color: initial;
+  text-shadow: none;
+}

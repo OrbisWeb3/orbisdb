@@ -1,14 +1,14 @@
 import React, { useRef, useContext, useState } from "react";
 import useOutsideClick from "../../hooks/useOutsideClick";
 
-export default function Modal({hide, children, title, description}) {
+export default function Modal({hide, children, title, description, style}) {
   const wrapperRef = useRef(null);
 
   /** Is triggered when clicked outside the component */
   useOutsideClick(wrapperRef, () => hide());
 
   return(
-    <div className="relative z-10" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div className="relative z-10" aria-labelledby="modal-title" role="dialog" aria-modal="true" style={style}>
       <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity blur-md backdrop-blur-sm cursor-pointer"></div>
       <div className="fixed inset-0 z-10 overflow-y-auto">
         <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">

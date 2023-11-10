@@ -1,13 +1,15 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext, useRef } from "react";
 import Link from 'next/link';
 import { GlobalContext } from "../../contexts/Global";
 import { STATUS, findContextById, getPluginsByContext, findParentContextId, sleep } from "../../utils";
 import { useRouter } from 'next/router'
 import { ContextTags, PluginsCountTag, countSubContexts, countPluginsByContext } from "../../components/ContextDetails";
 import Alert from "../../components/Alert";
+import ContextSettings from "../../components/ContextSettings";
 import AddContextModal from "../../components/Modals/AddContext";
 import Button from "../../components/Button";
 import InternalNavigation from "../../components/InternalNavigation";
+import { DashIcon } from "../../components/Icons";
 
 export default function ContextDetails() {
   const { settings, setSettings } = useContext(GlobalContext);
@@ -38,7 +40,7 @@ export default function ContextDetails() {
       let results = getPluginsByContext(context_id, settings.plugins);
       setPlugins(results);
     }
-  }, [context_id]);
+  }, [context_id, settings]);
 
 
   if(!context) {
@@ -55,6 +57,9 @@ export default function ContextDetails() {
         {/** Context details */}
         <div className="flex px-16 py-12 md:w-2/3 flex-col">
           {/** Context details */}
+          {parentContext &&
+            <Breadcrumbs context_id={context_id} />
+          }
           <div className="flex flex-row items-center">
             {parentContext &&
               <Link href={"/contexts/" + parentContext} className="rounded-full bg-white w-10 h-10 flex justify-center items-center cursor-pointer border border-slate-200 hover:border-slate-300 mr-3">
@@ -162,62 +167,6 @@ export default function ContextDetails() {
   )
 }
 
-const ContextSettings = ({context, setContext}) => {
-  const { orbis, settings, setSettings } = useContext(GlobalContext);
-  const [status, setStatus] = useState(STATUS.ACTIVE);
-  const [contextName, setContextName] = useState(context.name);
-  const [contextDescription, setContextDescription] = useState(context.description);
-
-  async function updateContext() {
-    setStatus(STATUS.LOADING);
-
-    /** Update Ceramic stream */
-    let content = { ...context };
-    console.log("Previous context:", content);
-    content.name = contextName;
-    content.description = contextDescription ? contextDescription : null;
-    console.log("New context:", content);
-    let res = await orbis.updateContext(context.stream_id, content);
-    console.log("res:", res);
-
-    /** Update local settings file */
-    let response = await fetch('/api/settings/add-context', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        context: content
-      }),
-    });
-    response = await response.json();
-    console.log("response:", response);
-    if(response.status == 200) {
-      /** Update state */
-      setContext(content)
-      setSettings(response.settings);
-      setStatus(STATUS.SUCCESS);
-      await sleep(500);
-      setStatus(STATUS.ACTIVE);
-      hide();
-    } else {
-      setStatus(STATUS.ERROR);
-    }
-  }
-
-  return(
-    <div className="flex flex-col">
-      <input type="text" placeholder="Context name" className="bg-white w-full mt-2 px-2 py-1 rounded-md border border-slate-300 text-base text-slate-900 mb-1.5" onChange={(e) => setContextName(e.target.value)} value={contextName} />
-      <textarea type="text" placeholder="Context description" rows="2" className="bg-white w-full px-2 py-1 rounded-md border border-slate-300 text-base text-slate-900 mb-3" onChange={(e) => setContextDescription(e.target.value)} value={contextDescription} />
-
-      {/** CTA to add a plugin */}
-      <div className="flex w-full justify-center mt-2">
-        <Button title="Save" status={status} onClick={() => updateContext()} />
-      </div>
-    </div>
-  )
-}
-
 /** Loop through all sub-contexts */
 const Contexts = ({contexts}) => {
   return contexts?.map((context, key) => (
@@ -240,4 +189,47 @@ const PluginsInstalled = ({plugins}) => {
   return plugins?.map((plugin, key) => (
     <Link className="text-base text-[#4483FD] mb-1 hover:underline" href={"/plugins/" + plugin.plugin_id} key={key}>·  {plugin.plugin_id}</Link>
   ));
+}
+
+const Breadcrumbs = ({ context_id }) => {
+  const { settings, setSettings } = useContext(GlobalContext);
+  const breadcrumbPath = findBreadcrumbPath(settings.contexts, context_id);
+
+  if (!breadcrumbPath) {
+    return null;
+  }
+
+  return (
+    <div className="flex flex-row items-center space-x-2 text-base mb-3">
+      {breadcrumbPath.map((crumb, index) => (
+        <React.Fragment key={crumb.stream_id}>
+          {index > 0 && <DashIcon />}
+          {crumb.stream_id == context_id ?
+            <span className="text-slate-500">{crumb.name}</span>
+          :
+            <Link href={"/contexts/" + crumb.stream_id} className="font-medium text-slate-900 hover:underline">{crumb.name}</Link>
+          }
+        </React.Fragment>
+      ))}
+    </div>
+  );
+}
+
+function findBreadcrumbPath(contexts, contextId, path = []) {
+  for (const context of contexts) {
+    // Check if the current context matches the contextId
+    if (context.stream_id === contextId) {
+      // If it's a match, add this context to the path
+      return [...path, { name: context.name, stream_id: context.stream_id }];
+    }
+    // If this context has subcontexts, traverse them
+    if (context.contexts && context.contexts.length > 0) {
+      const subPath = findBreadcrumbPath(context.contexts, contextId, [...path, { name: context.name, stream_id: context.stream_id }]);
+      if (subPath) {
+        return subPath; // Return the path if it was found in subcontexts
+      }
+    }
+  }
+  // If we've searched all contexts and subcontexts and haven't found a match, return null
+  return null;
 }

@@ -29,8 +29,22 @@ const PluginVariable = ({variable, defaultVariables, per_context}) => {
       {variable.description &&
         <p className="text-base text-slate-500">{variable.description}</p>
       }
-      <input type="text" placeholder={variable.name} name={variable.id} value={val} onChange={(e) => setVal(e.target.value)} className="bg-white px-2 py-1 rounded-md border border-slate-300 text-base text-slate-900 mt-1" />
+      <VariableInput variable={variable} val={val} setVal={setVal} />
     </div>
   )
+}
 
+const VariableInput = ({variable, val, setVal}) => {
+  console.log("variable:", variable);
+  let input = <input type="text" placeholder={variable.name} name={variable.id} value={val} onChange={(e) => setVal(e.target.value)} className={`bg-white px-2 py-1 rounded-md border border-slate-300 text-base text-slate-900 mt-1 ${variable.private && "private-input"}`}  />;
+
+  switch (variable.type) {
+    case "array":
+      input = <textarea placeholder={variable.name} name={variable.id} value={val} onChange={(e) => setVal(e.target.value)} className={`bg-white px-2 py-1 rounded-md border border-slate-300 text-base text-slate-900 mt-1 ${variable.private && "private-input"}`} />;
+      break;
+    case "object":
+      input = <textarea placeholder={variable.name} name={variable.id} value={val} onChange={(e) => setVal(e.target.value)} className={`bg-white px-2 py-1 rounded-md border border-slate-300 text-base text-slate-900 mt-1 ${variable.private && "private-input"}`}  />;
+      break;
+  }
+  return input;
 }

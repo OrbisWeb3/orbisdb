@@ -15,7 +15,7 @@ export default function Contexts() {
         <h1 className="text-3xl font-bold text-slate-900">Contexts</h1>
         <p className="text-slate-600 mt-1 text-base">Contexts can be used to scope your applications into multiple different parts that can have different rules.</p>
         <div className="flex flex-col mt-4">
-          <div className="grid grid-cols-2 gap-4 mt-4 items-start">
+          <div className="grid grid-cols-2 gap-4 items-start">
             <LoopContexts />
           </div>
           <div className="flex flex-col w-full items-center mt-4">

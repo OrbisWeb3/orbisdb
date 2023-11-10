@@ -47,13 +47,14 @@ export default function AssignContextModal({hide, plugin_id, selectedContext}) {
 
   /** Will either assign a new context to this plugin or add a new one */
   async function saveOrUpdateContext() {
-    if(!selectedContextIds || selectedContextIds.length == 0) {
+    event.preventDefault(); // Prevents the default form submit behavior
+
+    if((!selectedContextIds || selectedContextIds.length == 0) && !selectedContext) {
       alert("Please select a context first.");
       return null;
     }
 
     setStatus(STATUS.LOADING);
-    event.preventDefault(); // Prevents the default form submit behavior
 
     /** Retrieve form details for variables */
     const form = event.target;
@@ -94,6 +95,11 @@ export default function AssignContextModal({hide, plugin_id, selectedContext}) {
     hide();
   }
 
+  function getLastContext() {
+    let last_context = selectedContextIds[selectedContextIds.length - 1];
+    console.log("last_context:", last_context);
+    return last_context;
+  }
 
   return(
     <Modal hide={hide} title={selectedContext ? "Update the context settings" : "Assign to a new context"} description={selectedContext ? "Update the plugin settings for this context."  : "Assign this plugin to a new context." }>
@@ -130,9 +136,19 @@ export default function AssignContextModal({hide, plugin_id, selectedContext}) {
           {/** Save button */}
           <div className="flex flex-row justify-center mt-4">
           {(!selectedContextIds || selectedContextIds.length == 0) ?
-            <Button title="Next" status={STATUS.DISABLED} onClick={() => nextStep()} />
+            <Button title="Next" status={STATUS.DISABLED} />
           :
-            <Button title="Next" onClick={() => nextStep()} />
+            <>
+            {(isContextUsed(plugin_id, getLastContext()) && status != STATUS.SUCCESS) ?
+              <>
+                {/**<Button title="Context already used" status={STATUS.DISABLED} />*/}
+                <Button title="Next" onClick={() => nextStep()} />
+              </>
+            :
+              <Button title="Next" onClick={() => nextStep()} />
+            }
+
+            </>
           }
 
           </div>
@@ -153,7 +169,11 @@ export default function AssignContextModal({hide, plugin_id, selectedContext}) {
 
           {/** Save button */}
           <div className="flex flex-row justify-center">
-            <Button title="Save" status={status} successTitle="Saved" />
+            {((selectedContextIds && selectedContextIds.length > 0) || selectedContext.context) ?
+              <Button title="Save" status={status} successTitle="Saved" />
+            :
+              <Button title="Context already used" status={STATUS.DISABLED} />
+            }
           </div>
         </form>
       }
@@ -221,10 +241,10 @@ const ContextDropdown = ({ selectedContext, selectedContextIds, setSelectedConte
             aria-labelledby="listbox-label">
           {_contexts.map((context, index) => (
             <li
-              className={`relative select-none py-2 pl-3 pr-9 ${isContextUsed(plugin_id, context.stream_id) ? "text-gray-400 italic" : "text-gray-900 hover:bg-slate-50 cursor-pointer" }`}
+              className={`relative select-none py-2 pl-3 pr-9 text-gray-900 hover:bg-slate-50 cursor-pointer`}
               role="option"
               key={index}
-              onClick={isContextUsed(plugin_id, context.stream_id) ? console.log("Can't select context") : () => selectContext(context)}>
+              onClick={() => selectContext(context)}>
               <SmContextDetails context={context} />
             </li>
           ))}
@@ -257,5 +277,11 @@ function isContextUsed(plugin_id, targetContext) {
   const pluginSettings = settings.plugins?.find(plugin => plugin.plugin_id === plugin_id);
   if (!pluginSettings) return false;
 
-  return pluginSettings.contexts.some(ctx => ctx.context === targetContext);
+  if(pluginSettings.contexts) {
+    return pluginSettings.contexts.some(ctx => ctx.context === targetContext);
+  } else {
+    return false;
+  }
+
+
 }

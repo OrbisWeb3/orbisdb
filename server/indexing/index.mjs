@@ -15,15 +15,28 @@ export default class IndexingService {
 		this.hookHandler = hookHandler;
 
 		// Go through the list of all plugins used and enable them
-		this.plugins.forEach(async (plugin, i) => {
-			let { HOOKS } = await plugin.init();
-			console.log("Initialized plugin: ", plugin.id);
-			if(HOOKS) {
-	      for (const [hook, handler] of Object.entries(HOOKS)) {
-	        this.hookHandler.addHookHandler(hook, plugin.id, handler);
-	      }
-	    }
-		});
+		this.initialize();
+	}
+
+	// Map each plugin to an initialization promise
+	async initialize() {
+    const initPromises = this.plugins.map(async (plugin) => {
+      let { HOOKS } = await plugin.init();
+      console.log("Initialized plugin: ", plugin.id);
+      if (HOOKS) {
+        for (const [hook, handler] of Object.entries(HOOKS)) {
+          this.hookHandler.addHookHandler(hook, plugin.id, handler);
+        }
+      }
+    });
+
+    // Wait for all the initialization promises to resolve
+    await Promise.all(initPromises);
+
+    console.log("All plugins are initialized");
+
+		// Trigger the generate hook which can be used for subscriptions
+		this.hookHandler.executeHook("generate");
 	}
 
 	// Will subscribe to the IPFS pubsub topic specified in the constructor

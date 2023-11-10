@@ -22,13 +22,17 @@ export default async function handler(req, res) {
 
 
       // Find the plugin by plugin_id
-      const pluginIndex = settings.plugins.findIndex(plugin => plugin.plugin_id === plugin_id);
+      const pluginIndex = settings.plugins?.findIndex(plugin => plugin.plugin_id === plugin_id);
       if (pluginIndex === -1) {
         throw new Error('Plugin not found');
       }
 
       // Update or add the context
-      const contextIndex = settings.plugins[pluginIndex].contexts.findIndex(c => c.context === context_id);
+      let contextIndex = -1;
+      if(settings.plugins && settings.plugins.length > 0 && settings.plugins[pluginIndex]?.contexts) {
+        contextIndex = settings.plugins[pluginIndex].contexts.findIndex(c => c.context === context_id);
+      }
+
       if (contextIndex === -1) {
         let val = {
           path: path,
@@ -40,7 +44,12 @@ export default async function handler(req, res) {
         }
 
         // Update settings
-        settings.plugins[pluginIndex].contexts.push(val);
+        if(settings.plugins[pluginIndex].contexts) {
+          settings.plugins[pluginIndex].contexts.push(val);
+        } else {
+          settings.plugins[pluginIndex].contexts = [val];
+        }
+
       } else {
         settings.plugins[pluginIndex].contexts[contextIndex].variables = variables;
       }
@@ -60,8 +69,4 @@ export default async function handler(req, res) {
     // If it's not a POST request, return 405 - Method Not Allowed
     res.status(405).json({ error: `Method '${req.method}' Not Allowed` });
   }
-}
-
-function findPlugin(plugins, plugin_id) {
-    return plugins.find(plugin => plugin.plugin_id === plugin_id);
 }

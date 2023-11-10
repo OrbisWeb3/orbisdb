@@ -1,6 +1,10 @@
 
 export default class GitcoinPassportPlugin {
   constructor({api_key, scorer_id, min_score}) {
+    console.log("Initializing gitcoin-passport plugin with:");
+    console.log("api_key:", api_key);
+    console.log("scorer_id:", scorer_id);
+    console.log("min_score:", min_score);
     this.id = "gitcoin-passport";
     this.api_key = api_key;
     this.scorer_id = scorer_id;
@@ -49,7 +53,12 @@ export default class GitcoinPassportPlugin {
         score = Number(passportScore.score);
       }
       console.log("score:", score);
-      return true;
+      /** Make sure the user's score is above the minimum score required by the developer */
+			if(score > this.min_score) {
+				return true;
+			} else {
+				return false;
+			}
 
     } else {
       return false;
@@ -89,7 +98,7 @@ export default class GitcoinPassportPlugin {
         method: 'GET',
         headers: {
           "Content-Type": "application/json",
-          "X-API-Key": "G5WwLzpf.HCYtZLKZ9yGq4tOnyLf9OYxejgFXxaSb"
+          "X-API-Key": this.api_key
         }
       });
       res_score_details = await res_score.json();

@@ -14,13 +14,6 @@ import GitcoinPassportPlugin from "./plugins/gitcoin-passport/index.mjs"; // Git
 /** Initialize the hook handler */
 let hookHandler = new HookHandler();
 
-/** Instantiate the plugins to use. Once finalized this will load the plugins saved in the "orbisdb-settings.json" file */
-/*let plugins = [
-  //new HelloWorldPlugin(),
-  //new HookModerationExample(),
-  new GitcoinPassportPlugin({ api_key: "G5WwLzpf.HCYtZLKZ9yGq4tOnyLf9OYxejgFXxaSb", scorer_id: "899" })
-];*/
-
 /** Instantiate the database to use which should be saved in the "orbisdb-settings.json" file */
 let database = new Supabase("url_example", "key_example");
 

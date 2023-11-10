@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from "react";
 import { GlobalContext } from "../../contexts/Global";
 import { CheckIcon, SettingsIcon, DashIcon, AlertIcon } from "../../components/Icons";
 import AddModelModal from "../../components/Modals/AddModel";
+import Alert from "../../components/Alert";
 import PluginSettingsModal from "../../components/Modals/PluginSettings";
 import AssignContextModal from "../../components/Modals/AssignContext";
 import Modal from "../../components/Modals";
@@ -73,7 +74,7 @@ export default function PluginDetails() {
 
     // Save settings in the orbisdb-settings.json file
     try {
-      let response = await fetch('/api/plugins/add', {
+      let response = await fetch('/api/settings/install-plugin', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -133,26 +134,22 @@ export default function PluginDetails() {
             {/** Show contexts tab content */}
             {nav == "Contexts" &&
               <>
-                  {(settings?.plugins?.[existingPluginIndex]?.contexts?.length > 0) ?
-                    <>
-                      <p className="text-slate-600 mt-3 text-base">Enable this plugin on your contexts to start using it:</p>
-                      <div className="flex flex-row flex-wrap mt-2 items-start">
-                        {settings.plugins[existingPluginIndex].contexts?.map((context, index) => (
-                          <OneContext context={context} key={index} setSelectedContext={setSelectedContext} />
-                        ))}
-                      </div>
-                    </>
-                  :
-                    <div className="bg-amber-100 rounded-md border-dashed border border-amber-200 w-full py-4 justify-center flex mt-4">
-                      <span className="text-center text-amber-800 text-base">You haven't assigned this plugin to a context yet.</span>
+                {(settings.plugins && settings.plugins[existingPluginIndex]?.contexts?.length > 0) ?
+                  <>
+                    <p className="text-slate-600 mt-3 text-base">Enable this plugin on your contexts to start using it:</p>
+                    <div className="flex flex-row flex-wrap mt-2 items-start">
+                      {settings.plugins[existingPluginIndex].contexts?.map((context, index) => (
+                        <OneContext context={context} key={index} setSelectedContext={setSelectedContext} />
+                      ))}
                     </div>
-                  }
-
+                  </>
+                :
+                  <Alert title="You haven't assigned this plugin to a context yet." />
+                }
 
                 <div className="flex w-full justify-center mt-4">
                   <Button type="secondary" title="Assign to a new context" onClick={() => setAssignContextModalVis(true)}/>
                 </div>
-
               </>
             }
 
@@ -236,22 +233,18 @@ export default function PluginDetails() {
 
 const OneContext = ({context, setSelectedContext}) => {
   const { settings } = useContext(GlobalContext);
-  console.log("In OneContext: context =>", context);
 
   const getContextName = (id) => {
     let details = findContextById(settings.contexts, id);
-    console.log("details:", details);
     return details?.name;
   }
   const getContextLogo = (id) => {
     let details = findContextById(settings.contexts, id);
-    console.log("details:", details);
     return details?.logo;
   }
 
   return(
     <div className="rounded-md bg-white border border-slate-200 flex flex-col overflow-hidden mb-3 mr-3 min-w-[170px]">
-
       {/** Context details */}
       <div className="flex flex-row px-4 py-3 items-center space-x-1.5">
         {context.path.map((context_id, index) => {

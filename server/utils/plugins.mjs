@@ -60,9 +60,28 @@ export async function loadAndInitPlugins() {
       const PluginModule = await import(pluginFile);
       const PluginClass = PluginModule.default;
 
-      // Create a new instance of the plugin
-      const pluginInstance = new PluginClass(pluginConfig.variables ? pluginConfig.variables : null);
-      loadedPlugins.push(pluginInstance);
+      // Create a new instance of the plugin for each contextualized install
+      pluginConfig.contexts.forEach(context => {
+        let pluginVariables = pluginConfig.variables ? pluginConfig.variables : null;
+        let contextualizedVariables = context.variables;
+
+        /** If any add contextualized variables to the variabled using when initializing the plugin */
+        if(contextualizedVariables) {
+          pluginVariables = {
+            ...pluginVariables,
+            ...contextualizedVariables
+          }
+        }
+
+        /** Initialize plugin */
+        const pluginInstance = new PluginClass(pluginVariables);
+
+        /** Assign plugin's context dynamically */
+        pluginInstance.context = context.context;
+
+        /** Add plugin initialized to the loaded plugins array */
+        loadedPlugins.push(pluginInstance);
+      });
     } catch (error) {
       console.error(`Failed to load plugin ${pluginConfig.plugin_id}:`, error);
       // Handle errors (maybe you want to remove the plugin from the list if it fails)

@@ -1,0 +1,48 @@
+{
+  "id": "data-source",
+  "name": "API Data Source",
+  "description": "Plugin used to generate stream based on an external datasources API.",
+  "hooks": ["generate"],
+  "variables": [
+    {
+      "name": "Ceramic Seed",
+      "description": "The Ceramic seed that will be used to create the streams.",
+      "id": "ceramic_seed",
+      "private": true,
+      "type": "array"
+    },
+    {
+      "name": "Name",
+      "description": "Name of the plugin displayed in your OrbisDB UI.",
+      "id": "name",
+      "type": "string",
+      "display": true
+    },
+    {
+      "name": "URL Endpoint",
+      "description": "Endpoint to call to retrieve the results.",
+      "id": "url",
+      "per_context": true
+    },
+    {
+      "name": "Model ID",
+      "description": "ID of the model you want to use to store the data retrieved.",
+      "id": "model_id",
+      "per_context": true
+    },
+    {
+      "name": "Interval",
+      "description": "Interval in seconds to perform the API call.",
+      "id": "secs_interval",
+      "type": "integer",
+      "per_context": true
+    },
+    {
+      "name": "Keys mapping",
+      "description": "Map your data source output to your Ceramic schema.",
+      "id": "keys",
+      "type": "object",
+      "per_context": true
+    }
+  ]
+}

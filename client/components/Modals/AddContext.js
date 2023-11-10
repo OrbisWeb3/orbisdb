@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from "react";
 import { GlobalContext } from "../../contexts/Global";
 import Modal from "../Modals";
 import Button from "../Button";
+import ContextSettings from "../ContextSettings";
 import StepsProgress from "../StepsProgress";
 import { STATUS, sleep } from "../../utils";
 import ContextDetails from "../ContextDetails";
@@ -32,6 +33,7 @@ const AddContextSteps = ({step, setStep, hide, parentContext}) => {
   const [contextName, setContextName] = useState("");
   const [contextDescription, setContextDescription] = useState("");
   const [status, setStatus] = useState(STATUS.ACTIVE);
+  const [logoStatus, setLogoStatus] = useState(STATUS.ACTIVE);
   const [contextDetails, setContextDetails] = useState();
 
   /** Step 1: Load models details */
@@ -68,70 +70,10 @@ const AddContextSteps = ({step, setStep, hide, parentContext}) => {
     }
   }
 
-  /** Create a new context in Ceramic and save in state  */
-  async function createNewContext() {
-    setStatus(STATUS.LOADING);
-    let content = {
-      name: contextName,
-      description: contextDescription,
-    };
-    let res = await orbis.createContext(content);
-    console.log("res:", res);
-    content.stream_id = res.doc;
-    setContextDetails(content)
-    setStatus(STATUS.SUCCESS);
-    await sleep(500);
-    setStep(3);
-    setStatus(STATUS.ACTIVE);
-  }
-
-  /** Step 2: Update local settings to save the model */
-  async function saveInSettings() {
-    setStatus(STATUS.LOADING);
-    try {
-      if(parentContext) {
-        contextDetails.context = parentContext;
-      }
-      console.log("Saving contextDetails:", contextDetails);
-      let response = await fetch('/api/settings/add-context', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          context: contextDetails
-        }),
-      });
-      response = await response.json();
-      console.log("response:", response);
-      if(response.status == 200) {
-        setSettings(response.settings);
-        setStatus(STATUS.SUCCESS);
-        await sleep(500);
-        setStep(STATUS.ERROR);
-        setStatus(0);
-        hide();
-      } else {
-        setStatus(STATUS.ERROR);
-      }
-
-    } catch(e) {
-      console.log("Error saving model in settings.");
-      setStatus(STATUS.ERROR);
-    }
-  }
-
   /** Will perform the correct action on submit based on the step the user is on */
   function nextStep() {
     switch (step) {
-      case 1:
-        if(selectedOption) {
-          setStep(2)
-        } else {
-          alert("You must select an option first.");
-          return;
-        }
-        break;
+      /** Handle step 2 directly since step 1 is handled with selectType */
       case 2:
         switch (selectedOption) {
           case "existing":
@@ -148,8 +90,18 @@ const AddContextSteps = ({step, setStep, hide, parentContext}) => {
         }
         break;
       default:
-
     }
+  }
+
+  /** Select creation type */
+  function selectType(type) {
+    setSelectedOption(type);
+    setStep(2)
+  }
+
+  /** Will upload a logo for this context */
+  async function uploadLogo() {
+    alert("Uploading");
   }
 
   switch (step) {
@@ -162,15 +114,13 @@ const AddContextSteps = ({step, setStep, hide, parentContext}) => {
               title="Use existing context"
               description="Add a context you created in the past."
               isSelected={selectedOption === 'existing'}
-              onSelect={() => setSelectedOption('existing')} />
+              onSelect={() => selectType('existing')} />
             <ContextOption
               title="Create new context"
               description="Create a new context and start using it."
               isSelected={selectedOption === 'new'}
-              onSelect={() => setSelectedOption('new')}/>
+              onSelect={() => selectType('new')}/>
           </div>
-          {/**<input type="text" placeholder="Model ID" className="bg-white px-2 py-1 rounded-md border border-slate-300 text-base text-slate-900 mb-2" onChange={(e) => setModelId(e.target.value)} value={modelId} />*/}
-          <Button type="primary" onClick={() => nextStep()} status={status} title="Next" />
         </div>
       );
 
@@ -185,11 +135,7 @@ const AddContextSteps = ({step, setStep, hide, parentContext}) => {
         );
       } else if(selectedOption == "new") {
         return(
-          <div className="flex flex-col items-center">
-            <input type="text" placeholder="Context name" className="bg-white w-full mt-2 px-2 py-1 rounded-md border border-slate-300 text-base text-slate-900 mb-1.5" onChange={(e) => setContextName(e.target.value)} value={contextName} />
-            <textarea type="text" placeholder="Context description" rows="2" className="bg-white w-full px-2 py-1 rounded-md border border-slate-300 text-base text-slate-900 mb-3" onChange={(e) => setContextDescription(e.target.value)} value={contextDescription} />
-            <Button type="primary" onClick={() => nextStep()} status={status} title="Next" />
-          </div>
+          <ContextSettings callback={hide} parentContext={parentContext} />
         )
       };
 

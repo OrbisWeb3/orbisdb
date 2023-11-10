@@ -46,50 +46,22 @@
       "contexts": [
         {
           "path": [
-            "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94j",
+            "kjzl6cwe1jw147xm12icjydu88ds5ljx7dclx0z2quqdpocq6fq1wrdttr53hzy",
             "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94jgeneral"
           ],
           "context": "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94jgeneral",
           "variables": {
-            "min_score": "5"
+            "min_score": "10"
           }
         },
         {
           "path": [
-            "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94c"
-          ],
-          "context": "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94c",
-          "variables": {
-            "min_score": "3"
-          }
-        },
-        {
-          "path": [
-            "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94j",
+            "kjzl6cwe1jw147xm12icjydu88ds5ljx7dclx0z2quqdpocq6fq1wrdttr53hzy",
             "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94jtechnical"
           ],
           "context": "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94jtechnical",
           "variables": {
-            "min_score": "3"
-          }
-        },
-        {
-          "path": [
-            "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94j",
-            "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94jsupport"
-          ],
-          "context": "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94jsupport",
-          "variables": {
             "min_score": "1"
-          }
-        },
-        {
-          "path": [
-            "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94j"
-          ],
-          "context": "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94j",
-          "variables": {
-            "min_score": "10"
           }
         }
       ]
@@ -100,36 +72,35 @@
       "contexts": [
         {
           "path": [
-            "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94j",
-            "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94jgeneral"
+            "kjzl6cwe1jw147xm12icjydu88ds5ljx7dclx0z2quqdpocq6fq1wrdttr53hzy"
           ],
-          "context": "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94jgeneral"
-        },
-        {
-          "path": [
-            "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94j",
-            "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94jtechnical"
-          ],
-          "context": "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94jtechnical"
-        },
-        {
-          "path": [
-            "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94j",
-            "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94jtechnical"
-          ],
-          "context": "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94jtechnical"
-        },
-        {
-          "path": [
-            "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94c"
-          ],
-          "context": "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94c"
+          "context": "kjzl6cwe1jw147xm12icjydu88ds5ljx7dclx0z2quqdpocq6fq1wrdttr53hzy"
         }
       ]
     },
     {
-      "plugin_id": "hello-world",
-      "variables": {}
+      "plugin_id": "data-source",
+      "variables": {
+        "ceramic_seed": "[213, 30,116, 231, 149, 125, 252, 34, 193, 195, 198, 224, 37, 222, 124, 12, 64, 215, 195, 147, 95, 71, 80, 91, 247, 161, 95, 235, 173, 100, 245, 209]",
+        "url": "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd",
+        "model_id": "kjzl6hvfrbw6c6tcey32ev5t4k0lzmq3bc03f8nv2a6dqvoamlpm7vdqdom7psv",
+        "secs_interval": "60",
+        "keys": "[\n      {\n        \"key\": \"asset\",\n        \"value\": \"bitcoin\"\n      },\n      {\n        \"key\": \"price\",\n        \"path\": [\"bitcoin\", \"usd\"]\n      },\n      {\n        \"key\": \"currency\",\n        \"value\": \"USD\"\n      }\n    ]"
+      },
+      "contexts": [
+        {
+          "path": [
+            "kjzl6cwe1jw149tv38q4713dftwbbhsxf516ppuilpvfsp50cpg7f9w1nmrsswr"
+          ],
+          "context": "kjzl6cwe1jw149tv38q4713dftwbbhsxf516ppuilpvfsp50cpg7f9w1nmrsswr",
+          "variables": {
+            "url": "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,solana,ethereum&vs_currencies=usd",
+            "model_id": "kjzl6hvfrbw6ca079wipwvwgk5dq1epio34hrc48dbm3bd7k8lqjqm55aqjf72a",
+            "secs_interval": "60",
+            "keys": "[\n  {\n    \"keys\": [\n      {\n        \"key\": \"asset\",\n        \"value\": \"bitcoin\"\n      },\n      {\n        \"key\": \"price\",\n        \"path\": [\"bitcoin\", \"usd\"]\n      },\n      {\n        \"key\": \"currency\",\n        \"value\": \"USD\"\n      }\n    ]\n  },\n  {\n    \"keys\": [\n      {\n        \"key\": \"asset\",\n        \"value\": \"solana\"\n      },\n      {\n        \"key\": \"price\",\n        \"path\": [\"solana\", \"usd\"]\n      },\n      {\n        \"key\": \"currency\",\n        \"value\": \"USD\"\n      }\n    ]\n  },\n{\n    \"keys\": [\n      {\n        \"key\": \"asset\",\n        \"value\": \"ethereum\"\n      },\n      {\n        \"key\": \"price\",\n        \"path\": [\"ethereum\", \"usd\"]\n      },\n      {\n        \"key\": \"currency\",\n        \"value\": \"USD\"\n      }\n    ]\n  }\n]"
+          }
+        }
+      ]
     }
   ],
   "contexts": [
@@ -145,6 +116,12 @@
             {
               "name": "#Questions",
               "stream_id": "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94jq"
+            },
+            {
+              "name": "humans-only",
+              "description": null,
+              "context": "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94jgeneral",
+              "stream_id": "kjzl6cwe1jw14bgaict0v7sr89dh7sgu4eb5h0gj4u9bik6dgtz8114bfl3efu6"
             }
           ]
         },
@@ -169,25 +146,70 @@
           ]
         }
       ],
-      "description": ""
+      "description": null
     },
     {
-      "name": "Cerscan Community Chat",
-      "logo": "/img/cerscan-logo.png",
-      "stream_id": "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94c"
+      "name": "Near chat",
+      "stream_id": "kjzl6cwe1jw14aaxltycvtnfqvnu261w7vab9wn28kra6ffpxwvh9kn7vizf9vb",
+      "description": null,
+      "logo": "/uploads/913b2fefaa3a0ce84c5b23c0b.png"
     },
     {
-      "name": "CoinEasy - Categories",
-      "stream_id": "kjzl6cwe1jw145r8tq50m4jes5fdj1w75drq3r4iobhb79xmao8inldypjijm91"
+      "name": "Carbon Title",
+      "description": null,
+      "stream_id": "kjzl6cwe1jw147vkeewf6xeik0jhpoix0bfc8rhtn892hwv09f653qsqub4gfx5",
+      "logo": "/uploads/913b2fefaa3a0ce84c5b23c09.jpeg"
     },
     {
-      "name": "New app",
-      "stream_id": "kjzl6cwe1jw14aaxltycvtnfqvnu261w7vab9wn28kra6ffpxwvh9kn7vizf9vb"
+      "name": "Cloud World",
+      "description": "hey",
+      "stream_id": "kjzl6cwe1jw14aq7a51s50ua6ijd6hh79qoaf8ehhsomc14due0uhaazpy1nnaz",
+      "logo": "/uploads/913b2fefaa3a0ce84c5b23c0d.png",
+      "contexts": [
+        {
+          "name": "sub",
+          "description": null,
+          "context": "kjzl6cwe1jw14aq7a51s50ua6ijd6hh79qoaf8ehhsomc14due0uhaazpy1nnaz",
+          "stream_id": "kjzl6cwe1jw145yqqh7bg63i22sl7q59tc3vn6n158b26p6e7msl1i4wx1d8u9d"
+        },
+        {
+          "name": "sub-2",
+          "description": null,
+          "context": "kjzl6cwe1jw14aq7a51s50ua6ijd6hh79qoaf8ehhsomc14due0uhaazpy1nnaz",
+          "stream_id": "kjzl6cwe1jw14b373xhhjuouc6sduwyjnto32yhpg3l2m8d5nuj5l6ejl87b7g9"
+        },
+        {
+          "name": "sub-3",
+          "description": null,
+          "context": "kjzl6cwe1jw14aq7a51s50ua6ijd6hh79qoaf8ehhsomc14due0uhaazpy1nnaz",
+          "stream_id": "kjzl6cwe1jw1467wo7q12lss6xhggtcn8c7b75hc7akf0qgw7x4ib0k0xknlwrq"
+        }
+      ]
     },
     {
-      "name": "test new",
-      "description": "",
-      "stream_id": "kjzl6cwe1jw147vkeewf6xeik0jhpoix0bfc8rhtn892hwv09f653qsqub4gfx5"
+      "name": "New global context",
+      "description": null,
+      "stream_id": "kjzl6cwe1jw14a8v4orm0brcnadbe9i8qjcw19mcc8d5k8l4c6z5cg6xey9sf0g",
+      "contexts": [
+        {
+          "name": "new sub context",
+          "description": null,
+          "context": "kjzl6cwe1jw14a8v4orm0brcnadbe9i8qjcw19mcc8d5k8l4c6z5cg6xey9sf0g",
+          "stream_id": "kjzl6cwe1jw1464kzewi0ulbuw7ns35ep9dpzrkgca7hezabk80r165qhgj5ls1"
+        },
+        {
+          "name": "second",
+          "description": null,
+          "context": "kjzl6cwe1jw14a8v4orm0brcnadbe9i8qjcw19mcc8d5k8l4c6z5cg6xey9sf0g",
+          "stream_id": "kjzl6cwe1jw148txong2yy0gbeophxiq85dna0nxq4gvc6vf41rtyv4hli6j1u9"
+        }
+      ]
+    },
+    {
+      "name": "Price Feed Container",
+      "description": null,
+      "stream_id": "kjzl6cwe1jw149tv38q4713dftwbbhsxf516ppuilpvfsp50cpg7f9w1nmrsswr",
+      "logo": "/uploads/58752623a5fd202594026ef00.png"
     }
   ]
 }
