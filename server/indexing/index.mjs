@@ -22,10 +22,10 @@ export default class IndexingService {
 	async initialize() {
     const initPromises = this.plugins.map(async (plugin) => {
       let { HOOKS } = await plugin.init();
-      console.log("Initialized plugin: ", plugin.id);
+      console.log("Initialized plugin: " + plugin.id + " for context:" + plugin.context);
       if (HOOKS) {
         for (const [hook, handler] of Object.entries(HOOKS)) {
-          this.hookHandler.addHookHandler(hook, plugin.id, handler);
+          this.hookHandler.addHookHandler(hook, plugin.id, plugin.context, handler);
         }
       }
     });

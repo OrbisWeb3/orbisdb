@@ -48,6 +48,7 @@ export default class HookHandler {
     data.pluginsData = {};
 
     // Retrieves all of the hook that should be executed here (based on the hook name subscribed)
+    // TODO: Use contextId here in order to be able to retrieve only the hooks of the right context
     const handlers = Object.entries(this.hooks[hookName]);
 
     // Loop through all handlers to execute them
@@ -81,11 +82,12 @@ export default class HookHandler {
   }
 
   // Used to add a specific hook (can be used at runtime as well)
-  addHookHandler(hookName, pluginId, handler = () => {}) {
+  addHookHandler(hookName, pluginId, contextId, handler = () => {}) {
     if (!this.hooks[hookName]) {
       this.hooks[hookName] = {};
     }
 
+    // TODO: Use contextId here in order to be able to execute only hook when the stream is part of the right context
     this.hooks[hookName][this.sanitizePluginId(pluginId)] = handler;
   }
 
