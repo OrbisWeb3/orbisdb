@@ -38,35 +38,6 @@
   ],
   "plugins": [
     {
-      "plugin_id": "gitcoin-passport",
-      "variables": {
-        "api_key": "G5WwLzpf.HCYtZLKZ9yGq4tOnyLf9OYxejgFXxaSb",
-        "scorer_id": "899"
-      },
-      "contexts": [
-        {
-          "path": [
-            "kjzl6cwe1jw147xm12icjydu88ds5ljx7dclx0z2quqdpocq6fq1wrdttr53hzy",
-            "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94jgeneral"
-          ],
-          "context": "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94jgeneral",
-          "variables": {
-            "min_score": "10"
-          }
-        },
-        {
-          "path": [
-            "kjzl6cwe1jw147xm12icjydu88ds5ljx7dclx0z2quqdpocq6fq1wrdttr53hzy",
-            "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94jtechnical"
-          ],
-          "context": "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94jtechnical",
-          "variables": {
-            "min_score": "1"
-          }
-        }
-      ]
-    },
-    {
       "plugin_id": "hello-world",
       "variables": {},
       "contexts": [

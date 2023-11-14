@@ -2,7 +2,7 @@ import express from 'express';
 import next from 'next';
 
 import IndexingService from "./indexing/index.mjs";
-import Supabase from "./db/supabase.mjs";
+import Postgre from "./db/postgre.mjs";
 import HookHandler from "./utils/hookHandler.mjs";
 import { loadPlugins, loadAndInitPlugins } from "./utils/plugins.mjs";
 
@@ -15,7 +15,7 @@ import GitcoinPassportPlugin from "./plugins/gitcoin-passport/index.mjs"; // Git
 let hookHandler = new HookHandler();
 
 /** Instantiate the database to use which should be saved in the "orbisdb-settings.json" file */
-let database = new Supabase("url_example", "key_example");
+let database = new Postgre("doadmin", "defaultdb", "AVNS_puV0xIOIp_tdmU1kNEy", "test-orbisdb-do-user-10388596-0.c.db.ondigitalocean.com", 25060);
 
 // Create an instance of the application using Next JS pointing to the front-end files located in the client folder
 const dev = process.env.NODE_ENV !== 'production';
@@ -93,7 +93,7 @@ async function init() {
   let plugins = await loadAndInitPlugins();
 
   /** Initialize the mainnet indexing service while specifying the plugins to use and database type */
-  const MainnetIndexing = new IndexingService(
+  global.indexingService = new IndexingService(
     "mainnet",  // Ceramic network to subscribe to
     plugins,    // Plugins to use
     database,   // Database instance to use (Supabase was the simplest example since we are currently using it)
@@ -101,7 +101,7 @@ async function init() {
   );
 
   /** Subscribe to streams created on Mainnet */
-  MainnetIndexing.subscribe();
+  global.indexingService.subscribe();
 }
 
 init();

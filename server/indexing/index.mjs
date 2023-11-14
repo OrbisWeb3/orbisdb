@@ -72,7 +72,7 @@ export default class IndexingService {
 	}
 
 	/** Will load the stream details using Ceramic, process the plugins and save the stream in DB */
-  async indexStream({streamId, model }) {
+  async indexStream({ streamId, model }) {
 		console.log("Enter indexStream with: ", streamId);
 
 		try {
@@ -101,13 +101,12 @@ export default class IndexingService {
 				// Add additional fields to the content which will be saved in the database
 				let content = {
 					stream_id: streamId,
-					model: model,
 					controller: stream.metadata.controller ? stream.metadata.controller : stream.metadata.controllers[0],
 					...stream.content
 				}
 
 				// Save the stream content and indexing data in the specified database
-				await this.database.save(model, content, pluginsData);
+				await this.database.insert(model, content, pluginsData);
 
 				// Finally will execute all of the post-processor plugins.
 				this.hookHandler.executeHook("post_process", processedData);
@@ -122,28 +121,19 @@ export default class IndexingService {
 
 const fakeStreams = [
   {
-    streamId: "k2t6wzhkhabz0s4vdakn4fozuitrenqs79s68czilgzpa4m0nmnt52nyvhi3gj",
-    model: "kjzl6hvfrbw6cb8b9j326870su0gmlziwepl5nu8jk9tybwxe7mobm67cqd58a3",
+    streamId: "kjzl6kcym7w8yazsd0ik5iixpojm1p3piefa4dv5gul6qhzxzy9i7qs8j7jqvfh",
+    model: "kjzl6hvfrbw6ca079wipwvwgk5dq1epio34hrc48dbm3bd7k8lqjqm55aqjf72a"
   },
   {
-    streamId: "kjzl6kcym7w8y6uep0dkyoxyt8fw414or0qgnlmj06u84taorz8vjtis0tyf4fb",
-    model: "kjzl6hvfrbw6c5be464ta8ne35crfj4dbmxirtjrrdbhzmjvf9hlqtulfc2z7de",
+    streamId: "kjzl6kcym7w8y5k0gv2ffnzzg7vvvi1ayi7a6rov5nrz4k0zywt854smulwfdin",
+    model: "kjzl6hvfrbw6ca079wipwvwgk5dq1epio34hrc48dbm3bd7k8lqjqm55aqjf72a"
   },
-  {
-    streamId: "k2t6wzhkhabz51k2e3edqueb92fbs98qc3ks4fjvzfz00ky6nyc37n6bbwoo0y",
-    model: "kjzl6hvfrbw6cb8b9j326870su0gmlziwepl5nu8jk9tybwxe7mobm67cqd58a3",
-  },
-  {
-    streamId: "kjzl6kcym7w8y8ma22529ce1xv9wonufjeqrxygt6oiz8yz2792kyqo8qhbz3dt",
-    model: "kjzl6hvfrbw6c5be464ta8ne35crfj4dbmxirtjrrdbhzmjvf9hlqtulfc2z7de",
-  },
-
   {
     streamId: "k2t6wzhkhabz5i8k99qxvxs9bhe9zdekc9wd56ymoqpqeziloa030luut9h7r8",
-    model: "kjzl6hvfrbw6cb8b9j326870su0gmlziwepl5nu8jk9tybwxe7mobm67cqd58a3",
+    model: "kjzl6hvfrbw6cb8b9j326870su0gmlziwepl5nu8jk9tybwxe7mobm67cqd58a3"
   },
 	{
-    streamId: "kjzl6cwe1jw146xgihee2prr7ns1oij3quqc1a06crwl29m0h5ufopd2eg5a5m6",
-    model: "k1dpgaqe3i64kk0894kb0j6w3oznbcz99blyot3fjkpl3t12zuj0a05yx15yodie1fnsskh5fmcas76fqqjx98lio3yqhce4za88vpbr7f0eda2oebxsga7hx",
-  }
+		streamId: "k2t6wzhkhabz3voh368lhf0a799xlotgbowriqhz1mq7tlxvpw6p94o4jp3v0a",
+		model: "kjzl6hvfrbw6c8tvfz7lavsv4niyx2t5fypwmg8ovtrulqwke6gmj0olj7y4r0d"
+	}
 ];

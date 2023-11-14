@@ -109,7 +109,14 @@ export default class DataSourcePlugin {
                 controller: this.session.id
               }
             );
-            console.log("stream created:", stream.id?.toString());
+            let stream_id = stream.id?.toString();
+
+            // Force index stream in db if created on Ceramic
+            if(stream_id) {
+              console.log("stream created:", stream_id);
+              global.indexingService.indexStream({ streamId: stream_id, model: this.model_id });
+            }
+
           } catch (e) {
             console.log("Error creating model stream:", e);
           }
