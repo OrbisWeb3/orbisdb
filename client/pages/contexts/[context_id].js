@@ -73,6 +73,7 @@ export default function ContextDetails() {
             }
             <div className="flex flex-col">
               <h1 className="text-3xl font-bold text-slate-900">{context.name}</h1>
+              <p className="font-mono text-[12px] bg-white rounded-full px-3 py-0.5 border border-slate-200 mt-1">{context_id}</p>
             </div>
           </div>
 

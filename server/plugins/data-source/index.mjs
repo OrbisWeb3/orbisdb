@@ -63,7 +63,7 @@ export default class DataSourcePlugin {
 
       console.log("Connected to Ceramic with DID:", did.id);
 
-      /***/
+      /**
       let model_stream = await Model.create(this.ceramic,
         modelDef,
         {
@@ -71,7 +71,7 @@ export default class DataSourcePlugin {
           controller: this.session.id
         }
       );
-      console.log("model_stream:", model_stream?.id?.toString())
+      console.log("model_stream:", model_stream?.id?.toString())*/
 
       // Perform first call
       this.fetchApi();
@@ -106,6 +106,7 @@ export default class DataSourcePlugin {
               content,
               {
                 model: StreamID.fromString(this.model_id),
+                context: "any-context",
                 controller: this.session.id
               }
             );
@@ -128,36 +129,50 @@ export default class DataSourcePlugin {
 
   /** Will return the result expected by the developer using the variables */
   async getResult() {
-    let res = await fetch(this.url);
-    let data = await res.json();
     let results = [];
 
-    // Iterate over each document group
-    for (const doc of this.keys) {
-      let result = {};
+    try {
+      let res = await fetch(this.url);
+      let data = await res.json();
 
-      // Iterate over the keys and build the result object for each document
-      for (const item of doc.keys) {
-        if ('path' in item) {
-          // Existing path traversal logic
-          let value = data;
-          for (const pathSegment of item.path) {
-            if (value && value[pathSegment]) {
-              value = value[pathSegment];
-              result[item.key] = value.toString();
-            } else {
-              console.log("value is undefined for: ", item.path);
-              result[item.key] = null;
+      // Iterate over each document group
+      for (const doc of this.keys) {
+        let result = {};
+
+        // Iterate over the keys and build the result object for each document
+        for (const item of doc.keys) {
+          if ('path' in item) {
+            // Existing path traversal logic
+            let value = data;
+            for (const pathSegment of item.path) {
+              if (value && value[pathSegment]) {
+                value = value[pathSegment];
+
+                /** Convert result to expected type for this key */
+                switch (item.type) {
+                  case "numeric":
+                    result[item.key] = parseFloat(value);
+                    break;
+                  default:
+                    result[item.key] = value.toString();
+                }
+
+              } else {
+                console.log("value is undefined for: ", item.path);
+                result[item.key] = null;
+              }
             }
+
+          } else if ('value' in item) {
+            // Existing value assignment logic
+            result[item.key] = item.value;
           }
-
-        } else if ('value' in item) {
-          // Existing value assignment logic
-          result[item.key] = item.value;
         }
-      }
 
-      results.push(result);
+        results.push(result);
+      }
+    } catch(e) {
+      console.log("Error fetching URL:" + this.url + ": ", e);
     }
 
     return results;
@@ -184,7 +199,7 @@ let modelDef = {
         "type": "string"
       },
       "price": {
-        "type": ["string", "null"]
+        "type": ["number", "null"]
       },
       "currency": {
         "type": "string"

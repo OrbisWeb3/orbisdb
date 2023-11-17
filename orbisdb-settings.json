@@ -65,10 +65,10 @@
           ],
           "context": "kjzl6cwe1jw149tv38q4713dftwbbhsxf516ppuilpvfsp50cpg7f9w1nmrsswr",
           "variables": {
-            "url": "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,solana,ethereum&vs_currencies=usd",
-            "model_id": "kjzl6hvfrbw6ca079wipwvwgk5dq1epio34hrc48dbm3bd7k8lqjqm55aqjf72a",
+            "url": "https://pro-api.coingecko.com/api/v3/simple/price?ids=bitcoin,solana,ethereum&vs_currencies=usd&x_cg_pro_api_key=CG-W67XNyTNiNvfjAWYVu9FFRM9",
+            "model_id": "kjzl6hvfrbw6c60ji9txuq3da0qic30tcioy25xah9g449zf40u3d0jmi8of0r7",
             "secs_interval": "60",
-            "keys": "[\n  {\n    \"keys\": [\n      {\n        \"key\": \"asset\",\n        \"value\": \"bitcoin\"\n      },\n      {\n        \"key\": \"price\",\n        \"path\": [\"bitcoin\", \"usd\"]\n      },\n      {\n        \"key\": \"currency\",\n        \"value\": \"USD\"\n      }\n    ]\n  },\n  {\n    \"keys\": [\n      {\n        \"key\": \"asset\",\n        \"value\": \"solana\"\n      },\n      {\n        \"key\": \"price\",\n        \"path\": [\"solana\", \"usd\"]\n      },\n      {\n        \"key\": \"currency\",\n        \"value\": \"USD\"\n      }\n    ]\n  },\n{\n    \"keys\": [\n      {\n        \"key\": \"asset\",\n        \"value\": \"ethereum\"\n      },\n      {\n        \"key\": \"price\",\n        \"path\": [\"ethereum\", \"usd\"]\n      },\n      {\n        \"key\": \"currency\",\n        \"value\": \"USD\"\n      }\n    ]\n  }\n]"
+            "keys": "[\n  {\n    \"keys\": [\n      {\n        \"key\": \"asset\",\n        \"value\": \"bitcoin\"\n      },\n      {\n        \"key\": \"price\",\n        \"path\": [\"bitcoin\", \"usd\"],\n        \"type\": \"numeric\"\n      },\n      {\n        \"key\": \"currency\",\n        \"value\": \"USD\"\n      }\n    ]\n  },\n  {\n    \"keys\": [\n      {\n        \"key\": \"asset\",\n        \"value\": \"solana\"\n      },\n      {\n        \"key\": \"price\",\n        \"path\": [\"solana\", \"usd\"],\n        \"type\": \"numeric\"\n      },\n      {\n        \"key\": \"currency\",\n        \"value\": \"USD\"\n      }\n    ]\n  },\n{\n    \"keys\": [\n      {\n        \"key\": \"asset\",\n        \"value\": \"ethereum\"\n      },\n      {\n        \"key\": \"price\",\n        \"path\": [\"ethereum\", \"usd\"],\n        \"type\": \"numeric\"\n      },\n      {\n        \"key\": \"currency\",\n        \"value\": \"USD\"\n      }\n    ]\n  }\n]"
           }
         }
       ]
@@ -177,7 +177,7 @@
       ]
     },
     {
-      "name": "Price Feed Container",
+      "name": "Open Price Feed Container",
       "description": null,
       "stream_id": "kjzl6cwe1jw149tv38q4713dftwbbhsxf516ppuilpvfsp50cpg7f9w1nmrsswr",
       "logo": "/uploads/58752623a5fd202594026ef00.png"

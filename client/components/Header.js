@@ -5,7 +5,7 @@ import { DashIcon } from "./Icons";
 export default function Header() {
   // Define navigation items and their paths
   const navItems = [
-    { title: 'Projects', path: '/', type: "equal" },
+    { title: 'Contexts', path: '/', type: "equal" },
     { title: 'Plugins', path: '/plugins', type: "includes" },
     { title: 'Data', path: '/data', type: "includes" },
     { title: 'Models', path: '/models', type: "includes" },

@@ -28,6 +28,67 @@ code {
 .text-base {
   font-size: 0.925rem !important;
 }
+.text-xs {
+  font-size: 0.825rem !important;
+}
+.text-xxs {
+  font-size: 0.75rem !important;
+}
+
+/** Data table custom CSS */
+.table-data {
+  height: fit-content;
+}
+.table-data th {
+  padding: 4px 8px;
+  text-align: left;
+  border: 1px solid #e2e8f0;
+}
+.table-data td {
+  padding: 4px 8px;
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 200px;
+}
+
+/** SQL Editor forced theme */
+.sql_editor .ace_placeholder {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
+  font: 13px/normal ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
+  margin: 0;
+  padding-left: 5px !important;
+}
+.sql_editor .ace_editor {
+  font: 12px/normal ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
+}
+.ace-sqlserver .ace_comment {
+  color: #1d4ed8;
+}
+.ace-sqlserver .ace_gutter {
+  background: #f1f5f9;
+}
+.ace_folding-enabled > .ace_gutter-cell, .ace_folding-enabled > .ace_gutter-cell_svg-icons {
+  padding-right: 10px;
+  padding-left: 10px;
+  font-size: 11px;
+  text-align: center;
+  color: #64748b;
+}
+.ace-sqlserver .ace_marker-layer .ace_active-line, .ace-sqlserver .ace_gutter-active-line {
+  background: inherit !important;
+}
+.ace_line {
+  color: #334155;
+}
+.ace-sqlserver .ace_keyword {
+  color: #1d4ed8 !important;
+}
+.ace-sqlserver .ace_string {
+  color: #15803d !important;
+}
 
 /* Custom class for the textarea */
 .private-input {

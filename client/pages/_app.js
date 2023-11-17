@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+
 /** Import Orbis SDK */
 import { Orbis } from "@orbisclub/orbis-sdk";
 
@@ -64,7 +65,7 @@ export default function App({ Component, pageProps }) {
 
   return(
     <GlobalContext.Provider value={{ settings, setSettings, orbis, user, setUser }}>
-      <div className="h-full w-full">
+      <div className="h-full w-full flex flex-col">
         <Header />
         {settings ?
           <>
