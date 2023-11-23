@@ -63,7 +63,6 @@ export default class Postgre {
 
   /** Will prepare the indexing of a model by creating the corresponding table in our database */
   async indexModel(model, callback) {
-    console.log("Enter indexModel with:", model);
     // Step 1: Load model details
     let { content } = await global.indexingService.ceramic.loadStream(model);
     if(content?.schema?.properties) {
@@ -180,6 +179,34 @@ export default class Postgre {
       console.error(`Error querying data from ${table}:`, e.message);
       return false;
     }
+  }
+
+  /** TODO: Maybe use this to have a more readable table name instead of using the model id */
+  async formatAndEnsureUniqueTableName(title, dbPool) {
+    // Convert to lowercase and replace spaces and special characters with underscores
+    let formattedName = title.toLowerCase().replace(/[^a-z0-9]/gi, '_');
+
+    // Ensure uniqueness by checking against the database
+    let uniqueName = formattedName;
+    let counter = 1;
+    let nameExists = true;
+
+    while (nameExists) {
+      try {
+        const res = await this.pool.query(`SELECT to_regclass('${uniqueName}')`);
+        nameExists = res.rows[0].to_regclass !== null;
+
+        if (nameExists) {
+          uniqueName = `${formattedName}_${counter}`;
+          counter++;
+        }
+      } catch (err) {
+        console.error("Error checking table name uniqueness", err);
+        throw err; // Or handle the error as per your application's needs
+      }
+    }
+
+    return uniqueName;
   }
 
   /** Will convert the properties from the JSON schemas into Postegre's fields to create the new table */

@@ -1,0 +1,17 @@
+{
+  "id": "csv-uploader",
+  "name": "CSV Uploader",
+  "logo": "/img/csv-uploader-logo.png",
+  "description": "Plugin to allow you to upload entire CSV files to Ceramic.",
+  "hooks": ["generate"],
+  "routes": ["upload"],
+  "variables": [
+    {
+      "name": "Ceramic Seed",
+      "description": "The Ceramic seed that will be used to create the streams.",
+      "id": "ceramic_seed",
+      "private": true,
+      "type": "array"
+    }
+  ]
+}

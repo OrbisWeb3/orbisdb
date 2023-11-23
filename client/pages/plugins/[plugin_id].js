@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from "react";
+import Link from 'next/link';
 import { GlobalContext } from "../../contexts/Global";
-import { CheckIcon, SettingsIcon, DashIcon, AlertIcon } from "../../components/Icons";
+import { CheckIcon, SettingsIcon, DashIcon, AlertIcon, ExternalLinkIcon } from "../../components/Icons";
 import AddModelModal from "../../components/Modals/AddModel";
 import Alert from "../../components/Alert";
 import PluginSettingsModal from "../../components/Modals/PluginSettings";
@@ -93,6 +94,7 @@ export default function PluginDetails() {
       if(response.status == 200) {
         setStatus(STATUS.SUCCESS);
         setSettings(response.updatedSettings);
+        setIsInstalled(true);
         await sleep(1500);
         setInstallPluginModalVis(false);
       } else {
@@ -139,7 +141,7 @@ export default function PluginDetails() {
                     <p className="text-slate-600 mt-3 text-base">Enable this plugin on your contexts to start using it:</p>
                     <div className="flex flex-row flex-wrap mt-2 items-start">
                       {settings.plugins[existingPluginIndex].contexts?.map((context, index) => (
-                        <OneContext context={context} key={index} setSelectedContext={setSelectedContext} />
+                        <OneContext context={context} key={index} setSelectedContext={setSelectedContext} pluginDetails={pluginDetails} />
                       ))}
                     </div>
                   </>
@@ -231,7 +233,7 @@ export default function PluginDetails() {
 }
 
 
-const OneContext = ({context, setSelectedContext}) => {
+const OneContext = ({context, setSelectedContext, pluginDetails}) => {
   const { settings } = useContext(GlobalContext);
 
   const getContextName = (id) => {
@@ -244,7 +246,7 @@ const OneContext = ({context, setSelectedContext}) => {
   }
 
   return(
-    <div className="rounded-md bg-white border border-slate-200 flex flex-col overflow-hidden mb-3 mr-3 min-w-[170px]">
+    <div className="rounded-md bg-white border border-slate-200 flex flex-col overflow-hidden mb-3 mr-3 min-w-[170px] max-w-[350px]">
       {/** Context details */}
       <div className="flex flex-row px-4 py-3 items-center space-x-1.5">
         {context.path.map((context_id, index) => {
@@ -273,12 +275,29 @@ const OneContext = ({context, setSelectedContext}) => {
       {context.variables &&
         <div className="flex flex-col px-4 text-sm border-t border-slate-100 py-2 text-slate-600 space-y-1">
           {Object.entries(context.variables).map(([key, value]) => (
-            <div key={key}>
-              <span className="font-medium text-slate-900">{key}:</span> {value}
+            <div className="font-mono text-xxs truncate" key={key}>
+              <span className="font-bold text-slate-900">{key}:</span> <span className="truncate">{value}</span>
             </div>
           ))}
         </div>
       }
+
+      {/** Display active routes if any */}
+      
+      {pluginDetails.routes &&
+        <div className="flex flex-row bg-[#FBFBFB] text-[#989494] hover:text-[#807878] text-sm cursor-pointer border-t border-slate-200 space-x-1 px-3 py-1.5 items-center justify-center" onClick={() => setSelectedContext(context)}>
+          <div className="mr-1 font-medium">Routes:</div>
+          <>
+            {pluginDetails.routes.map((route, index) => (
+              <Link href={"/api/plugins/" + pluginDetails.id + "/" + context.context + "/" + route} target="_blank" className="bg-white border border-slate-200 hover:border-[#4483FD]  rounded-md px-3 py-2 text-xs font-medium text-slate-800 space-x-1 flex flex-row items-center" key={index}>
+                <ExternalLinkIcon />
+                <span className="font-mono">{route}</span>
+              </Link>
+            ))}
+          </>
+        </div>
+      }
+      
 
       {/** Configure CTA */}
       <div className="flex flex-row bg-[#FBFBFB] text-[#989494] hover:text-[#807878] cursor-pointer border-t border-slate-200 space-x-1 px-3 py-1.5 items-center justify-center" onClick={() => setSelectedContext(context)}>

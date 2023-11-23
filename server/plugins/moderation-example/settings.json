@@ -1,12 +1,18 @@
 {
   "id": "moderation-example",
-  "name": "Moderation Example",
-  "description": "Example of a plugin to moderate content.",
+  "name": "OpenAI Moderation",
+  "logo": "/img/moderation-logo.png",
+  "description": "Example of a plugin to moderate content with OpenAI.",
   "hooks": ["validate", "add_metadata"],
   "variables": [
     {
       "name": "OpenAI Secret Key",
-      "description": "The API key that will be used by this plugin when communicating with OpenAI.",
+      "description": "The secret key that will be used by this plugin when communicating with OpenAI.",
+      "id": "secret_key"
+    },
+    {
+      "name": "OpenAI Organization Key",
+      "description": "The organization key that will be used by this plugin when communicating with OpenAI.",
       "id": "secret_key"
     }
   ]

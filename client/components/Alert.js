@@ -1,6 +1,6 @@
-export default function Alert({title, className = "text-base mb-4"}) {
+export default function Alert({title, className = "text-base mb-4", color = "amber"}) {
   return(
-    <div className={"bg-amber-100 rounded-md border-dashed border border-amber-200 px-6 py-2 justify-center flex text-amber-800 " + className}>
+    <div className={`rounded-md border-dashed border px-6 py-2 justify-center flex ${"bg-"+color+"-100 border-"+color+"-200 text-"+color+"-800"} ${className}`}>
       <span className="text-center">{title}</span>
     </div>
   )

@@ -2,10 +2,11 @@
  * Those are all of the hooks used by OrbisDB (others might be added in the future).
  */
 const hooks = [
-  ["generate", {}],
-  ["validate", { isValidator: true }], // Updated the `terminateOnResult` logic. I feel that validators plugins should only be able to return true or false.
-  ["add_metadata", {}],
-  ["post_process", {}],
+  ["generate", { isContextualized: false }],
+  ["validate", { isContextualized: true }], // Updated the `terminateOnResult` logic. I feel that validators plugins should only be able to return true or false.
+  ["add_metadata", { isContextualized: true }],
+  ["update", { isContextualized: true }],
+  ["post_process", { isContextualized: true }],
 ];
 
 /**
@@ -22,7 +23,7 @@ export default class HookHandler {
   }
 
   // Execute the hook or returns an error
-  async safeExecute(handler, data) {
+  async safeExecute(handler, data, contextId) {
     try {
       const { pluginsData, ...dataToPass } = data;
       // Execute hook
@@ -35,45 +36,67 @@ export default class HookHandler {
 
   // TODO: handle hook that are able to overwrite data
   // TODO: handle hooks that are able to return early (next())
-  async executeHook(hookName, data = {}) {
-
-    // Retrieve options for the hook to be about to be executed. Can be used for hooks requiring to terminate if results are returned
+  async executeHook(hookName, data = {}, contextId) {
+    // Retrieve options for the hook to be about to be executed.
     const hookOpts = this.registeredHooks[hookName];
     if (!hookOpts) {
-      throw `Hook ${hookName} has no been registered.`;
+      throw `Hook ${hookName} has not been registered.`;
     }
 
-    // Initalize some additional fields which can be used by the plugins
-    data.isValid = true;
-    data.pluginsData = {};
+    // Initialize some additional fields which can be used by the plugins.
+    let hookData = {...data};
+    hookData.isValid = true;
+    hookData.pluginsData = {};
 
-    // Retrieves all of the hook that should be executed here (based on the hook name subscribed)
-    // TODO: Use contextId here in order to be able to retrieve only the hooks of the right context
-    const handlers = Object.entries(this.hooks[hookName]);
+    // Determine if the hook is contextualized and get the relevant contextId.
+    const isContextualized = hookOpts.isContextualized;
+    let handlers;
 
-    // Loop through all handlers to execute them
+    if (isContextualized) {
+      // Retrieve handlers specific to the context if the hook is contextualized.
+      if (!this.hooks[hookName] || !this.hooks[hookName][contextId]) {
+        return data;
+      }
+      handlers = Object.entries(this.hooks[hookName][contextId]);
+    } else {
+      // Retrieve all handlers for global hooks.
+      if (!this.hooks[hookName]) {
+        console.warn(`No handlers found for global hook ${hookName}`);
+        return data;
+      }
+      handlers = Object.entries(this.hooks[hookName]);
+    }
+
+    // Loop through all handlers to execute them.
     for (const [pluginId, handler] of handlers) {
-      // Safely execute the hook
+      // Safely execute the hook.
       const result = await this.safeExecute(handler, JSON.parse(JSON.stringify(data)));
+      console.log("result in executeHook:", result);
 
-      // Validator hooks can update the `isValid` field
-      if (hookOpts.isValidator) {
-        if(result === false) {
-          data.isValid = false;
+      // Handle hook executed based on its type
+      if (result) {
+        if (result.error) {
+          console.error(`[hook:${hookName}/${pluginId}] Handler error.`, result.error);
+          continue;
         }
-      } else {
-        // Save result returned by the plugin in the pluginsData field
-        if (result) {
-          if (result.error) {
-            console.error(`[hook:${hookName}/${pluginId}] Handler error.`, result.error);
-            continue;
-          }
-          data.pluginsData[pluginId] = result;
+
+        // Will handle the result of the executed hook based on the hook type
+        switch(hookName) {
+          case "add_metadata":
+            hookData.pluginsData[pluginId] = result;
+            break;
+          case "validator":
+            if (result === false) {
+              hookData.isValid = false;
+            }
+            break;
+          case "update":
+            return result;
         }
       }
     }
 
-    return data;
+    return hookData;
   }
 
   // Will clean the name to make sure it cotains only lowercase letters (todo: should improve the plugin naming logic)
@@ -83,21 +106,36 @@ export default class HookHandler {
 
   // Used to add a specific hook (can be used at runtime as well)
   addHookHandler(hookName, pluginId, contextId, handler = () => {}) {
+    const isContextualized = this.registeredHooks[hookName]?.isContextualized;
+    const sanitizedPluginId = this.sanitizePluginId(pluginId);
+
     if (!this.hooks[hookName]) {
       this.hooks[hookName] = {};
     }
 
-    // TODO: Use contextId here in order to be able to execute only hook when the stream is part of the right context
-    this.hooks[hookName][this.sanitizePluginId(pluginId)] = handler;
+    if (isContextualized) {
+      // Contextualized hooks will be stored under a specific context
+      if (!this.hooks[hookName][contextId]) {
+        this.hooks[hookName][contextId] = {};
+      }
+      this.hooks[hookName][contextId][sanitizedPluginId] = handler;
+    } else {
+      // Global hooks do not depend on contextId
+      this.hooks[hookName][sanitizedPluginId] = handler;
+    }
   }
 
   // Used to remove a specific hook during runtime
-  removeHookHandler(hookName, pluginId) {
+  removeHookHandler(hookName, pluginId, contextId) {
     if (!this.hooks[hookName]) {
       return;
     }
 
-    delete this.hooks[hookName][this.sanitizePluginId(pluginId)];
+    if (!this.hooks[contextId]) {
+      return;
+    }
+
+    delete this.hooks[contextId][this.sanitizePluginId(pluginId)];
   }
 
   // This is registering a hook in order execute them at the right time

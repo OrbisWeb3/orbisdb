@@ -1,0 +1,31 @@
+{
+    "id": "chat-gpt",
+    "name": "Chat GPT",
+    "logo": "/img/chat-gpt-logo.png",
+    "description": "A plugin to query OpenAI's Chat GPT API.",
+    "hooks": ["add_metadata", "update"],
+    "variables": [
+      {
+        "name": "Organization ID",
+        "description": "The organization ID for OpenAI.",
+        "id": "organization_id"
+      },
+      {
+        "name": "Secret Key",
+        "description": "The secret key for OpenAI.",
+        "id": "secret_key"
+      },
+      {
+        "name": "Prompt",
+        "description": "The question to ask the AI.",
+        "id": "prompt",
+        "per_context": true
+      },
+      {
+        "name": "Variable to update",
+        "description": "The field that will be updated in your content object.",
+        "id": "updatedVariable",
+        "per_context": true
+      }
+    ]
+  }

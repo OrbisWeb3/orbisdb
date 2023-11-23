@@ -72,6 +72,61 @@
           }
         }
       ]
+    },
+    {
+      "plugin_id": "gitcoin-passport",
+      "variables": {
+        "api_key": "G5WwLzpf.HCYtZLKZ9yGq4tOnyLf9OYxejgFXxaSb",
+        "scorer_id": "899"
+      },
+      "contexts": [
+        {
+          "path": [
+            "kjzl6cwe1jw14aaxltycvtnfqvnu261w7vab9wn28kra6ffpxwvh9kn7vizf9vb"
+          ],
+          "context": "kjzl6cwe1jw14aaxltycvtnfqvnu261w7vab9wn28kra6ffpxwvh9kn7vizf9vb",
+          "variables": {
+            "min_score": "5"
+          }
+        }
+      ]
+    },
+    {
+      "plugin_id": "csv-uploader",
+      "variables": {
+        "ceramic_seed": "[213, 30,116, 231, 149, 125, 252, 34, 193, 195, 198, 224, 37, 222, 124, 12, 64, 215, 195, 147, 95, 71, 80, 91, 247, 161, 95, 235, 173, 100, 245, 209]"
+      },
+      "contexts": [
+        {
+          "path": [
+            "kjzl6cwe1jw14aq7a51s50ua6ijd6hh79qoaf8ehhsomc14due0uhaazpy1nnaz",
+            "kjzl6cwe1jw145yqqh7bg63i22sl7q59tc3vn6n158b26p6e7msl1i4wx1d8u9d"
+          ],
+          "context": "kjzl6cwe1jw145yqqh7bg63i22sl7q59tc3vn6n158b26p6e7msl1i4wx1d8u9d"
+        }
+      ]
+    },
+    {
+      "plugin_id": "chat-gpt",
+      "variables": {
+        "organization_id": "org-lxESgWKgBRJuQgfwrozZGFsa",
+        "secret_key": "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",
+        "model": "gpt-3.5-turbo",
+        "prompt": "Create a summary of this book using the markdown format"
+      },
+      "contexts": [
+        {
+          "path": [
+            "kjzl6cwe1jw14aq7a51s50ua6ijd6hh79qoaf8ehhsomc14due0uhaazpy1nnaz",
+            "kjzl6cwe1jw145yqqh7bg63i22sl7q59tc3vn6n158b26p6e7msl1i4wx1d8u9d"
+          ],
+          "context": "kjzl6cwe1jw145yqqh7bg63i22sl7q59tc3vn6n158b26p6e7msl1i4wx1d8u9d",
+          "variables": {
+            "prompt": "Create a summary of the book ${Title} by ${Author} using the markdown format",
+            "updatedVariable": "Description"
+          }
+        }
+      ]
     }
   ],
   "contexts": [
@@ -132,13 +187,13 @@
       "logo": "/uploads/913b2fefaa3a0ce84c5b23c09.jpeg"
     },
     {
-      "name": "Cloud World",
+      "name": "Open Book Summary",
       "description": "hey",
       "stream_id": "kjzl6cwe1jw14aq7a51s50ua6ijd6hh79qoaf8ehhsomc14due0uhaazpy1nnaz",
       "logo": "/uploads/913b2fefaa3a0ce84c5b23c0d.png",
       "contexts": [
         {
-          "name": "sub",
+          "name": "Main",
           "description": null,
           "context": "kjzl6cwe1jw14aq7a51s50ua6ijd6hh79qoaf8ehhsomc14due0uhaazpy1nnaz",
           "stream_id": "kjzl6cwe1jw145yqqh7bg63i22sl7q59tc3vn6n158b26p6e7msl1i4wx1d8u9d"

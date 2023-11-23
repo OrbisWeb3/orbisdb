@@ -10,8 +10,8 @@ export default function Home() {
   return(
     <>
       <div className="px-16 py-12">
-        <h1 className="text-3xl font-bold text-slate-900">Project</h1>
-        <p className="text-slate-600 mt-1 text-base">Here are the models you are currently indexing.</p>
+        <h1 className="text-3xl font-bold text-slate-900">Models</h1>
+        <p className="text-slate-600 mt-1 text-base">Here are the models currently being indexed by your Ceramic node.</p>
         <div className="flex flex-col mt-4 space-y-1.5 w-2/3">
           <LoopModels />
           <div className="flex flex-col w-full items-center space-y-2 mt-2">

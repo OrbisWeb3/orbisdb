@@ -61,7 +61,7 @@ export async function loadAndInitPlugins() {
       const PluginClass = PluginModule.default;
 
       // Create a new instance of the plugin for each contextualized install
-      pluginConfig.contexts.forEach(context => {
+      pluginConfig.contexts?.forEach(context => {
         let pluginVariables = pluginConfig.variables ? pluginConfig.variables : null;
         let contextualizedVariables = context.variables;
 
@@ -78,6 +78,9 @@ export async function loadAndInitPlugins() {
 
         /** Assign plugin's context dynamically */
         pluginInstance.context = context.context;
+
+        /** Assign plugin's ID automatically */
+        pluginInstance.id = pluginConfig.plugin_id;
 
         /** Add plugin initialized to the loaded plugins array */
         loadedPlugins.push(pluginInstance);

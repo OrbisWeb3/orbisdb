@@ -115,16 +115,14 @@ export default function ContextDetails() {
               {/** Display plugins installed on parent context if this context has a parent context. */}
               {parentContext &&
                 <>
-                  <span className="font-medium text-base mt-2">From parent:</span>
-                  <div className="flex flex-col mt-2 space-y-1">
-                    {plugins.parent.length > 0 ?
-                      <PluginsInstalled plugins={plugins.parent} />
-                    :
-                      <div className="flex justify-center">
-                        <Alert title="There aren't any plugins installed on the parents." />
+                  {plugins.parent.length > 0 &&
+                    <>
+                      <span className="font-medium text-base mt-2">From parent:</span>
+                      <div className="flex flex-col mt-2 space-y-1">
+                        <PluginsInstalled plugins={plugins.parent} />
                       </div>
-                    }
-                  </div>
+                    </>
+                  }
                 </>
               }
 

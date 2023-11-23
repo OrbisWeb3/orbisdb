@@ -11,7 +11,6 @@ import { getResolver } from 'key-did-resolver'
 
 export default class DataSourcePlugin {
   constructor({ ceramic_seed, model_id, secs_interval = 0, url, keys }) {
-    this.id = "data-source";
     this.ceramic_seed = JSON.parse(ceramic_seed);
     this.model_id = model_id;
     this.secs_interval = secs_interval;
@@ -99,14 +98,18 @@ export default class DataSourcePlugin {
               context: this.context,
               timestamp: Math.floor(Date.now() / 1000)
             };
-            console.log("content:", content);
+            
 
+            /** We call the update hook here in order to support hooks able to update data before it's created in Ceramic  */
+				    let __content = await global.indexingService.hookHandler.executeHook("update", content, this.context);
+            console.log("content:", __content);
+
+            /** We then create the stream with the updated content */
             let stream = await ModelInstanceDocument.create(
               this.ceramic,
-              content,
+              __content,
               {
                 model: StreamID.fromString(this.model_id),
-                context: "any-context",
                 controller: this.session.id
               }
             );
@@ -177,7 +180,6 @@ export default class DataSourcePlugin {
 
     return results;
   }
-
 }
 
 let modelDef = {

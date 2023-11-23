@@ -1,33 +1,71 @@
 import { initIPFS } from '../ipfs/config.mjs';
 import { sleep, getCeramicFromNetwork, getTopicFromNetwork } from "../utils/helpers.mjs"
+import { loadAndInitPlugins } from "../utils/plugins.mjs";
 
 /**
  * The indexing service class would be responsible for indexing the content while going through all of the plugins "installed"
  * through the orbisDB instance.
  */
 export default class IndexingService {
-	constructor(network, plugins = [], database, hookHandler) {
+	constructor(network, database, hookHandler, server) {
 		console.log("Initialized new IndexingService class for " + network);
 		this.ceramic = getCeramicFromNetwork(network);
 		this.topic = getTopicFromNetwork(network);
-		this.plugins = plugins;
 		this.database = database;
 		this.hookHandler = hookHandler;
+		this.server = server;
 
 		// Go through the list of all plugins used and enable them
 		this.initialize();
+
+		// Test adding custom route
+		this.server.get('/custom-route', (req, res) => {
+	    res.send('This is a custom route');
+	  });
 	}
 
-	// Map each plugin to an initialization promise
+	// Map each plugin to an init promise
 	async initialize() {
-    const initPromises = this.plugins.map(async (plugin) => {
-      let { HOOKS } = await plugin.init();
+		// Retrive all plugins installed
+		let plugins = await loadAndInitPlugins();
+
+		// Loads all plugins installed
+    const initPromises = plugins.map(async (plugin) => {
+      let { HOOKS, ROUTES } = await plugin.init();
+			console.log("ROUTES for " + plugin.id + ":", ROUTES);
       console.log("Initialized plugin: " + plugin.id + " for context:" + plugin.context);
-      if (HOOKS) {
+
+			// Manage hooks declared by plugins
+      if(HOOKS) {
         for (const [hook, handler] of Object.entries(HOOKS)) {
           this.hookHandler.addHookHandler(hook, plugin.id, plugin.context, handler);
         }
       }
+
+			// Register API routes requested by this plugin
+			if (ROUTES) {
+				// Handle GET routes
+				if(ROUTES.GET) {
+					for (const [route, method] of Object.entries(ROUTES.GET)) {
+						let api_route = `/api/plugins/:plugin_id/:context_id/${route}`;
+						console.log("Registering GET route:", api_route);
+						this.server.get(api_route, (req, res) => {
+							method(req, res);
+						});
+					}
+				}
+
+				// Handle POST routes
+				if(ROUTES.POST) {
+					for (const [route, method] of Object.entries(ROUTES.POST)) {
+						let api_route = `/api/plugins/:plugin_id/:context_id/${route}`;
+						console.log("Registering POST route:", api_route);
+						this.server.post(api_route, (req, res) => {
+							method(req, res);
+						});
+					}
+				}
+			}
     });
 
     // Wait for all the initialization promises to resolve
@@ -35,7 +73,7 @@ export default class IndexingService {
 
     console.log("All plugins are initialized");
 
-		// Trigger the generate hook which can be used for subscriptions
+		// Trigger the generate hook which can be used to generate new streams automatically
 		this.hookHandler.executeHook("generate");
 	}
 
@@ -72,7 +110,7 @@ export default class IndexingService {
 	}
 
 	/** Will load the stream details using Ceramic, process the plugins and save the stream in DB */
-  async indexStream({ streamId, model }) {
+  	async indexStream({ streamId, model }) {
 		console.log("Enter indexStream with: ", streamId);
 
 		try {
@@ -87,16 +125,19 @@ export default class IndexingService {
 				content: stream.content
 			};
 
+			// Retrieve context id for identified stream
+			let contextId = stream.content.context;
+
 			if (stream) {
 				// Will execute all of the validator hooks and terminate if one of them reject the stream
-				const { isValid } = await this.hookHandler.executeHook("validate", processedData);
+				const { isValid } = await this.hookHandler.executeHook("validate", processedData, contextId);
 				console.log("Is stream valid? ", isValid);
 				if(isValid == false) {
 					return console.log("This stream is not valid, don't index:", streamId);
 				}
 
 				// Will execute all of the "metadata" plugins and return a pluginsData object which will contain all of the metadata added by the different plugins
-				const { pluginsData } = await this.hookHandler.executeHook("add_metadata", processedData);
+				const { pluginsData } = await this.hookHandler.executeHook("add_metadata", processedData, contextId);
 
 				// Add additional fields to the content which will be saved in the database
 				let content = {
@@ -108,14 +149,12 @@ export default class IndexingService {
 				// Save the stream content and indexing data in the specified database
 				await this.database.insert(model, content, pluginsData);
 
-				// Finally will execute all of the post-processor plugins.
-				this.hookHandler.executeHook("post_process", processedData);
+				// Will execute all of the post-processor plugins.
+				this.hookHandler.executeHook("post_process", processedData, contextId);
 	    }
 		} catch(e) {
 			console.log("Error indexing stream:", e);
 		}
-
-		// Go through all of the pre-processor and validator plugins to process them.
     }
 }
 
@@ -132,8 +171,8 @@ const fakeStreams = [
     streamId: "k2t6wzhkhabz5i8k99qxvxs9bhe9zdekc9wd56ymoqpqeziloa030luut9h7r8",
     model: "kjzl6hvfrbw6cb8b9j326870su0gmlziwepl5nu8jk9tybwxe7mobm67cqd58a3"
   },
-	{
-		streamId: "k2t6wzhkhabz3voh368lhf0a799xlotgbowriqhz1mq7tlxvpw6p94o4jp3v0a",
-		model: "kjzl6hvfrbw6c8tvfz7lavsv4niyx2t5fypwmg8ovtrulqwke6gmj0olj7y4r0d"
-	}
+{
+	streamId: "kjzl6kcym7w8y56rpeh47hb3t5fshp9b7geqv7197gbb6sbob6vccp5l7qa1spc",
+	model: "kjzl6hvfrbw6c8pzfstttcl1xessjf6wc87k3t2pyz3ibsypfxxjrneh9ioamyb"
+}
 ];

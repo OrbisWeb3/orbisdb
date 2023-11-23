@@ -1,7 +1,6 @@
 
 export default class HelloWorldPlugin {
   constructor() {
-    this.id = "hello-world-plugin";
   }
 
   /**
@@ -11,17 +10,23 @@ export default class HelloWorldPlugin {
   async init() {
     return {
       HOOKS: {
-        "generate": () => this.subscribe(),
+        "generate": () => this.start(),
         "validate": (stream) => this.isValid(stream),
         "add_metadata": (stream) => this.hello(stream),
+      },
+      ROUTES: {
+        "hello": this.helloApi,
+        "hello-html": this.helloHtmlApi,
       },
     };
   }
 
-  subscribe() {
+  /** Will kickstart the generation of a new stream */
+  start() {
     console.log("Start subscription in HelloWorld plugin to generate a new stream every x seconds");
   }
 
+  /** Will mark al of the streams as valid */
   isValid() {
     return true;
   }
@@ -31,5 +36,27 @@ export default class HelloWorldPlugin {
     return {
       hello: "world"
     }
+  }
+
+
+  /** Example of an API route returning a simple json object. The routes declared by a plugin are automatically exposed by the OrbisDB instance */
+  helloApi(req, res) {
+    res.json({
+      hello: "world"
+    })
+  }
+
+  /** Example of an API route returning a simple HTML page. The routes declared by a plugin are automatically exposed by the OrbisDB instance */
+  helloHtmlApi(req, res) {
+    res.send(`<!DOCTYPE html>
+      <html>
+        <head>
+          <title>Simple Page</title>
+        </head>
+        <body>
+          <h1>Hello, this is a simple HTML page</h1>
+          <p>More content here...</p>
+        </body>
+      </html>`);
   }
 }

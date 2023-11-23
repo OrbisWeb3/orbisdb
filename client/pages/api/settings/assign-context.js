@@ -59,6 +59,7 @@ export default async function handler(req, res) {
       // Write the updated settings back to the file
       fs.writeFileSync(settingsFilePath, JSON.stringify(settings, null, 2));
 
+      // Return results
       res.status(200).json({ message: 'Context updated successfully', settings: settings });
 
     } catch (err) {

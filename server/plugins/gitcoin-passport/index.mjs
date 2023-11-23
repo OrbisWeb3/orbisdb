@@ -5,7 +5,6 @@ export default class GitcoinPassportPlugin {
     console.log("api_key:", api_key);
     console.log("scorer_id:", scorer_id);
     console.log("min_score:", min_score);
-    this.id = "gitcoin-passport";
     this.api_key = api_key;
     this.scorer_id = scorer_id;
     this.min_score = min_score;
@@ -61,6 +60,7 @@ export default class GitcoinPassportPlugin {
 			}
 
     } else {
+      console.log("Stream " + stream.stream_id + " rejected by Gitcoin Passport.");
       return false;
     }
   }

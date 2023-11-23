@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from "react";
 import Link from 'next/link';
 import { GlobalContext } from "../../contexts/Global";
-import { LoadingCircle, TableIcon, ViewIcon, CaretDown, RefreshIcon, FilterIcon, ArrowLeft, ArrowRight, AddIcon, PlayIcon } from "../../components/Icons";
+import { LoadingCircle, TableIcon, ViewIcon, CaretDown, RefreshIcon, FilterIcon, ArrowLeft, ArrowRight, AddIcon, PlayIcon, EyeIcon } from "../../components/Icons";
 import ContextDetails from "../../components/ContextDetails";
 import AddViewModal from "../../components/Modals/AddViewModal";
 import Button from "../../components/Button";
@@ -13,7 +13,7 @@ import "ace-builds/src-min-noconflict/ext-language_tools";
 
 export default function Data() {
   const [addModalVis, setAddModalVis] = useState(false);
-  const [selectedTable, setSelectedTable] = useState("kjzl6hvfrbw6c60ji9txuq3da0qic30tcioy25xah9g449zf40u3d0jmi8of0r7");
+  const [selectedTable, setSelectedTable] = useState({id: "kjzl6hvfrbw6c60ji9txuq3da0qic30tcioy25xah9g449zf40u3d0jmi8of0r7"});
   const [data, setData] = useState([]);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -22,6 +22,7 @@ export default function Data() {
   const [schemaLoading, setSchemaLoading] = useState(false);
   const [tables, setTables] = useState([]);
   const [views, setViews] = useState([]);
+  const [sqlValue, setSqlValue] = useState("");
 
   /** Will be called on start to load the db schema */
   useEffect(() => {
@@ -38,13 +39,26 @@ export default function Data() {
   /** Will load all of the tables and views available in the database */
   async function loadSchema() {
     setSchemaLoading(true);
-    let query = `SELECT table_name, 'TABLE' as type
-      FROM information_schema.tables
-      WHERE table_type = 'BASE TABLE' AND table_schema = 'public'
-      UNION
-      SELECT table_name, 'VIEW' as type
-      FROM information_schema.views
-      WHERE table_schema = 'public';`;
+    let query = `SELECT
+      t.table_name,
+      'TABLE' as type,
+      NULL as view_definition
+    FROM
+      information_schema.tables t
+    WHERE
+      t.table_type = 'BASE TABLE'
+      AND t.table_schema = 'public'
+
+    UNION ALL
+
+    SELECT
+      v.table_name,
+      'VIEW' as type,
+      v.view_definition
+    FROM
+      information_schema.views v
+    WHERE
+      v.table_schema = 'public';`;
 
     /** Will run custom query wrote by user */
     console.log("Running query:", query);
@@ -57,12 +71,9 @@ export default function Data() {
         body: JSON.stringify({ query: query })
       });
       result = await result.json();
-      console.log("data from schema:", result);
       if (result.status == 200) {
         const fetchedTables = result.data.filter(item => item.type === 'TABLE').map(item => ({ id: item.table_name }));;
-        const fetchedViews = result.data.filter(item => item.type === 'VIEW').map(item => ({ id: item.table_name }));;
-        console.log("tables:", fetchedTables);
-        console.log("views:", fetchedViews);
+        const fetchedViews = result.data.filter(item => item.type === 'VIEW').map(item => ({ id: item.table_name, ...item }));;
 
         setSchemaLoading(false);
         setTables(fetchedTables);
@@ -80,7 +91,7 @@ export default function Data() {
   async function loadData() {
     setLoading(true);
     try {
-      let result = await fetch("/api/db/query-all/" + selectedTable + "/" + page);
+      let result = await fetch("/api/db/query-all/" + selectedTable.id + "/" + page);
       result = await result.json();
       console.log("data:", result);
       if (result.status == 200) {
@@ -109,6 +120,15 @@ export default function Data() {
     setSelectedTable(table);
   }
 
+  function viewDefinition(viewName, query) {
+    console.log("Enter viewDefinition with query: ", query)
+    setSelectedTable({id: "sql_editor"});
+
+     const fullQuery = `CREATE OR REPLACE VIEW ${viewName} AS\n${query}`;
+
+    setSqlValue(fullQuery);
+  }
+
   return(
     <>
       <div className="flex flex-row w-full flex-1 overflow-hidden">
@@ -118,7 +138,7 @@ export default function Data() {
           <p className="font-medium text-xxs flex flex-row items-center space-x-1 mt-4 mb-2 text-slate-600">TABLES</p>
           <div className="flex flex-col space-y-2">
             {schemaLoading ?
-              <div className="px-3 py-2 text-slate-500 flex flex-row text-slate-600 space-x-2"><LoadingCircle /><span>Loading tables</span></div>
+              <div className="px-3 py-2 text-slate-500 flex flex-row text-slate-600 space-x-2 font-mono text-[12px]"><LoadingCircle /><span>Loading tables</span></div>
             :
               <TablesListNav selectedTable={selectedTable} items={tables} select={selectTable} type="tables" />
             }
@@ -131,7 +151,7 @@ export default function Data() {
           </div>
           <div className="flex flex-col space-y-2">
             {schemaLoading ?
-              <div className="px-3 py-2 text-slate-500 flex flex-row text-slate-600 space-x-2"><LoadingCircle /><span>Loading views</span></div>
+              <div className="px-3 py-2 text-slate-500 flex flex-row text-slate-600 space-x-2 font-mono text-[12px]"><LoadingCircle /><span>Loading views</span></div>
             :
               <TablesListNav selectedTable={selectedTable} items={views} select={selectTable} type="views" />
             }
@@ -141,7 +161,7 @@ export default function Data() {
           <p className="font-medium text-xxs flex flex-row items-center space-x-1 mt-8 mb-1text-slate-600">SQL EDITOR</p>
           <p className="text-xxs flex flex-row items-center space-x-1 mb-3 text-slate-500">Perform custom queries or create views for your tables.</p>
           <div className="flex justify-center">
-            <div className="flex bg-[#4483FD] text-xxs text-white px-3 py-0.5 opacity-90 hover:opacity-100 cursor-pointer items-center rounded-full space-x-1 font-mono" onClick={() => setSelectedTable("add_view")}><span>Open SQL Editor</span></div>
+            <div className="flex bg-[#4483FD] text-xxs text-white px-3 py-0.5 opacity-90 hover:opacity-100 cursor-pointer items-center rounded-full space-x-1 font-mono" onClick={() => setSelectedTable({id: "sql_editor"})}><span>Open SQL Editor</span></div>
           </div>
         </div>
 
@@ -156,7 +176,10 @@ export default function Data() {
             page={page}
             setPage={setPage}
             loading={loading}
-            data={data} />
+            data={data}
+            sqlValue={sqlValue}
+            setSqlValue={setSqlValue}
+            viewDefinition={viewDefinition} />
         </div>
       </div>
 
@@ -170,9 +193,9 @@ export default function Data() {
 
 /** Display correct content based on the internal data navigation */
 const Content = (props) => {
-  switch (props.selectedTable) {
+  switch (props.selectedTable?.id) {
     /** Create a new view */
-    case "add_view":
+    case "sql_editor":
       return(
         <SqlEditor {...props} />
       )
@@ -207,7 +230,7 @@ const SqlEditorCTAs = ({ title, runQuery, loading }) => {
   )
 }
 
-const TableCTAs = ({ refresh, loading, page, setPage, countResults, countTotalResults, title, selectedTable }) => {
+const TableCTAs = ({ refresh, loading, page, setPage, countResults, countTotalResults, title, selectedTable, viewDefinition }) => {
   function filter() {
     alert("Filters are coming soon.");
   }
@@ -229,12 +252,15 @@ const TableCTAs = ({ refresh, loading, page, setPage, countResults, countTotalRe
         <>
           {/** Show table title of available */}
           {selectedTable &&
-            <div className="text-[14px] ml-2 font-bold mr-2">{selectedTable}</div>
+            <div className="text-[14px] ml-2 font-bold mr-2">{selectedTable.id}</div>
           }
 
           {/** Show table CTAs */}
           <div className="flex flex-1 justify-end space-x-1 items-center">
             <div className="flex flex-row space-x-1 mr-5">
+              {(selectedTable && selectedTable.view_definition) &&
+                <button className="bg-slate-100 rounded-md hover:bg-slate-200 px-3 py-0.5 space-x-1 flex flex-row items-center" onClick={() => viewDefinition(selectedTable.id, selectedTable.view_definition)}><EyeIcon /> <span>View definition</span></button>
+              }
               <button className="bg-slate-100 rounded-md hover:bg-slate-200 px-3 py-0.5 space-x-1 flex flex-row items-center" onClick={refresh}><RefreshIcon /> <span>Refresh</span></button>
               <button className="bg-slate-100 rounded-md hover:bg-slate-200 px-3 py-0.5 space-x-1 flex flex-row items-center" onClick={filter}><FilterIcon /> <span>Filter</span></button>
             </div>
@@ -254,21 +280,20 @@ const TableCTAs = ({ refresh, loading, page, setPage, countResults, countTotalRe
 
 /** SQL Editor */
 const SqlEditor = (props) => {
-  const [sqlValue, setSqlValue] = useState("");
   const [loading, setLoading] = useState(false);
   const [sqlResults, setSqlResults] = useState();
 
   /** Will run custom query wrote by user */
   async function runQuery() {
     setLoading(true);
-    console.log("Running query:", sqlValue);
+    console.log("Running query:", props.sqlValue);
     try {
       let result = await fetch("/api/db/query", {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ query: sqlValue })
+        body: JSON.stringify({ query: props.sqlValue })
       });
       result = await result.json();
       console.log("data from custom query:", result);
@@ -309,8 +334,8 @@ const SqlEditor = (props) => {
                 enableLiveAutocompletion: true,
                 enableSnippets: true,
               }}
-              value={sqlValue}
-              onChange={(value) => setSqlValue(value)}
+              value={props.sqlValue}
+              onChange={(value) => props.setSqlValue(value)}
               showLineNumbers
             />
           </div>
@@ -320,7 +345,7 @@ const SqlEditor = (props) => {
             :
               <>
                 {sqlResults ?
-                  <TableData data={sqlResults} />
+                  <TableData data={sqlResults} showSuccessIfEmpty={true} />
                 :
                   <div className="px-3 py-2 text-slate-500">Results will be visible here...</div>
                 }
@@ -332,7 +357,7 @@ const SqlEditor = (props) => {
   )
 }
 
-const TableData = ({ data }) => {
+const TableData = ({ data, showSuccessIfEmpty }) => {
   // Function to extract headers (keys) from the first item in the data array
   const getHeaders = (data) => {
     if (data.length === 0) return [];
@@ -352,6 +377,34 @@ const TableData = ({ data }) => {
     }
   };
 
+  // Function to check if the item is an object or an array
+  const isObjectOrArray = (item) => {
+    return typeof item === 'object' && item !== null;
+  };
+
+  // Display empty state if no results available
+  if(data && data.length == 0) {
+
+    // Show success state if no results are returned (useful after an SQL editor query)
+    if(showSuccessIfEmpty) {
+      return(
+        <div className="pt-4 w-full justify-center items-start flex border-t border-slate-200">
+          <Alert color="green" title={"The query was successful but returned no results."} className="font-mono text-[12px]" />
+        </div>
+      )
+    }
+
+    // Show empty state if no success are returned
+    else {
+      return(
+        <div className="pt-4 w-full justify-center items-start flex border-t border-slate-200">
+          <Alert title={"There isn't any data in this table."} className="font-mono text-[12px]" />
+        </div>
+      )
+    }
+  }
+
+  // Display results table with data
   return (
     <>
       <table className="w-full text-[12px] table-data -mt-px -ml-px font-mono">
@@ -365,9 +418,13 @@ const TableData = ({ data }) => {
         <tbody>
           {data.map((item, rowIndex) => (
             <tr key={rowIndex}>
-              {headers.map((header, columnIndex) => (
-                <td className="hover:bg-slate-50 cursor-pointer" onClick={() => copyToClipboard(item[header]?.toString())} key={columnIndex}>{item[header]?.toString()}</td>
-              ))}
+              {headers.map((header, columnIndex) => {
+                const cellValue = item[header];
+                const displayValue = isObjectOrArray(cellValue) ? JSON.stringify(cellValue) : cellValue;
+                return (
+                  <td className="hover:bg-slate-50 cursor-pointer" onClick={() => copyToClipboard(displayValue)} key={columnIndex}>{displayValue}</td>
+                );
+              })}
             </tr>
           ))}
         </tbody>
@@ -402,7 +459,7 @@ const TablesListNav = ({selectedTable, select, items, type}) => {
 
   return items.map((item, key) => {
     return (
-        <div className={`text-[12px] flex flex-row items-center space-x-1 hover:underline cursor-pointer font-mono ${selectedTable == item.id ? "text-[#4483FD] font-medium" : "text-slate-900"} `} onClick={() => select(item.id)} key={key}>
+        <div className={`text-[12px] flex flex-row items-center space-x-1 hover:underline cursor-pointer font-mono ${selectedTable?.id == item.id ? "text-[#4483FD] font-medium" : "text-slate-900"} `} onClick={() => select(item)} key={key}>
           <Icon /> <span className="truncate flex-1">{item.name ? item.name : item.id}</span>
         </div>
     );

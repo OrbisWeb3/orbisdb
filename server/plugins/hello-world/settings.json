@@ -1,6 +1,7 @@
 {
   "id": "hello-world",
   "name": "Hello World",
+  "logo": "/img/hello-world-logo.png",
   "description": "Useless demo plugin. Don't use.",
   "hooks": ["add_metadata", "generate", "validate"]
 }

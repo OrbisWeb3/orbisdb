@@ -5,7 +5,7 @@ import next from 'next';
 import IndexingService from "./indexing/index.mjs";
 import Postgre from "./db/postgre.mjs";
 import HookHandler from "./utils/hookHandler.mjs";
-import { loadPlugins, loadAndInitPlugins } from "./utils/plugins.mjs";
+import { loadPlugins } from "./utils/plugins.mjs";
 
 // Create an instance of the application using Next JS pointing to the front-end files located in the client folder
 const dev = process.env.NODE_ENV !== 'production';
@@ -14,15 +14,12 @@ const app = next({
     dir: './client',
 });
 const handle = app.getRequestHandler();
+const server = express();
+
+// Use body parser to parse body field for POST
+server.use(bodyParser.json());
 
 app.prepare().then(() => {
-  const server = express();
-
-  // Use body parser to parse body field for POST
-  server.use(bodyParser.json());
-
-  // Here you might use various middleware (for cookies, auth, etc.)
-
   // Custom handling of some specific URLs may also go here. For example:
   server.get('/api/plugins/get', async (req, res) => {
     try {
@@ -100,14 +97,13 @@ app.prepare().then(() => {
   /** Will run the query wrote by user */
   server.post('/api/db/query', async (req, res) => {
     const { query } = req.body;
-    console.log("Enter /api/db/query with:", query)
 
     try {
       let response = await global.indexingService.database.query(query);
-      if (response && response.data) {
+      if (response) {
         res.json({
           status: "200",
-          data: response.data.rows,
+          data: response.data?.rows,
           totalCount: response.totalCount,
           title: response.title
         });
@@ -142,9 +138,6 @@ app.prepare().then(() => {
 
 /** Initialize the app by loading all of the required plugins while initializng those and start the indexing service */
 async function init() {
-  // Loads all plugins installed
-  let plugins = await loadAndInitPlugins();
-
   /** Instantiate the database to use which should be saved in the "orbisdb-settings.json" file */
   let database = new Postgre("doadmin", "defaultdb", "AVNS_puV0xIOIp_tdmU1kNEy", "test-orbisdb-do-user-10388596-0.c.db.ondigitalocean.com", 25060);
 
@@ -154,9 +147,9 @@ async function init() {
   /** Initialize the mainnet indexing service while specifying the plugins to use and database type */
   global.indexingService = new IndexingService(
     "mainnet",  // Ceramic network to subscribe to
-    plugins,    // Plugins to use
     database,   // Database instance to use
-    hookHandler // Hookhandler
+    hookHandler, // Hookhandler
+    server
   );
 
   /** Subscribe to streams created on Mainnet */
