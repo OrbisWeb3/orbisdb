@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node server/index.mjs",
     "dev": "node server/index.mjs",
+    "build": "echo 'No build step required'",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
