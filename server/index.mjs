@@ -20,6 +20,12 @@ const server = express();
 server.use(bodyParser.json());
 
 app.prepare().then(() => {
+  if (!dev) {
+    // Serve static files from the Next.js production build
+    server.use('/_next', express.static(path.join(__dirname, '../client/.next')));
+    server.use(express.static(path.join(__dirname, '../client/public')));
+  }
+  
   // Custom handling of some specific URLs may also go here. For example:
   server.get('/api/plugins/get', async (req, res) => {
     try {
