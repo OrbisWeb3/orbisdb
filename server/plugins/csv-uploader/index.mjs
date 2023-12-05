@@ -75,31 +75,63 @@ export default class CSVUploaderPlugin {
 
   /** Example of an API route returning a simple HTML page. The routes declared by a plugin are automatically exposed by the OrbisDB instance */
   uploadRoute(req, res) {
-    const { plugin_id, context_id } = req.params;
+    const { context_id } = req.params;
     console.log("context_id is:", context_id);
     res.send(`<!DOCTYPE html>
       <html lang="en">
       <head>
-          <meta charset="UTF-8">
-          <title>CSV Upload and Parse</title>
-          <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+        <meta charset="UTF-8">
+        <title>CSV Upload and Parse</title>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+        <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+        <style>
+          body {
+            background: #f1f5f9;
+          }
+          .bg-main {
+            background: #4483FD;
+          }
+          .bg-main:hover {
+            background: #1e58f2;
+          }
+          .bg-success {
+            background: #22c55e;
+          }
+          .text-slate-600 {
+            color: #475569;
+          }
+        </style>
       </head>
-      <body>
-          <h2>Upload CSV File</h2>
-          <input type="file" id="csvFileInput" accept=".csv" />
-          <button onclick="handleUpload()">Upload and Parse</button>
-          <pre id="output"></pre>
+      <body class="p-8 text-sm justify-center items-center flex flex-col">
+          <h2 class="text-xl font-bold">Upload CSV File</h2>
+          <p class="mt-2 text-slate-600 mb-4 text-center">Context: <a target="_blank" href="https://cerscan.com/mainnet/stream/${context_id}" class="text-blue-600 hover:underline">${context_id}</a><br/>Model: <a target="_blank" href="https://cerscan.com/mainnet/stream/${this.model_id}" class="text-blue-600 hover:underline">${this.model_id}</a></p>
+          <input class="mb-4" type="file" id="csvFileInput" accept=".csv" onchange="handleFileSelect()" />
+          <button id="submit" class="hidden bg-main text-white text-sm px-2.5 py-1.5 rounded-md font-medium pointer flex-row items-center justify-center" onclick="handleUpload()">Upload and Parse</button>
+          <pre id="output" class="mb-2"></pre>
+          <button id="success" class="hidden bg-success text-white text-sm px-2.5 py-1.5 rounded-md font-medium pointer flex-row items-center justify-center" onclick="handleUpload()">Success!</button>
 
           <script>
+            function handleFileSelect() {
+              const fileInput = document.getElementById('csvFileInput');
+              const submitButton = document.getElementById('submit');
+          
+              // If a file is selected, enable the button, otherwise disable it
+              if (fileInput.files.length > 0) {
+                //document.getElementById('submit').style.display = 'flex'; 
+                handleUpload();
+              } else {
+                document.getElementById('submit').style.display = 'none'; 
+              }
+            }
+
             function handleUpload() {
               const input = document.getElementById('csvFileInput');
               const file = input.files[0];
-
+              console.log("file:", file);
               Papa.parse(file, {
                 complete: function(results) {
                   console.log('Parsed CSV data:', results.data);
-                  document.getElementById('output').textContent = JSON.stringify(results.data, null, 2);
-
+                  
                   // Send data to the server
                   sendDataToServer(results.data);
                 },
@@ -108,6 +140,9 @@ export default class CSVUploaderPlugin {
             }
 
             function sendDataToServer(data) {
+              let countRows = data.length;
+              document.getElementById('output').textContent = "Uploading " + countRows + " rows...";
+              document.getElementById('submit').style.display = 'none'; 
               console.log("Enter sendDataToServer with data:", data);
                 fetch('./parse', {
                   method: 'POST',
@@ -119,8 +154,14 @@ export default class CSVUploaderPlugin {
                   })
                 })
                 .then(response => response.json())
-                .then(data => console.log(data))
-                .catch(error => console.error('Error:', error));
+                .then(data => {
+                  console.log(data);
+                  document.getElementById('output').textContent = countRows + " rows uploaded...";
+                  document.getElementById('success').style.display = 'flex';
+                })
+                .catch(error => {
+                  console.error('Error:', error);
+                });
             }
         </script>
       </body>
@@ -129,6 +170,7 @@ export default class CSVUploaderPlugin {
 
   async parseRoute(req, res) {
     console.log("req.params:", req.params);
+    let stream_ids = [];
     if(req.body) {
       const { plugin_id, context_id } = req.params;
       const { data } = req.body;
@@ -159,6 +201,7 @@ export default class CSVUploaderPlugin {
               }
             );
             let stream_id = stream.id?.toString();
+            stream_ids.push(stream_id);
 
             // Force index stream in db if created on Ceramic
             if(stream_id) {
@@ -172,7 +215,7 @@ export default class CSVUploaderPlugin {
         }
       }
 
-      res.send({ message: 'CSV data uploaded to Ceramic successfully.', count: i });
+      res.send({ message: 'CSV data uploaded to Ceramic successfully.', count: i, streams: stream_ids });
     }
   }
 }

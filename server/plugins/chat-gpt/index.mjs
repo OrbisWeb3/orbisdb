@@ -59,65 +59,44 @@ export default class ChatGPTPlugin {
         res.send(`
           <html>
             <head>
-              <style>
-                .chat-body {
-                  font-family: Arial, sans-serif;
-                  padding: 0;
-                  height: 100%;
-                  background-color: #f5f5f5;
-                  margin: 10px;
-                }
-      
-                .chat-history {
-                  height: 80%;
-                  overflow: auto;
-                  border-bottom: 1px solid #ccc;
-                  padding: 10px;
-                  margin: 0;
-                  background-color: #fff;
-                }
-      
-                .chat-form {
-                  position: fixed;
-                  bottom: 0;
-                  width: 100%;
-                  background: #fff;
-                }
-      
-                .chat-input {
-                  width: 100%;
-                  border: 1px solid #e2e8f0;
-                  padding: 10px;
-                  background-color: #f8fafc;
-                  margin-bottom: 10px;
-                  border-radius: 4px;
-                }
-      
-                .chat-submit {
-                  width: 100%;
-                  padding: 10px;
-                  border: none;
-                  background: #007BFF;
-                  color: #fff;
-                  border-radius: 4px;
-                }
-      
-                .chat-message {
-                  /* Add your styles for chat messages here */
-                }
-      
-                .chat-loading {
-                  display: block;
-                  font-style: italic;
-                  color: #888;
-                }
-              </style>
+                <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+                <style>
+                    .chat-body {
+                        background: #f1f5f9;
+                    }
+        
+                    .chat-history {
+                        height: 80%;
+                        overflow: auto;
+                        margin: 0;
+                    }
+        
+                    .chat-input {
+                        padding: 10px;
+                        background-color: #f8fafc;
+                        border-radius: 4px;
+                    }
+        
+                    .chat-submit {
+                        padding: 10px;
+                        border: none;
+                        background: #007BFF;
+                        color: #fff;
+                        border-radius: 4px;
+                    }
+        
+                    .chat-loading {
+                        display: block;
+                        font-style: italic;
+                        color: #888;
+                    }
+                </style>
             </head>
-            <body class="chat-body">
-              <div id="chat-history" class="chat-history"></div>
-              <form id="chat-form" class="chat-form">
-                <textarea id="content" name="content" class="chat-input" placeholder="Type your question here..."></textarea>
-                <input type="submit" value="Submit" class="chat-submit">
+            <body class="chat-body bg-slate-100 text-sm w-full h-full flex flex-col">
+              <div id="chat-history" class="p-6 chat-history overflow-y-scroll flex flex-1 flex-col w-full border-b border-slate-200"></div>
+              <form class="chat-form bg-white p-4 flex flex-col mb-0">
+                <textarea id="content" name="content" class="border border-slate-200 chat-input w-full bg-slate-50 mb-2" placeholder="Type your question here..."></textarea>
+                <input type="submit" value="Submit" class="chat-submit w-full cursor-pointer">
               </form>
               <script>
                 document.getElementById('chat-form').addEventListener('submit', function(event) {
