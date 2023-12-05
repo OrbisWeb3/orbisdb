@@ -4,6 +4,7 @@
     "logo": "/img/chat-gpt-logo.png",
     "description": "A plugin to query OpenAI's Chat GPT API.",
     "hooks": ["add_metadata", "update"],
+    "routes": ["chat"],
     "variables": [
       {
         "name": "Organization ID",

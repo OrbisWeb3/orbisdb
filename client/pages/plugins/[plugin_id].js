@@ -283,7 +283,6 @@ const OneContext = ({context, setSelectedContext, pluginDetails}) => {
       }
 
       {/** Display active routes if any */}
-      
       {pluginDetails.routes &&
         <div className="flex flex-row bg-[#FBFBFB] text-[#989494] hover:text-[#807878] text-sm cursor-pointer border-t border-slate-200 space-x-1 px-3 py-1.5 items-center justify-center" onClick={() => setSelectedContext(context)}>
           <div className="mr-1 font-medium">Routes:</div>
@@ -291,7 +290,7 @@ const OneContext = ({context, setSelectedContext, pluginDetails}) => {
             {pluginDetails.routes.map((route, index) => (
               <Link href={"/api/plugins/" + pluginDetails.id + "/" + context.context + "/" + route} target="_blank" className="bg-white border border-slate-200 hover:border-[#4483FD]  rounded-md px-3 py-2 text-xs font-medium text-slate-800 space-x-1 flex flex-row items-center" key={index}>
                 <ExternalLinkIcon />
-                <span className="font-mono">{route}</span>
+                <span className="font-mono">/{route}</span>
               </Link>
             ))}
           </>
