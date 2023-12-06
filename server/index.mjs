@@ -22,7 +22,7 @@ server.use(bodyParser.json());
 app.prepare().then(() => {
   if (!dev) {
     // Serve static files from Next.js production build
-    server.use('/_next', express.static(path.join(__dirname, '../client/build')));
+    server.use('/_next', express.static(path.join(__dirname, '../client/.next')));
     server.use(express.static(path.join(__dirname, '../client/public')));
   }
   
