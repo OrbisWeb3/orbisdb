@@ -142,7 +142,6 @@ async function startServer() {
 
   // Default catch-all handler to allow Next.js to handle all other routes:
   server.all('*', (req, res) => {
-    console.log('Request received for Next.js to handle');
     return handle(req, res);
   });
 
