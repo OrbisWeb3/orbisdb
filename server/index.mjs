@@ -1,4 +1,8 @@
 import express from 'express';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
 import bodyParser from 'body-parser';
 import next from 'next';
 
@@ -6,6 +10,10 @@ import IndexingService from "./indexing/index.mjs";
 import Postgre from "./db/postgre.mjs";
 import HookHandler from "./utils/hookHandler.mjs";
 import { loadPlugins } from "./utils/plugins.mjs";
+
+/** Initialize dirname */
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // Create an instance of the application using Next JS pointing to the front-end files located in the client folder
 const dev = process.env.NODE_ENV !== 'production';
@@ -19,13 +27,9 @@ const server = express();
 // Use body parser to parse body field for POST
 server.use(bodyParser.json());
 
-app.prepare().then(() => {
-  if (!dev) {
-    // Serve static files from Next.js production build
-    server.use('/_next', express.static(path.join(__dirname, '../client/.next')));
-    server.use(express.static(path.join(__dirname, '../client/public')));
-  }
-  
+async function startServer() {
+  await app.prepare();
+
   // Custom handling of some specific URLs may also go here. For example:
   server.get('/api/plugins/get', async (req, res) => {
     try {
@@ -129,9 +133,16 @@ app.prepare().then(() => {
     }
   });
 
+  if (!dev) {
+    // Serve static files from Next.js production build
+    console.log("🌹 Using production build.");
+    server.use('/_next', express.static(path.join(__dirname, '../client/.next')));
+    server.use(express.static(path.join(__dirname, '../client/public')));
+  }
 
   // Default catch-all handler to allow Next.js to handle all other routes:
   server.all('*', (req, res) => {
+    console.log('Request received for Next.js to handle');
     return handle(req, res);
   });
 
@@ -140,7 +151,8 @@ app.prepare().then(() => {
     if (err) throw err;
     console.log(`> Ready on http://localhost:${PORT}`);
   });
-});
+}
+
 
 /** Initialize the app by loading all of the required plugins while initializng those and start the indexing service */
 async function init() {
@@ -162,4 +174,8 @@ async function init() {
   global.indexingService.subscribe();
 }
 
+/** Start server */
+startServer().catch(console.error);
+
+/** Init classes */
 init();

@@ -1,4 +1,3 @@
-import { initIPFS } from '../ipfs/config.mjs';
 import { sleep, getCeramicFromNetwork, getTopicFromNetwork } from "../utils/helpers.mjs"
 import { loadAndInitPlugins } from "../utils/plugins.mjs";
 
