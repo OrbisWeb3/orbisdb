@@ -10,7 +10,7 @@ import { getResolver } from 'key-did-resolver'
 
 export default class CSVUploaderPlugin {
   constructor({ ceramic_seed }) {
-    this.model_id = "kjzl6hvfrbw6c8pzfstttcl1xessjf6wc87k3t2pyz3ibsypfxxjrneh9ioamyb";
+    this.model_id = "kjzl6hvfrbw6c8ok4ig3gm9rydjw8dpeit20myjsa6rpo0t3kgsfzmp4qfwvrlm";
     this.ceramic_seed = JSON.parse(ceramic_seed);
 
     // Initialize the Orbis class object
@@ -244,6 +244,9 @@ let modelDef = {
       },
       "Author": {
         "type": "string"
+      },
+      "Classification": {
+        "type": ["object", "null"]
       },
       "context": {
         "type": "string"

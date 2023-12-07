@@ -1,34 +1,122 @@
+import { CeramicClient } from '@ceramicnetwork/http-client';
+import { Model } from '@ceramicnetwork/stream-model';
+import { ModelInstanceDocument } from "@ceramicnetwork/stream-model-instance";
+import { StreamID } from "@ceramicnetwork/streamid";
+
+/** To generate dids from a Seed */
+import { DID } from 'dids'
+import { Ed25519Provider } from 'key-did-provider-ed25519'
+import { getResolver } from 'key-did-resolver'
+
 export default class ChatGPTPlugin {
-  constructor({ organization_id, secret_key, model, prompt, updatedVariable }) {
+  constructor({ organization_id, secret_key, model, prompt, field, action, is_json, secs_interval, ceramic_seed }) {
+    this.model_id = "kjzl6hvfrbw6c8ok4ig3gm9rydjw8dpeit20myjsa6rpo0t3kgsfzmp4qfwvrlm";
     this.organization_id = organization_id;
     this.secret_key = secret_key;
     this.model = model;
     this.prompt = prompt;
-    this.updatedVariable = updatedVariable;
+    this.field = field;
+    this.action = action;
+    this.is_json = is_json;
+    this.secs_interval = secs_interval;
+
+    /** Initialize the Ceramic connection (should be only when action = generate) */
+    if(ceramic_seed) {
+        this.ceramic_seed = JSON.parse(ceramic_seed);
+        this.ceramic = new CeramicClient("https://node2.orbis.club/");
+        this.session;
+    }
   }
 
-  async init() {
-    return {
-    ROUTES: {
-        GET: {
-            "chat": (req, res) => this.chatHtml(req, res)
-        },
-        POST: {
-            "chat-submit": (req, res) => this.chatSubmit(req, res)
+    async init() {
+        let HOOKS = {};
+
+        switch(this.action) {
+            case "update":
+                HOOKS.update = (stream) => this.query(stream);
+                break;
+            case "classify":
+                HOOKS.add_metadata = (stream) => this.classify(stream);
+                break;
+            case "generate":
+                HOOKS.generate = () => this.start();
+                break;
         }
-        },
-      HOOKS: {
-        "update": (stream) => this.query(stream),
-        "add_metadata": (stream) => this.classify(stream),
-      },
-    };
-  }
+        return {
+            ROUTES: {
+                GET: {
+                    "chat": (req, res) => this.chatHtml(req, res)
+                },
+                POST: {
+                    "chat-submit": (req, res) => this.chatSubmit(req, res)
+                }
+                },
+            HOOKS: HOOKS,
+        };
+    }
+
+    async start() {
+        console.log("IN CHATGPT PLUGIN! Should start the generation of new streams.");
+        let seed = new Uint8Array(this.ceramic_seed);
+
+        /** Create the provider and resolve it */
+  		const provider = new Ed25519Provider(seed);
+  		let did = new DID({ provider, resolver: getResolver() })
+
+  		/** Authenticate the Did */
+  		await did.authenticate()
+
+  		/** Assign did to Ceramic object  */
+  		this.ceramic.did = did;
+  		this.session = {
+  			did: did,
+  			id: did.id
+  		};
+
+        console.log("Connected to Ceramic with DID:", did.id);
+
+        // Perform first call
+        this.createStream();
+
+        // Start the interval function
+        this.interval = setInterval(() => {
+            this.createStream();
+        }, this.secs_interval * 1000);
+    }
+
+    /** Will create a streal every x seconds based on the user prompt */
+    async createStream() {
+        const parsedPrompt = this.cleanPrompt(this.prompt);
+        console.log("In createStream: parsedPrompt=", parsedPrompt);
+        const result = await this.fetchFromOpenAI({
+            "role": "user",
+            "content": parsedPrompt
+        });
+        console.log("result:", result);
+        result.context = this.context;
+
+        /** We then create the stream in Ceramic with the updated content */
+        let stream = await ModelInstanceDocument.create(
+            this.ceramic,
+            result,
+            {
+                model: StreamID.fromString(this.model_id),
+                controller: this.session.id
+            }
+        );
+        let stream_id = stream.id?.toString();
+
+        // Force index stream in db if created on Ceramic
+        if(stream_id) {
+            console.log("stream created:", stream_id);
+            global.indexingService.indexStream({ streamId: stream_id, model: this.model_id });
+        }
+    }
 
     /** Will query ChatGPT based on the plugin settings */ 
     async query(content) {
         // Parse the prompt string and replace placeholders with actual values
-        const parsedPrompt = this.prompt.replace(/\$\{(\w+)\}/g, (_, variableName) => content[variableName]);
-        console.log("parsedPrompt:", parsedPrompt);
+        const parsedPrompt = this.cleanPrompt(this.prompt);
 
         const result = await this.fetchFromOpenAI({
             "role": "user",
@@ -37,7 +125,7 @@ export default class ChatGPTPlugin {
 
         /** Will update the stream's content to add the description generated by GPT */
         let _content = {...content};
-        _content[this.updatedVariable] = result;
+        _content[this.field] = result;
         return _content
     }
 
@@ -45,13 +133,20 @@ export default class ChatGPTPlugin {
     async classify(stream) {
         console.log("Enter classify with stream:", stream);
         console.log("will classify the the content in different categories.");
+        const parsedPrompt = this.cleanPrompt(this.prompt);
         const result = await this.fetchFromOpenAI({
             "role": "user",
-            "content": "Can you return a JSON object classifying this book in mutiple categories while evaluating the target readers for this book? The json object should have two keys: categories (array of string) and readers (array of string):" + stream.content.Title + " by " + stream.content.Author
-        }, "json_object");
+            "content": parsedPrompt
+        });
 
         /** Will return the classification of the book  */
         return result;
+    }
+
+    cleanPrompt(prompt) {
+        const parsedPrompt = prompt.replace(/\$\{(\w+)\}/g, (_, variableName) => content[variableName]);
+        console.log("cleaned prompt:", parsedPrompt);
+        return parsedPrompt;
     }
 
     chatHtml(req, res) {
@@ -141,7 +236,7 @@ export default class ChatGPTPlugin {
     }
 
     /** Helper function to easily submit question to the OpenAI API */
-    async fetchFromOpenAI(userMessage, response_format = "text" ) {
+    async fetchFromOpenAI(userMessage) {
         const messages = [
             {
               "role": "system",
@@ -159,7 +254,7 @@ export default class ChatGPTPlugin {
           },
           body: JSON.stringify({
             model: "gpt-3.5-turbo-1106",
-            response_format: { "type": response_format },
+            response_format: { "type": this.is_json == "yes" ? "json_object" : "text" },
             messages: messages
           })
         });
@@ -171,6 +266,11 @@ export default class ChatGPTPlugin {
     
         const data = await response.json();
         console.log("AI response: ", data.choices[0].message.content);
-        return data.choices[0].message.content;
+        if(this.is_json == "yes") {
+            return JSON.parse(data.choices[0].message.content);
+        } else {
+            return data.choices[0].message.content;
+        }
+        
       }
 }

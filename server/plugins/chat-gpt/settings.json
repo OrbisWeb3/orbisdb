@@ -2,7 +2,7 @@
     "id": "chat-gpt",
     "name": "Chat GPT",
     "logo": "/img/chat-gpt-logo.png",
-    "description": "A plugin to query OpenAI's Chat GPT API.",
+    "description": "A plugin to query OpenAI's Chat GPT API in order to update, enhance existing streams or create new ones.",
     "hooks": ["add_metadata", "update"],
     "routes": ["chat"],
     "variables": [
@@ -17,15 +17,49 @@
         "id": "secret_key"
       },
       {
+        "name": "Action",
+        "description": "Which action should the plugin perform?",
+        "id": "action",
+        "type": "select",
+        "options": [{"value": "update", "label": "Update a stream"}, {"value": "classify", "label": "Classify a stream"}, {"value": "generate", "label": "Create new streams"}],
+        "per_context": true
+      },
+      {
+        "name": "Interval",
+        "description": "Interval in seconds to perform the OpenAI call.",
+        "id": "secs_interval",
+        "type": "integer",
+        "conditions": [{"id": "action", "value": "generate"}],
+        "per_context": true
+      },
+      {
         "name": "Prompt",
         "description": "The question to ask the AI.",
         "id": "prompt",
         "per_context": true
       },
       {
-        "name": "Variable to update",
+        "name": "Result is a JSON Object",
+        "description": "Should the OpenAI response be returned as a JSON Object?",
+        "id": "is_json",
+        "type": "select",
+        "options": [{"value": "no", "label": "No"}, {"value": "yes", "label": "Yes"}],
+        "per_context": true
+      },
+      {
+        "name": "Field",
         "description": "The field that will be updated in your content object.",
-        "id": "updatedVariable",
+        "id": "field",
+        "conditions": [{"id": "action", "value": "update"}],
+        "per_context": true
+      },
+      {
+        "name": "Ceramic Seed",
+        "description": "The Ceramic seed that will be used to create the streams.",
+        "id": "ceramic_seed",
+        "private": true,
+        "conditions": [{"id": "action", "value": "generate"}],
+        "type": "array",
         "per_context": true
       }
     ]

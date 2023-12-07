@@ -1,4 +1,4 @@
-/** Import Orbis SDK */
+/** Import Ceramic SDK */
 import { CeramicClient } from '@ceramicnetwork/http-client';
 import { Model } from '@ceramicnetwork/stream-model';
 import { ModelInstanceDocument } from "@ceramicnetwork/stream-model-instance";

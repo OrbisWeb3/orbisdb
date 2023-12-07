@@ -166,7 +166,6 @@ export default function AssignContextModal({hide, plugin_id, selectedContext}) {
             </div>
           }
 
-
           {/** Save button */}
           <div className="flex flex-row justify-center">
             {((selectedContextIds && selectedContextIds.length > 0) || selectedContext.context) ?

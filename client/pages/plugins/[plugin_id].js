@@ -1,12 +1,10 @@
 import React, { useState, useEffect, useContext } from "react";
 import Link from 'next/link';
 import { GlobalContext } from "../../contexts/Global";
-import { CheckIcon, SettingsIcon, DashIcon, AlertIcon, ExternalLinkIcon } from "../../components/Icons";
-import AddModelModal from "../../components/Modals/AddModel";
+import { CheckIcon, SettingsIcon, DashIcon, ExternalLinkIcon } from "../../components/Icons";
 import Alert from "../../components/Alert";
 import PluginSettingsModal from "../../components/Modals/PluginSettings";
 import AssignContextModal from "../../components/Modals/AssignContext";
-import Modal from "../../components/Modals";
 import Button from "../../components/Button";
 import InternalNavigation from "../../components/InternalNavigation";
 import { useRouter } from 'next/router'
@@ -15,7 +13,6 @@ import useContextDetails from "../../hooks/useContextDetails";
 
 export default function PluginDetails() {
   const { settings, setSettings } = useContext(GlobalContext);
-  const [addModalVis, setAddModalVis] = useState(false);
   const [pluginDetails, setPluginDetails] = useState();
   const [status, setStatus] = useState(STATUS.ACTIVE);
   const [defaultVariables, setDefaultVariables] = useState();
@@ -236,15 +233,6 @@ export default function PluginDetails() {
 const OneContext = ({context, setSelectedContext, pluginDetails}) => {
   const { settings } = useContext(GlobalContext);
 
-  const getContextName = (id) => {
-    let details = findContextById(settings.contexts, id);
-    return details?.name;
-  }
-  const getContextLogo = (id) => {
-    let details = findContextById(settings.contexts, id);
-    return details?.logo;
-  }
-
   return(
     <div className="rounded-md bg-white border border-slate-200 flex flex-col overflow-hidden mb-3 mr-3 min-w-[170px] max-w-[350px]">
       {/** Context details */}
@@ -284,7 +272,7 @@ const OneContext = ({context, setSelectedContext, pluginDetails}) => {
 
       {/** Display active routes if any */}
       {pluginDetails.routes &&
-        <div className="flex flex-row bg-[#FBFBFB] text-[#989494] hover:text-[#807878] text-sm cursor-pointer border-t border-slate-200 space-x-1 px-3 py-1.5 items-center justify-center" onClick={() => setSelectedContext(context)}>
+        <div className="flex flex-row bg-white text-slate-600 text-sm cursor-pointer border-t border-slate-200 space-x-1 px-3 py-1.5 items-center justify-center">
           <div className="mr-1 font-medium">Routes:</div>
           <>
             {pluginDetails.routes.map((route, index) => (
@@ -299,7 +287,7 @@ const OneContext = ({context, setSelectedContext, pluginDetails}) => {
       
 
       {/** Configure CTA */}
-      <div className="flex flex-row bg-[#FBFBFB] text-[#989494] hover:text-[#807878] cursor-pointer border-t border-slate-200 space-x-1 px-3 py-1.5 items-center justify-center" onClick={() => setSelectedContext(context)}>
+      <div className="flex flex-row bg-[#FBFBFB] text-slate-700 hover:text-slate-800 cursor-pointer border-t border-slate-200 space-x-1 px-3 py-1.5 items-center justify-center" onClick={() => setSelectedContext(context)}>
         <SettingsIcon />
         <span className="text-sm font-medium">Configure</span>
       </div>

@@ -73,7 +73,7 @@ export const getPluginsByContext = (contextId, plugins) => {
 
       let pluginDetails = JSON.parse(JSON.stringify(plugin)); // Deep clone the plugin object
       delete pluginDetails.contexts; // Remove the contexts array from the plugin details
-
+      pluginDetails.contextAssigned = context;
       if (isDirect) {
         directPlugins.push({
           ...pluginDetails,

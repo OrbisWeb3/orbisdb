@@ -3,13 +3,14 @@ import Link from 'next/link';
 import { GlobalContext } from "../../contexts/Global";
 import { STATUS, findContextById, getPluginsByContext, findParentContextId, sleep } from "../../utils";
 import { useRouter } from 'next/router'
-import { ContextTags, PluginsCountTag, countSubContexts, countPluginsByContext } from "../../components/ContextDetails";
+import { PluginsCountTag, countSubContexts, countPluginsByContext } from "../../components/ContextDetails";
 import Alert from "../../components/Alert";
 import ContextSettings from "../../components/ContextSettings";
 import AddContextModal from "../../components/Modals/AddContext";
+import AssignContextModal from "../../components/Modals/AssignContext";
 import Button from "../../components/Button";
 import InternalNavigation from "../../components/InternalNavigation";
-import { DashIcon } from "../../components/Icons";
+import { SettingsIcon, DashIcon, ExternalLinkIcon } from "../../components/Icons";
 
 export default function ContextDetails() {
   const { settings, setSettings } = useContext(GlobalContext);
@@ -17,6 +18,8 @@ export default function ContextDetails() {
   const [plugins, setPlugins] = useState([]);
   const [parentContext, setParentContext] = useState();
   const [addModalVis, setAddModalVis] = useState(false);
+  const [selectedPlugin, setSelectedPlugin] = useState(null);
+  const [assignedContext, setAssignedContext] = useState(null);
   const [nav, setNav] = useState("Sub-contexts");
 
   /** Use Next router to get conversation_id */
@@ -38,6 +41,7 @@ export default function ContextDetails() {
 
     function loadContextPlugins() {
       let results = getPluginsByContext(context_id, settings.plugins);
+      console.log("results loadContextPlugins:", results);
       setPlugins(results);
     }
   }, [context_id, settings]);
@@ -118,8 +122,8 @@ export default function ContextDetails() {
                   {plugins.parent.length > 0 &&
                     <>
                       <span className="font-medium text-base mt-2">From parent:</span>
-                      <div className="flex flex-col mt-2 space-y-1">
-                        <PluginsInstalled plugins={plugins.parent} />
+                      <div className="flex flex-row flex-wrap mt-2 items-start">
+                        <PluginsInstalled plugins={plugins.parent} context_id={context_id} setSelectedPlugin={setSelectedPlugin} setAssignedContext={setAssignedContext} />
                       </div>
                     </>
                   }
@@ -128,9 +132,9 @@ export default function ContextDetails() {
 
               {/** Display plugins directly used on this context */}
               <span className="font-medium text-base mt-2">Direct:</span>
-              <div className="flex flex-col space-y-1">
+              <div className="flex flex-row flex-wrap mt-2 items-start">
                 {plugins.direct.length > 0 ?
-                  <PluginsInstalled plugins={plugins.direct} />
+                  <PluginsInstalled plugins={plugins.direct} context_id={context_id} setSelectedPlugin={setSelectedPlugin} setAssignedContext={setAssignedContext} />
                 :
                   <div className="flex justify-center">
                     <Alert title="There aren't any plugins installed on this context." />
@@ -162,6 +166,11 @@ export default function ContextDetails() {
       {addModalVis &&
         <AddContextModal parentContext={context_id} hide={() => setAddModalVis(false)} />
       }
+
+      {/** Modal to assign a plugin to a context */}
+      {(selectedPlugin != null && assignedContext != null) &&
+        <AssignContextModal hide={() => setSelectedPlugin(null)} selectedContext={assignedContext} plugin_id={selectedPlugin} />
+      }
     </>
   )
 }
@@ -184,11 +193,100 @@ const Contexts = ({contexts}) => {
 }
 
 /** Loop through all plugins */
-const PluginsInstalled = ({plugins}) => {
+const PluginsInstalled = ({ plugins, context_id, setSelectedPlugin, setAssignedContext }) => {
   return plugins?.map((plugin, key) => (
-    <Link className="text-base text-[#4483FD] mb-1 hover:underline" href={"/plugins/" + plugin.plugin_id} key={key}>·  {plugin.plugin_id}</Link>
+    <OnePlugin plugin={plugin} context_id={context_id} setSelectedPlugin={setSelectedPlugin} setAssignedContext={setAssignedContext} key={key} />
   ));
 }
+
+
+const OnePlugin = ({ plugin, context_id, setSelectedPlugin, setAssignedContext }) => {
+  console.log("plugin:", plugin);
+  const { settings } = useContext(GlobalContext);
+  const [pluginDetails, setPluginDetails] = useState();
+
+  const existingPluginIndex = settings.plugins.findIndex(p => p.plugin_id === plugin.plugin_id);
+  const existingContextIndex = settings.plugins[existingPluginIndex].contexts.findIndex(c => c.context === context_id);
+  const contextAssigned = settings.plugins[existingPluginIndex].contexts[existingContextIndex];
+
+  useEffect(() => {
+    loadPluginDetails();
+    async function loadPluginDetails() {
+      try {
+        let result = await fetch("/api/plugins/" +  plugin.plugin_id);
+        result = await result.json();
+        console.log("plugin details:", result);
+        if(result.status == 200) {
+          setPluginDetails(result.plugin);
+        } else {
+          console.log("Error retrieving plugin details.");
+        }
+      } catch(e) {
+        console.log("Error retrieving plugin details:", e);
+      }
+    }
+  }, []);
+
+  function selectAssignedContext() {
+    console.log("contextAssigned:", plugin.contextAssigned);
+    setAssignedContext(plugin.contextAssigned);
+    setSelectedPlugin(plugin.plugin_id);
+  }
+
+  if(!pluginDetails) {
+    return null;
+  }
+
+  return(
+    <div className="rounded-md bg-white border border-slate-200 flex flex-col overflow-hidden mb-3 mr-3 min-w-[170px] max-w-[350px]">
+      {/** Plugin details */}
+      <div className="flex items-center flex-row px-4 py-3 items-center space-x-1.5">
+        {/** Display context logo if any */}
+        {pluginDetails.logo &&
+          <img
+            src={pluginDetails.logo}
+            alt={pluginDetails.plugin_id}
+            className="h-5 w-5 flex-shrink-0 mr-1.5 rounded-full" />
+        }
+        <span className="text-base font-medium block truncate">{pluginDetails.name}</span>
+      </div>
+
+      {/** Display context variables if any */}
+      {plugin.contextAssigned?.variables &&
+        <div className="flex flex-col px-4 text-sm border-t border-slate-100 py-2 text-slate-600 space-y-1">
+          {Object.entries(plugin.contextAssigned.variables).map(([key, value]) => (
+            <div className="font-mono text-xxs truncate" key={key}>
+              <span className="font-bold text-slate-900">{key}:</span> <span className="truncate">{value}</span>
+            </div>
+          ))}
+        </div>
+      }
+
+      {/** Display active routes if any*/}
+      {pluginDetails.routes &&
+        <div className="flex flex-row bg-white text-slate-600 text-sm cursor-pointer border-t border-slate-200 space-x-1 px-3 py-1.5 items-center justify-center">
+          <div className="mr-1 font-medium">Routes:</div>
+          <>
+            {pluginDetails.routes.map((route, index) => (
+              <Link href={"/api/plugins/" + pluginDetails.id + "/" + context_id + "/" + route} target="_blank" className="bg-white border border-slate-200 hover:border-[#4483FD]  rounded-md px-3 py-2 text-xs font-medium text-slate-800 space-x-1 flex flex-row items-center" key={index}>
+                <ExternalLinkIcon />
+                <span className="font-mono">/{route}</span>
+              </Link>
+            ))}
+          </>
+        </div>
+      } 
+      
+
+      {/** Configure CTA */}
+      <div className="flex flex-row bg-[#FBFBFB] text-slate-700 hover:text-slate-800 cursor-pointer border-t border-slate-200 space-x-1 px-3 py-1.5 items-center justify-center" onClick={() => selectAssignedContext()}>
+        <SettingsIcon />
+        <span className="text-sm font-medium">Configure</span>
+      </div>
+    </div>
+  )
+}
+
 
 const Breadcrumbs = ({ context_id }) => {
   const { settings, setSettings } = useContext(GlobalContext);

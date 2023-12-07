@@ -122,8 +122,25 @@
           ],
           "context": "kjzl6cwe1jw145yqqh7bg63i22sl7q59tc3vn6n158b26p6e7msl1i4wx1d8u9d",
           "variables": {
-            "prompt": "Create a summary of the book ${Title} by ${Author} using the markdown format",
-            "updatedVariable": "Description"
+            "action": "update",
+            "prompt": "Can you return a JSON object classifying this book in mutiple categories while evaluating the target readers for this book? The json object should have two keys: categories (array of string) and readers (array of string): ${Title} by ${Author}",
+            "is_json": "yes",
+            "field": "Classification"
+          }
+        },
+        {
+          "path": [
+            "kjzl6cwe1jw14aq7a51s50ua6ijd6hh79qoaf8ehhsomc14due0uhaazpy1nnaz",
+            "kjzl6cwe1jw145yqqh7bg63i22sl7q59tc3vn6n158b26p6e7msl1i4wx1d8u9d"
+          ],
+          "context": "kjzl6cwe1jw145yqqh7bg63i22sl7q59tc3vn6n158b26p6e7msl1i4wx1d8u9d",
+          "variables": {
+            "action": "generate",
+            "secs_interval": "60",
+            "prompt": "Find a book and return a json object containing 5 fields:  Title :string, Author :string, Description :string, Classification :object. The Classification field should be a JSON object classifying this book in multiple categories while evaluating the target readers for this book, it should have two keys: categories (array of string) and readers (array of string)",
+            "is_json": "yes",
+            "field": "",
+            "ceramic_seed":"[213, 30,116, 231, 149, 125, 252, 34, 193, 195, 198, 224, 37, 222, 124, 12, 64, 215, 195, 147, 95, 71, 80, 91, 247, 161, 95, 235, 173, 100, 245, 209]"
           }
         }
       ]
@@ -175,59 +192,22 @@
       "description": null
     },
     {
-      "name": "Near chat",
-      "stream_id": "kjzl6cwe1jw14aaxltycvtnfqvnu261w7vab9wn28kra6ffpxwvh9kn7vizf9vb",
-      "description": null,
-      "logo": "/uploads/913b2fefaa3a0ce84c5b23c0b.png"
-    },
-    {
-      "name": "Carbon Title",
-      "description": null,
-      "stream_id": "kjzl6cwe1jw147vkeewf6xeik0jhpoix0bfc8rhtn892hwv09f653qsqub4gfx5",
-      "logo": "/uploads/913b2fefaa3a0ce84c5b23c09.jpeg"
-    },
-    {
-      "name": "Open Book Summary",
-      "description": "hey",
+      "name": "Open Book Project",
+      "description": "A global database of books with an AI generated summary.",
       "stream_id": "kjzl6cwe1jw14aq7a51s50ua6ijd6hh79qoaf8ehhsomc14due0uhaazpy1nnaz",
       "logo": "/uploads/913b2fefaa3a0ce84c5b23c0d.png",
       "contexts": [
         {
-          "name": "Main",
+          "name": "Books list",
           "description": null,
           "context": "kjzl6cwe1jw14aq7a51s50ua6ijd6hh79qoaf8ehhsomc14due0uhaazpy1nnaz",
           "stream_id": "kjzl6cwe1jw145yqqh7bg63i22sl7q59tc3vn6n158b26p6e7msl1i4wx1d8u9d"
         },
         {
-          "name": "sub-2",
-          "description": null,
+          "name": "Authors list",
+          "description": "List famous authors",
           "context": "kjzl6cwe1jw14aq7a51s50ua6ijd6hh79qoaf8ehhsomc14due0uhaazpy1nnaz",
-          "stream_id": "kjzl6cwe1jw14b373xhhjuouc6sduwyjnto32yhpg3l2m8d5nuj5l6ejl87b7g9"
-        },
-        {
-          "name": "sub-3",
-          "description": null,
-          "context": "kjzl6cwe1jw14aq7a51s50ua6ijd6hh79qoaf8ehhsomc14due0uhaazpy1nnaz",
-          "stream_id": "kjzl6cwe1jw1467wo7q12lss6xhggtcn8c7b75hc7akf0qgw7x4ib0k0xknlwrq"
-        }
-      ]
-    },
-    {
-      "name": "New global context",
-      "description": null,
-      "stream_id": "kjzl6cwe1jw14a8v4orm0brcnadbe9i8qjcw19mcc8d5k8l4c6z5cg6xey9sf0g",
-      "contexts": [
-        {
-          "name": "new sub context",
-          "description": null,
-          "context": "kjzl6cwe1jw14a8v4orm0brcnadbe9i8qjcw19mcc8d5k8l4c6z5cg6xey9sf0g",
-          "stream_id": "kjzl6cwe1jw1464kzewi0ulbuw7ns35ep9dpzrkgca7hezabk80r165qhgj5ls1"
-        },
-        {
-          "name": "second",
-          "description": null,
-          "context": "kjzl6cwe1jw14a8v4orm0brcnadbe9i8qjcw19mcc8d5k8l4c6z5cg6xey9sf0g",
-          "stream_id": "kjzl6cwe1jw148txong2yy0gbeophxiq85dna0nxq4gvc6vf41rtyv4hli6j1u9"
+          "stream_id": "kjzl6cwe1jw146nbdhwneyhnrxvaiz34ar6z0uwgfrk85me3m0cvre9n5royrcl"
         }
       ]
     },
