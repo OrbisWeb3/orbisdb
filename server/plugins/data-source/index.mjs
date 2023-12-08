@@ -10,25 +10,6 @@ import { Ed25519Provider } from 'key-did-provider-ed25519'
 import { getResolver } from 'key-did-resolver'
 
 export default class DataSourcePlugin {
-  constructor({ ceramic_seed, model_id, secs_interval = 0, url, keys }) {
-    this.ceramic_seed = JSON.parse(ceramic_seed);
-    this.model_id = model_id;
-    this.secs_interval = secs_interval;
-    this.url = url;
-
-    /** Variables to make dynamic */
-    try {
-      this.keys = JSON.parse(keys);
-    } catch(e) {
-      console.log("Error parsing keys:", e);
-    }
-
-
-    /** Initialize the Orbis class object */
-    this.ceramic = new CeramicClient("https://node2.orbis.club/");
-    this.session;
-  }
-
   /**
    * This will initialize all of the hooks used by this plugin.
    * A plugin can register multiple hooks, each hook being linked to a function that will be executed when the hook is triggered
@@ -44,7 +25,8 @@ export default class DataSourcePlugin {
   /** Will connect to Ceramic using the seed passed by the plugin settings and trigger the fetch interval */
   async start() {
     try {
-      let seed = new Uint8Array(this.ceramic_seed);
+      this.ceramic = new CeramicClient("https://node2.orbis.club/");
+      let seed = new Uint8Array(JSON.parse(this.ceramic_seed));
 
       /** Create the provider and resolve it */
   		const provider = new Ed25519Provider(seed);
@@ -139,7 +121,8 @@ export default class DataSourcePlugin {
       let data = await res.json();
 
       // Iterate over each document group
-      for (const doc of this.keys) {
+      let keys = JSON.parse(this.keys)
+      for (const doc of keys) {
         let result = {};
 
         // Iterate over the keys and build the result object for each document

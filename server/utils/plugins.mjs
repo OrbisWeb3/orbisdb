@@ -65,7 +65,7 @@ export async function loadAndInitPlugins() {
         let pluginVariables = pluginConfig.variables ? pluginConfig.variables : null;
         let contextualizedVariables = context.variables;
 
-        /** If any add contextualized variables to the variabled using when initializing the plugin */
+        /** If any add contextualized variables to the variables using when initializing the plugin */
         if(contextualizedVariables) {
           pluginVariables = {
             ...pluginVariables,
@@ -76,8 +76,16 @@ export async function loadAndInitPlugins() {
         /** Initialize plugin */
         const pluginInstance = new PluginClass(pluginVariables);
 
+        /** Assign all variables here instead of using a constructor for all plugins (less error prone for plugin developers) */
+        for (let key in pluginVariables) {
+					pluginInstance[key] = pluginVariables[key];
+				}
+
         /** Assign plugin's context dynamically */
         pluginInstance.context = context.context;
+
+        /** Assign plugin's instance unique identifier */
+        pluginInstance.uuid = context.uuid;
 
         /** Assign plugin's ID automatically */
         pluginInstance.id = pluginConfig.plugin_id;

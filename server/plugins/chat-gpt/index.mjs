@@ -9,25 +9,6 @@ import { Ed25519Provider } from 'key-did-provider-ed25519'
 import { getResolver } from 'key-did-resolver'
 
 export default class ChatGPTPlugin {
-  constructor({ organization_id, secret_key, model, prompt, field, action, is_json, secs_interval, ceramic_seed }) {
-    this.model_id = "kjzl6hvfrbw6c8ok4ig3gm9rydjw8dpeit20myjsa6rpo0t3kgsfzmp4qfwvrlm";
-    this.organization_id = organization_id;
-    this.secret_key = secret_key;
-    this.model = model;
-    this.prompt = prompt;
-    this.field = field;
-    this.action = action;
-    this.is_json = is_json;
-    this.secs_interval = secs_interval;
-
-    /** Initialize the Ceramic connection (should be only when action = generate) */
-    if(ceramic_seed) {
-        this.ceramic_seed = JSON.parse(ceramic_seed);
-        this.ceramic = new CeramicClient("https://node2.orbis.club/");
-        this.session;
-    }
-  }
-
     async init() {
         let HOOKS = {};
 
@@ -56,8 +37,14 @@ export default class ChatGPTPlugin {
     }
 
     async start() {
+        /** Temporary fix for model */
+        this.model_id = "kjzl6hvfrbw6c6t75hu18y8lcaeq87mifp5sutl1kd7m182crlf5285gvhnftxy";
+
+        /** Initialize the Ceramic client (needed only when action = generate) */
+        this.ceramic = new CeramicClient("https://node2.orbis.club/");
+
         console.log("IN CHATGPT PLUGIN! Should start the generation of new streams.");
-        let seed = new Uint8Array(this.ceramic_seed);
+        let seed = new Uint8Array(JSON.parse(this.ceramic_seed));
 
         /** Create the provider and resolve it */
   		const provider = new Ed25519Provider(seed);
@@ -84,39 +71,49 @@ export default class ChatGPTPlugin {
         }, this.secs_interval * 1000);
     }
 
-    /** Will create a streal every x seconds based on the user prompt */
+    /** Will create a stream every x seconds based on the user prompt */
     async createStream() {
-        const parsedPrompt = this.cleanPrompt(this.prompt);
-        console.log("In createStream: parsedPrompt=", parsedPrompt);
+        console.log("this.prompt:", this.prompt);
+        const parsedPrompt = await this.buildPrompt(this.prompt);
         const result = await this.fetchFromOpenAI({
             "role": "user",
             "content": parsedPrompt
         });
         console.log("result:", result);
-        result.context = this.context;
+        if(result) {
+            result.context = this.context;
 
-        /** We then create the stream in Ceramic with the updated content */
-        let stream = await ModelInstanceDocument.create(
-            this.ceramic,
-            result,
-            {
-                model: StreamID.fromString(this.model_id),
-                controller: this.session.id
+            /** We then create the stream in Ceramic with the updated content */
+            try {
+                let stream = await ModelInstanceDocument.create(
+                    this.ceramic,
+                    result,
+                    {
+                        model: StreamID.fromString(this.model_id),
+                        controller: this.session.id
+                    }
+                );
+                let stream_id = stream.id?.toString();
+        
+                // Force index stream in db if created on Ceramic
+                if(stream_id) {
+                    console.log("stream created:", stream_id);
+                    global.indexingService.indexStream({ streamId: stream_id, model: this.model_id });
+                }
+            } catch(e) {
+                console.log("Error creating stream with model:", this.model_id);
             }
-        );
-        let stream_id = stream.id?.toString();
-
-        // Force index stream in db if created on Ceramic
-        if(stream_id) {
-            console.log("stream created:", stream_id);
-            global.indexingService.indexStream({ streamId: stream_id, model: this.model_id });
+            
+        } else {
+            console.log("Couldn't create stream as `result` is undefined.");
         }
+        
     }
 
     /** Will query ChatGPT based on the plugin settings */ 
     async query(content) {
         // Parse the prompt string and replace placeholders with actual values
-        const parsedPrompt = this.cleanPrompt(this.prompt);
+        const parsedPrompt = await this.buildPrompt(this.prompt, content);
 
         const result = await this.fetchFromOpenAI({
             "role": "user",
@@ -133,7 +130,7 @@ export default class ChatGPTPlugin {
     async classify(stream) {
         console.log("Enter classify with stream:", stream);
         console.log("will classify the the content in different categories.");
-        const parsedPrompt = this.cleanPrompt(this.prompt);
+        const parsedPrompt = await this.buildPrompt(this.prompt, stream.content);
         const result = await this.fetchFromOpenAI({
             "role": "user",
             "content": parsedPrompt
@@ -143,11 +140,43 @@ export default class ChatGPTPlugin {
         return result;
     }
 
-    cleanPrompt(prompt) {
-        const parsedPrompt = prompt.replace(/\$\{(\w+)\}/g, (_, variableName) => content[variableName]);
-        console.log("cleaned prompt:", parsedPrompt);
-        return parsedPrompt;
+    /** Will build the final prompt by parsing variables and performing queries if needed */
+    async buildPrompt(prompt, content) {    
+        // Find all matches
+        const matches = [...prompt.matchAll(/\$\{([\w.]+)\}/g)];
+    
+        // Process each match
+        for (const match of matches) {
+            const fullMatch = match[0];
+            const variableName = match[1];
+        
+            let replacement;
+
+            /** Handle reserved variable names such as query.results */
+            switch(variableName) {
+                case "query.results":
+                    try {
+                        let response = await global.indexingService.database.query(this.query);
+                        if(response && response.data) {
+                            replacement = JSON.stringify(response.data?.rows || '');
+                        }
+                    } catch(e) {
+                        console.log("There was an error replacing query.results with the actual OrbisDB results.");
+                    }
+                    break;
+                default:
+                    replacement = content && content[variableName] || '';
+                    break;
+            }
+    
+            // Replace the match in the prompt
+            prompt = prompt.replace(fullMatch, replacement);
+        }
+    
+        console.log("built prompt:", prompt);
+        return prompt;
     }
+    
 
     chatHtml(req, res) {
         const { plugin_id, context_id } = req.params;
@@ -255,7 +284,8 @@ export default class ChatGPTPlugin {
           body: JSON.stringify({
             model: "gpt-3.5-turbo-1106",
             response_format: { "type": this.is_json == "yes" ? "json_object" : "text" },
-            messages: messages
+            messages: messages,
+            max_tokens: 4096
           })
         });
     

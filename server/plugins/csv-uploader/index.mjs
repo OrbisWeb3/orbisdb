@@ -9,23 +9,15 @@ import { Ed25519Provider } from 'key-did-provider-ed25519'
 import { getResolver } from 'key-did-resolver'
 
 export default class CSVUploaderPlugin {
-  constructor({ ceramic_seed }) {
-    this.model_id = "kjzl6hvfrbw6c8ok4ig3gm9rydjw8dpeit20myjsa6rpo0t3kgsfzmp4qfwvrlm";
-    this.ceramic_seed = JSON.parse(ceramic_seed);
-
-    // Initialize the Orbis class object
-    this.ceramic = new CeramicClient("https://node2.orbis.club/");
-    this.session;
-
-    // Initialize connection to Ceramic
-    this.connect();
-  }
-
   /**
    * This will initialize all of the hooks used by this plugin.
    * A plugin can register multiple hooks, each hook being linked to a function that will be executed when the hook is triggered
    */
   async init() {
+    /** Will trigger the connection to Ceramic when ready */
+    this.connect();
+
+    /** Return routes and hooks used by plugin */
     return {
       ROUTES: {
         GET: {
@@ -40,8 +32,10 @@ export default class CSVUploaderPlugin {
 
   /** Will connect to Ceramic using the seed passed by the plugin settings and trigger the fetch interval */
   async connect() {
+    this.model_id = "kjzl6hvfrbw6c8ok4ig3gm9rydjw8dpeit20myjsa6rpo0t3kgsfzmp4qfwvrlm";
+    this.ceramic = new CeramicClient("https://node2.orbis.club/");
     try {
-      let seed = new Uint8Array(this.ceramic_seed);
+      let seed = new Uint8Array(JSON.parse(this.ceramic_seed));
 
       /** Create the provider and resolve it */
   		const provider = new Ed25519Provider(seed);
@@ -232,20 +226,20 @@ let modelDef = {
     "type": "object",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "required": [
-      "Title",
-      "Author"
+      "title",
+      "author"
     ],
     "properties": {
-      "Title": {
+      "title": {
         "type": "string"
       },
-      "Description": {
+      "description": {
         "type": ["string", "null"]
       },
-      "Author": {
+      "author": {
         "type": "string"
       },
-      "Classification": {
+      "classification": {
         "type": ["object", "null"]
       },
       "context": {

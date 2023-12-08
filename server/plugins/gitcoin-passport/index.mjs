@@ -1,15 +1,5 @@
 
 export default class GitcoinPassportPlugin {
-  constructor({api_key, scorer_id, min_score}) {
-    console.log("Initializing gitcoin-passport plugin with:");
-    console.log("api_key:", api_key);
-    console.log("scorer_id:", scorer_id);
-    console.log("min_score:", min_score);
-    this.api_key = api_key;
-    this.scorer_id = scorer_id;
-    this.min_score = min_score;
-  }
-
   /**
    * This will initialize all of the hooks used by this plugin.
    * A plugin can register multiple hooks, each hook being linked to a function that will be executed when the hook is triggered

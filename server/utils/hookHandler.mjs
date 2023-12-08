@@ -3,14 +3,14 @@
  */
 const hooks = [
   ["generate", { isContextualized: false }],
-  ["validate", { isContextualized: true }], // Updated the `terminateOnResult` logic. I feel that validators plugins should only be able to return true or false.
+  ["validate", { isContextualized: true }], 
   ["add_metadata", { isContextualized: true }],
   ["update", { isContextualized: true }],
   ["post_process", { isContextualized: true }],
 ];
 
 /**
- * This HookHandle class will be storing all hooks enabled by different plugins used by the indexing instance
+ * This HookHandler class will be storing all hooks enabled by different plugins used by the indexing instance
  * as well as execute all of them safely.
  */
 export default class HookHandler {
@@ -34,8 +34,8 @@ export default class HookHandler {
     }
   }
 
-  // TODO: handle hook that are able to overwrite data
   // TODO: handle hooks that are able to return early (next())
+  // TODO: figure our why having the same plugin installed on the same context with the same hook isn't working well (especially for update and add_metadata)
   async executeHook(hookName, data = {}, contextId) {
     // Retrieve options for the hook to be about to be executed.
     const hookOpts = this.registeredHooks[hookName];

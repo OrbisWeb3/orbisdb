@@ -1,23 +1,20 @@
 import React, { useState, useEffect, useContext } from "react";
+import AceEditor from "react-ace";
+import "ace-builds/src-min-noconflict/mode-mysql";
+import "ace-builds/src-noconflict/theme-sqlserver";
+import "ace-builds/src-min-noconflict/ext-language_tools";
 
-export default function LoopPluginVariables({variables, defaultVariables, per_context}) {
-  const [variableValues, setVariableValues] = useState(defaultVariables);
-
-  const handleVariableChange = (variableId, value) => {
-    setVariableValues((prevValues) => ({
-      ...prevValues,
-      [variableId]: value,
-    }));
-  };
+export default function LoopPluginVariables({variables, variableValues, handleVariableChange, per_context}) {
+  
 
   return variables?.map((variable, key) => {
     return (
-      <PluginVariable variable={variable} defaultVariables={defaultVariables} per_context={per_context} allVariables={variables} variableValues={variableValues} handleVariableChange={handleVariableChange} key={key} />
+      <PluginVariable variable={variable} per_context={per_context} allVariables={variables} variableValues={variableValues} handleVariableChange={handleVariableChange} key={key} />
     );
   });
 }
 
-const PluginVariable = ({variable, defaultVariables, per_context, allVariables, variableValues, handleVariableChange}) => {
+const PluginVariable = ({variable, per_context, allVariables, variableValues, handleVariableChange}) => {
 
   /** Don't display the variable if it's a contextual variable */
   if(per_context == true) {
@@ -35,8 +32,6 @@ const PluginVariable = ({variable, defaultVariables, per_context, allVariables, 
     console.log("The variable " + variable.name + " has conditions, let's check if they are met.");
     let conditionsMet = true;
     for (let condition of variable.conditions) {
-      console.log("condition:", condition);
-      console.log("variableValues:", variableValues);
       if(!variableValues) {
         conditionsMet = false;
         break;
@@ -68,11 +63,39 @@ const VariableInput = ({variable, val, setVal}) => {
 
 
   switch (variable.type) {
+    case "textarea":
+      input = <textarea placeholder={variable.name} name={variable.id} value={val} onChange={(e) => setVal(e.target.value)} className={`bg-white px-2 py-1 rounded-md border border-slate-300 text-base text-slate-900 mt-1 ${variable.private && "private-input"}`} />;
+      break;
     case "array":
       input = <textarea placeholder={variable.name} name={variable.id} value={val} onChange={(e) => setVal(e.target.value)} className={`bg-white px-2 py-1 rounded-md border border-slate-300 text-base text-slate-900 mt-1 ${variable.private && "private-input"}`} />;
       break;
     case "object":
       input = <textarea placeholder={variable.name} name={variable.id} value={val} onChange={(e) => setVal(e.target.value)} className={`bg-white px-2 py-1 rounded-md border border-slate-300 text-base text-slate-900 mt-1 ${variable.private && "private-input"}`}  />;
+      break;
+    case "query":
+      input = <div className="sql_editor bg-white overflow-hidden rounded-md border border-slate-300 text-base text-slate-900 mt-1"><AceEditor
+        id="editor"
+        aria-label="editor"
+        mode="mysql"
+        theme="sqlserver"
+        name={variable.id}
+        width="100%"
+        fontSize={13}
+        minLines={8}
+        maxLines={100}
+        showPrintMargin={false}
+        showGutter
+        placeholder="Write your query here..."
+        editorProps={{ $blockScrolling: true }}
+        setOptions={{
+          enableBasicAutocompletion: true,
+          enableLiveAutocompletion: true,
+          enableSnippets: true,
+        }}
+        value={val}
+        onChange={(value) => setVal(value)}
+        showLineNumbers
+      /></div>;
       break;
     case "select":
       input = <select 

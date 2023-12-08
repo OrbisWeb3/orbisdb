@@ -122,7 +122,7 @@ export default function ContextDetails() {
                   {plugins.parent.length > 0 &&
                     <>
                       <span className="font-medium text-base mt-2">From parent:</span>
-                      <div className="flex flex-row flex-wrap mt-2 items-start">
+                      <div className="flex flex-row grid grid-cols-2 gap-1 items-start">
                         <PluginsInstalled plugins={plugins.parent} context_id={context_id} setSelectedPlugin={setSelectedPlugin} setAssignedContext={setAssignedContext} />
                       </div>
                     </>
@@ -134,7 +134,9 @@ export default function ContextDetails() {
               <span className="font-medium text-base mt-2">Direct:</span>
               <div className="flex flex-row flex-wrap mt-2 items-start">
                 {plugins.direct.length > 0 ?
-                  <PluginsInstalled plugins={plugins.direct} context_id={context_id} setSelectedPlugin={setSelectedPlugin} setAssignedContext={setAssignedContext} />
+                  <div className="flex flex-row grid grid-cols-2 gap-1 items-start">
+                    <PluginsInstalled plugins={plugins.direct} context_id={context_id} setSelectedPlugin={setSelectedPlugin} setAssignedContext={setAssignedContext} />
+                  </div>
                 :
                   <div className="flex justify-center">
                     <Alert title="There aren't any plugins installed on this context." />
@@ -238,7 +240,7 @@ const OnePlugin = ({ plugin, context_id, setSelectedPlugin, setAssignedContext }
   }
 
   return(
-    <div className="rounded-md bg-white border border-slate-200 flex flex-col overflow-hidden mb-3 mr-3 min-w-[170px] max-w-[350px]">
+    <div className="rounded-md bg-white border border-slate-200 flex flex-col overflow-hidden mb-3 mr-3 flex-1">
       {/** Plugin details */}
       <div className="flex items-center flex-row px-4 py-3 items-center space-x-1.5">
         {/** Display context logo if any */}

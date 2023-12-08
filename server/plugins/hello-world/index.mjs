@@ -1,8 +1,5 @@
 
 export default class HelloWorldPlugin {
-  constructor() {
-  }
-
   /**
    * This will initialize all of the hooks used by this plugin.
    * A plugin can register multiple hooks, each hook being linked to a function that will be executed when the hook is triggered

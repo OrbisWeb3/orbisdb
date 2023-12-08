@@ -1,14 +1,14 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import fs from 'fs';
 import path from 'path';
-import { findContextById } from "../../../utils";
+import { v4 as uuidv4 } from 'uuid';
 
 // The path to your settings file might need to be adjusted based on your project's structure
 const settingsFilePath = path.resolve(process.cwd(), 'orbisdb-settings.json');
 
 export default async function handler(req, res) {
   if (req.method === 'POST') {
-    const { plugin_id, path, variables, context_id } = req.body;
+    const { plugin_id, path, variables, context_id, uuid } = req.body;
     console.log("plugin_id:", plugin_id);
     console.log("path:", path);
 
@@ -30,13 +30,16 @@ export default async function handler(req, res) {
       // Update or add the context
       let contextIndex = -1;
       if(settings.plugins && settings.plugins.length > 0 && settings.plugins[pluginIndex]?.contexts) {
-        contextIndex = settings.plugins[pluginIndex].contexts.findIndex(c => c.context === context_id);
+        contextIndex = settings.plugins[pluginIndex].contexts.findIndex(c => c.uuid === uuid);
       }
 
-      if (contextIndex === -1) {
+      /** Add a new plugin instance if there wasn't any uuid passed, otherwise update the referenced context */
+      if (!uuid) {
+        console.log("Assigning plugin to a new context.");
         let val = {
           path: path,
-          context: path[path.length - 1]
+          context: path[path.length - 1],
+          uuid: uuidv4() // Assign a unique identifier to this plugin instance on install
         };
 
         if (Object.keys(variables).length > 0) { // Check if variables is not empty
@@ -51,7 +54,20 @@ export default async function handler(req, res) {
         }
 
       } else {
+        // Update variable for existing plugin instance
         settings.plugins[pluginIndex].contexts[contextIndex].variables = variables;
+
+        // TODO: Update runtime variables for this plugin
+        let pluginsInstances = await global.indexingService.plugins;
+        console.log("pluginsInstances:", pluginsInstances);
+        for (let plugin of pluginsInstances) {
+          if (plugin.uuid === uuid) {
+            for (let key in variables) {
+              plugin[key] = variables[key];
+            }
+            console.log("Plugin " + uuid + " updated with:", variables);
+          }
+        }
       }
 
       console.log("settings:", settings)

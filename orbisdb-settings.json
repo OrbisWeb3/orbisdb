@@ -45,7 +45,8 @@
           "path": [
             "kjzl6cwe1jw147xm12icjydu88ds5ljx7dclx0z2quqdpocq6fq1wrdttr53hzy"
           ],
-          "context": "kjzl6cwe1jw147xm12icjydu88ds5ljx7dclx0z2quqdpocq6fq1wrdttr53hzy"
+          "context": "kjzl6cwe1jw147xm12icjydu88ds5ljx7dclx0z2quqdpocq6fq1wrdttr53hzy",
+          "uuid": "6187cf91-eb05-4f29-a20b-7eb61bd6d83e"
         }
       ]
     },
@@ -64,6 +65,7 @@
             "kjzl6cwe1jw149tv38q4713dftwbbhsxf516ppuilpvfsp50cpg7f9w1nmrsswr"
           ],
           "context": "kjzl6cwe1jw149tv38q4713dftwbbhsxf516ppuilpvfsp50cpg7f9w1nmrsswr",
+          "uuid": "2d20795c-0210-414f-ab11-a1147e914fd3",
           "variables": {
             "url": "https://pro-api.coingecko.com/api/v3/simple/price?ids=bitcoin,solana,ethereum&vs_currencies=usd&x_cg_pro_api_key=CG-W67XNyTNiNvfjAWYVu9FFRM9",
             "model_id": "kjzl6hvfrbw6c60ji9txuq3da0qic30tcioy25xah9g449zf40u3d0jmi8of0r7",
@@ -85,6 +87,7 @@
             "kjzl6cwe1jw14aaxltycvtnfqvnu261w7vab9wn28kra6ffpxwvh9kn7vizf9vb"
           ],
           "context": "kjzl6cwe1jw14aaxltycvtnfqvnu261w7vab9wn28kra6ffpxwvh9kn7vizf9vb",
+          "uuid": "79597a2b-0e44-4788-bd93-d2e7d1bc473a",
           "variables": {
             "min_score": "5"
           }
@@ -102,7 +105,16 @@
             "kjzl6cwe1jw14aq7a51s50ua6ijd6hh79qoaf8ehhsomc14due0uhaazpy1nnaz",
             "kjzl6cwe1jw145yqqh7bg63i22sl7q59tc3vn6n158b26p6e7msl1i4wx1d8u9d"
           ],
-          "context": "kjzl6cwe1jw145yqqh7bg63i22sl7q59tc3vn6n158b26p6e7msl1i4wx1d8u9d"
+          "context": "kjzl6cwe1jw145yqqh7bg63i22sl7q59tc3vn6n158b26p6e7msl1i4wx1d8u9d",
+          "uuid": "7882c4e1-8bcf-4594-b95d-e125ef954948"
+        },
+        {
+          "path": [
+            "kjzl6cwe1jw14aq7a51s50ua6ijd6hh79qoaf8ehhsomc14due0uhaazpy1nnaz",
+            "kjzl6cwe1jw146nbdhwneyhnrxvaiz34ar6z0uwgfrk85me3m0cvre9n5royrcl"
+          ],
+          "context": "kjzl6cwe1jw146nbdhwneyhnrxvaiz34ar6z0uwgfrk85me3m0cvre9n5royrcl",
+          "uuid": "956cfb28-089b-44b8-9ebe-c198abafb9b1"
         }
       ]
     },
@@ -121,11 +133,14 @@
             "kjzl6cwe1jw145yqqh7bg63i22sl7q59tc3vn6n158b26p6e7msl1i4wx1d8u9d"
           ],
           "context": "kjzl6cwe1jw145yqqh7bg63i22sl7q59tc3vn6n158b26p6e7msl1i4wx1d8u9d",
+          "uuid": "16fa3542-1f6f-43f7-80e6-4d1c9992c1a9",
           "variables": {
-            "action": "update",
-            "prompt": "Can you return a JSON object classifying this book in mutiple categories while evaluating the target readers for this book? The json object should have two keys: categories (array of string) and readers (array of string): ${Title} by ${Author}",
+            "action": "generate",
+            "secs_interval": "60",
+            "prompt": "Find a science fiction book and return a json object containing 5 fields:  title :string, author :string, description :string, classification :object. The classification field should be a JSON object classifying this book in multiple categories while evaluating the target readers as well as giving it a recommendation score from 0 to 10 based on whether or not you would recommend this book, it should have three keys: categories (array of string), readers (array of string) and review_score (integer) - the book returned should not be in this list ${query.results}",
             "is_json": "yes",
-            "field": "Classification"
+            "ceramic_seed": "[213, 30,116, 231, 149, 125, 252, 34, 193, 195, 198, 224, 37, 222, 124, 12, 64, 215, 195, 147, 95, 71, 80, 91, 247, 161, 95, 235, 173, 100, 245, 209]",
+            "query": "select title from \"kjzl6hvfrbw6c6t75hu18y8lcaeq87mifp5sutl1kd7m182crlf5285gvhnftxy\""
           }
         },
         {
@@ -134,13 +149,12 @@
             "kjzl6cwe1jw145yqqh7bg63i22sl7q59tc3vn6n158b26p6e7msl1i4wx1d8u9d"
           ],
           "context": "kjzl6cwe1jw145yqqh7bg63i22sl7q59tc3vn6n158b26p6e7msl1i4wx1d8u9d",
+          "uuid": "c946ea2d-9361-4730-95d3-16b05853a6a9",
           "variables": {
-            "action": "generate",
-            "secs_interval": "60",
-            "prompt": "Find a book and return a json object containing 5 fields:  Title :string, Author :string, Description :string, Classification :object. The Classification field should be a JSON object classifying this book in multiple categories while evaluating the target readers for this book, it should have two keys: categories (array of string) and readers (array of string)",
+            "action": "update",
+            "prompt": "Can you return a JSON object classifying this book in mutiple categories while evaluating the target readers for this book? The json object should have two keys: categories (array of string) and readers (array of string): ${title} by ${author}",
             "is_json": "yes",
-            "field": "",
-            "ceramic_seed":"[213, 30,116, 231, 149, 125, 252, 34, 193, 195, 198, 224, 37, 222, 124, 12, 64, 215, 195, 147, 95, 71, 80, 91, 247, 161, 95, 235, 173, 100, 245, 209]"
+            "field": "classification"
           }
         }
       ]

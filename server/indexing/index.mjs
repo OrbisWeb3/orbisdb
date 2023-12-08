@@ -16,36 +16,30 @@ export default class IndexingService {
 
 		// Go through the list of all plugins used and enable them
 		this.initialize();
-
-		// Test adding custom route
-		this.server.get('/custom-route', (req, res) => {
-	    res.send('This is a custom route');
-	  });
 	}
 
-	// Map each plugin to an init promise
+	// Map each plugin to the init promise and execute it
 	async initialize() {
 		// Retrive all plugins installed
-		let plugins = await loadAndInitPlugins();
+		this.plugins = await loadAndInitPlugins();
 
 		// Loads all plugins installed
-    const initPromises = plugins.map(async (plugin) => {
-      let { HOOKS, ROUTES } = await plugin.init();
-			console.log("ROUTES for " + plugin.id + ":", ROUTES);
-      console.log("Initialized plugin: " + plugin.id + " for context:" + plugin.context);
+		const initPromises = this.plugins.map(async (plugin) => {
+			let { HOOKS, ROUTES } = await plugin.init();
+			console.log("Initialized plugin: " + plugin.id + " for context:" + plugin.context);
 
 			// Manage hooks declared by plugins
-      if(HOOKS) {
-        for (const [hook, handler] of Object.entries(HOOKS)) {
-          this.hookHandler.addHookHandler(hook, plugin.id, plugin.context, handler);
-        }
-      }
+			if(HOOKS) {
+				for(const [hook, handler] of Object.entries(HOOKS)) {
+					this.hookHandler.addHookHandler(hook, plugin.id, plugin.context, handler);
+				}
+			}
 
 			// Register API routes requested by this plugin
-			if (ROUTES) {
+			if(ROUTES) {
 				// Handle GET routes
 				if(ROUTES.GET) {
-					for (const [route, method] of Object.entries(ROUTES.GET)) {
+					for(const [route, method] of Object.entries(ROUTES.GET)) {
 						let api_route = `/api/plugins/:plugin_id/:context_id/${route}`;
 						console.log("Registering GET route:", api_route);
 						this.server.get(api_route, (req, res) => {
@@ -56,7 +50,7 @@ export default class IndexingService {
 
 				// Handle POST routes
 				if(ROUTES.POST) {
-					for (const [route, method] of Object.entries(ROUTES.POST)) {
+					for(const [route, method] of Object.entries(ROUTES.POST)) {
 						let api_route = `/api/plugins/:plugin_id/:context_id/${route}`;
 						console.log("Registering POST route:", api_route);
 						this.server.post(api_route, (req, res) => {
@@ -65,12 +59,12 @@ export default class IndexingService {
 					}
 				}
 			}
-    });
+		});
 
-    // Wait for all the initialization promises to resolve
-    await Promise.all(initPromises);
+		// Wait for all the initialization promises to resolve
+		await Promise.all(initPromises);
 
-    console.log("All plugins are initialized");
+		console.log("All plugins are initialized");
 
 		// Trigger the generate hook which can be used to generate new streams automatically
 		this.hookHandler.executeHook("generate");
@@ -79,13 +73,13 @@ export default class IndexingService {
 	// Will subscribe to the IPFS pubsub topic specified in the constructor
 	async subscribe() {
 		// in reality it'd be a ceramic listener, not a loop
-    while (true) {
-      await sleep(2500);
-      const stream = (fakeStreams.length && fakeStreams.pop()) || false;
-      if (stream) {
-        this.indexStream(stream);
-      }
-    }
+		while(true) {
+			await sleep(2500);
+			const stream = (fakeStreams.length && fakeStreams.pop()) || false;
+			if (stream) {
+				this.indexStream(stream);
+			}
+		}
 
 		/*try {
 			//await ipfs.pubsub.subscribe(this.topic, this.parsePubsubMsg);
@@ -105,6 +99,8 @@ export default class IndexingService {
 				this.indexStream(parsed.model, parsed.stream);
 				break;
 			default:
+				console.log("Do nothing.");
+				break;
 		}
 	}
 
@@ -157,21 +153,4 @@ export default class IndexingService {
     }
 }
 
-const fakeStreams = [
-  {
-    streamId: "kjzl6kcym7w8yazsd0ik5iixpojm1p3piefa4dv5gul6qhzxzy9i7qs8j7jqvfh",
-    model: "kjzl6hvfrbw6ca079wipwvwgk5dq1epio34hrc48dbm3bd7k8lqjqm55aqjf72a"
-  },
-  {
-    streamId: "kjzl6kcym7w8y5k0gv2ffnzzg7vvvi1ayi7a6rov5nrz4k0zywt854smulwfdin",
-    model: "kjzl6hvfrbw6ca079wipwvwgk5dq1epio34hrc48dbm3bd7k8lqjqm55aqjf72a"
-  },
-  {
-    streamId: "k2t6wzhkhabz5i8k99qxvxs9bhe9zdekc9wd56ymoqpqeziloa030luut9h7r8",
-    model: "kjzl6hvfrbw6cb8b9j326870su0gmlziwepl5nu8jk9tybwxe7mobm67cqd58a3"
-  },
-{
-	streamId: "kjzl6kcym7w8y56rpeh47hb3t5fshp9b7geqv7197gbb6sbob6vccp5l7qa1spc",
-	model: "kjzl6hvfrbw6c8pzfstttcl1xessjf6wc87k3t2pyz3ibsypfxxjrneh9ioamyb"
-}
-];
+const fakeStreams = [];

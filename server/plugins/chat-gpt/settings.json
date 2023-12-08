@@ -35,6 +35,7 @@
       {
         "name": "Prompt",
         "description": "The question to ask the AI.",
+        "type": "textarea",
         "id": "prompt",
         "per_context": true
       },
@@ -60,6 +61,14 @@
         "private": true,
         "conditions": [{"id": "action", "value": "generate"}],
         "type": "array",
+        "per_context": true
+      },
+      {
+        "name": "Query",
+        "description": "You can perform dynamic query to pass additional data to your prompt by querying your OrbisDB instance.",
+        "id": "query",
+        "conditions": [{"id": "action", "value": "generate"}],
+        "type": "query",
         "per_context": true
       }
     ]

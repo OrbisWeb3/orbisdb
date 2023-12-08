@@ -8,11 +8,12 @@ import LoopPluginVariables from "../PluginVariables";
 import StepsProgress from "../StepsProgress";
 
 export default function AssignContextModal({hide, plugin_id, selectedContext}) {
-  const { settings, setSettings } = useContext(GlobalContext);
+  const { setSettings } = useContext(GlobalContext);
   const [status, setStatus] = useState(STATUS.ACTIVE);
   const [pluginDetails, setPluginDetails] = useState();
   const [selectedContextIds, setSelectedContextIds] = useState([]);
   const [step, setStep] = useState(selectedContext ? 2 : 1);
+  const [variableValues, setVariableValues] = useState(selectedContext ? selectedContext.variables : null );
 
   useEffect(() => {
     if(plugin_id) {
@@ -35,6 +36,14 @@ export default function AssignContextModal({hide, plugin_id, selectedContext}) {
     }
   }, [plugin_id]);
 
+  /** Triggered when a variable field in the loop variable component is updated */
+  const handleVariableChange = (variableId, value) => {
+    setVariableValues((prevValues) => ({
+      ...prevValues,
+      [variableId]: value,
+    }));
+  };
+
   /** Go to the settings step for plugin */
   function nextStep() {
     if(!selectedContextIds || selectedContextIds.length == 0) {
@@ -56,28 +65,22 @@ export default function AssignContextModal({hide, plugin_id, selectedContext}) {
 
     setStatus(STATUS.LOADING);
 
-    /** Retrieve form details for variables */
-    const form = event.target;
-    const formData = new FormData(form);
-    const data = {};
-
-    // Loop through the FormData entries
-    for (let [key, value] of formData.entries()) {
-      data[key] = value;
-    }
-    console.log("Variables:", data);
+    console.log("variableValues:", variableValues);
 
     // Determine if we are updating an existing context or saving a new one
     let requestBody = {
       plugin_id: plugin_id,
-      variables: data
+      variables: variableValues
     };
 
     if (selectedContext) {
+      console.log("selectedContext:", selectedContext);
       requestBody.context_id = selectedContext.context;
+      requestBody.uuid = selectedContext.uuid;
     } else {
       requestBody.path = selectedContextIds;
     }
+    console.log("requestBody:", requestBody);
 
     /** Submit assign context form */
     let response = await fetch('/api/settings/assign-context', {
@@ -159,7 +162,7 @@ export default function AssignContextModal({hide, plugin_id, selectedContext}) {
       {step == 2 &&
         <form onSubmit={saveOrUpdateContext} className="mt-6 flex flex-col">
           {pluginDetails?.variables ?
-            <LoopPluginVariables variables={pluginDetails?.variables} defaultVariables={selectedContext ? selectedContext.variables : null } per_context={true} />
+            <LoopPluginVariables variables={pluginDetails?.variables} variableValues={variableValues} handleVariableChange={handleVariableChange} per_context={true} />
           :
             <div className="bg-amber-100 rounded-md border-dashed border border-amber-200 w-full py-2 justify-center flex mb-4">
               <span className="text-center text-amber-800 text-base">There aren't any contextualized variables to setup for this plugin.</span>
