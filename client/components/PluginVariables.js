@@ -5,8 +5,6 @@ import "ace-builds/src-noconflict/theme-sqlserver";
 import "ace-builds/src-min-noconflict/ext-language_tools";
 
 export default function LoopPluginVariables({variables, variableValues, handleVariableChange, per_context}) {
-  
-
   return variables?.map((variable, key) => {
     return (
       <PluginVariable variable={variable} per_context={per_context} allVariables={variables} variableValues={variableValues} handleVariableChange={handleVariableChange} key={key} />
@@ -53,12 +51,17 @@ const PluginVariable = ({variable, per_context, allVariables, variableValues, ha
       {variable.description &&
         <p className="text-base text-slate-500">{variable.description}</p>
       }
-      <VariableInput variable={variable} val={variableValues ? variableValues[variable.id] : ""} setVal={(value) => handleVariableChange(variable.id, value)} />
+      <VariableInput variable={variable} val={variableValues ? variableValues[variable.id] : ""} handleVariableChange={handleVariableChange} />
     </div>
   )
 }
 
-const VariableInput = ({variable, val, setVal}) => {
+const VariableInput = ({variable, val, handleVariableChange}) => {
+  console.log("handleVariableChange in VariableInput:", handleVariableChange);
+  function setVal(value) {
+    handleVariableChange(variable.id, value);
+  }
+
   let input = <input type="text" placeholder={variable.name} name={variable.id} value={val} onChange={(e) => setVal(e.target.value)} className={`bg-white px-2 py-1 rounded-md border border-slate-300 text-base text-slate-900 mt-1 ${variable.private && "private-input"}`}  />;
 
 

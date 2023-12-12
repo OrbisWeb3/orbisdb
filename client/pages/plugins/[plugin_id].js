@@ -21,6 +21,7 @@ export default function PluginDetails() {
   const [installPluginModalVis, setInstallPluginModalVis] = useState(false);
   const [assignContextModalVis, setAssignContextModalVis] = useState(false);
   const [selectedContext, setSelectedContext] = useState(null);
+  const [variableValues, setVariableValues] = useState(selectedContext ? selectedContext.variables : null );
 
   /** Use Next router to get conversation_id */
   const router = useRouter();
@@ -57,18 +58,18 @@ export default function PluginDetails() {
     }
   }, [plugin_id]);
 
+  /** Triggered when a variable field in the loop variable component is updated */
+  const handleVariableChange = (variableId, value) => {
+    setVariableValues((prevValues) => ({
+      ...prevValues,
+      [variableId]: value,
+    }));
+  };
+
   /** Will start using the plugin by adding it to the settings file */
   async function savePlugin() {
     setStatus(STATUS.LOADING);
     event.preventDefault(); // Prevents the default form submit behavior
-    const form = event.target;
-    const formData = new FormData(form);
-    const data = {};
-
-    // Loop through the FormData entries
-    for (let [key, value] of formData.entries()) {
-      data[key] = value;
-    }
 
     // Save settings in the orbisdb-settings.json file
     try {
@@ -80,7 +81,7 @@ export default function PluginDetails() {
         body: JSON.stringify({
           plugin: {
             plugin_id: plugin_id,
-            variables: data
+            variables: variableValues
           }
         })
       });
@@ -101,7 +102,7 @@ export default function PluginDetails() {
       console.log("Error adding plugin:", e);
     }
 
-    console.log('Form data submitted:', data);
+    console.log('Form data submitted:', variableValues);
   }
 
   return(
@@ -158,7 +159,7 @@ export default function PluginDetails() {
                 <form onSubmit={savePlugin}>
                   {/** If this plugin is requiring variables we show those here */}
                   {pluginDetails.variables &&
-                    <LoopPluginVariables variables={pluginDetails.variables} defaultVariables={defaultVariables} />
+                    <LoopPluginVariables variables={pluginDetails.variables} defaultVariables={defaultVariables} handleVariableChange={handleVariableChange} />
                   }
                   <div className="flex flex-row justify-center">
                     <Button title="Save" status={status} successTitle="Saved" />
@@ -210,6 +211,8 @@ export default function PluginDetails() {
       {installPluginModalVis &&
         <PluginSettingsModal
           hide={() => setInstallPluginModalVis(false)}
+          handleVariableChange={handleVariableChange}
+          variableValues={variableValues}
           savePlugin={savePlugin}
           status={status}
           pluginDetails={pluginDetails}

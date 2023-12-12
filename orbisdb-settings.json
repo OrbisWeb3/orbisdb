@@ -137,7 +137,7 @@
           "variables": {
             "action": "generate",
             "secs_interval": "60",
-            "prompt": "Find a science fiction book and return a json object containing 5 fields:  title :string, author :string, description :string, classification :object. The classification field should be a JSON object classifying this book in multiple categories while evaluating the target readers as well as giving it a recommendation score from 0 to 10 based on whether or not you would recommend this book, it should have three keys: categories (array of string), readers (array of string) and review_score (integer) - the book returned should not be in this list ${query.results}",
+            "prompt": "Find a science fiction book and return a json object containing 5 fields:  title :string, author :string, description :string, classification :object. The classification field should be a JSON object classifying this book in multiple categories while evaluating the target readers as well as giving it a recommendation score from 0 to 10 based on whether or not you would recommend this book, it should have three keys: categories (array of string), readers (array of string) and review_score (integer) - the book returned should absolutely not be already mentioned in this list ${query.results}",
             "is_json": "yes",
             "ceramic_seed": "[213, 30,116, 231, 149, 125, 252, 34, 193, 195, 198, 224, 37, 222, 124, 12, 64, 215, 195, 147, 95, 71, 80, 91, 247, 161, 95, 235, 173, 100, 245, 209]",
             "query": "select title from \"kjzl6hvfrbw6c6t75hu18y8lcaeq87mifp5sutl1kd7m182crlf5285gvhnftxy\""
@@ -155,6 +155,26 @@
             "prompt": "Can you return a JSON object classifying this book in mutiple categories while evaluating the target readers for this book? The json object should have two keys: categories (array of string) and readers (array of string): ${title} by ${author}",
             "is_json": "yes",
             "field": "classification"
+          }
+        }
+      ]
+    },
+    {
+      "plugin_id": "evm-blockchain-listener",
+      "variables": {
+        "infura_key": "f4ec850030ff48e9b0c2c5ca665b4678"
+      },
+      "contexts": [
+        {
+          "path": [
+            "kjzl6cwe1jw149rxjduunz713vf60w03281zdc4lk6nn7sne7mftyuhsbnoci0f"
+          ],
+          "context": "kjzl6cwe1jw149rxjduunz713vf60w03281zdc4lk6nn7sne7mftyuhsbnoci0f",
+          "uuid": "fcb42cb9-e9c6-46bd-b0d0-629bdda8d235",
+          "variables": {
+            "chain": "mainnet",
+            "contract": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+            "abi": "[\n  {\n    \"constant\": true,\n    \"inputs\": [],\n    \"name\": \"name\",\n    \"outputs\": [{\"name\": \"\", \"type\": \"string\"}],\n    \"payable\": false,\n    \"stateMutability\": \"view\",\n    \"type\": \"function\"\n  },\n  {\n    \"constant\": true,\n    \"inputs\": [],\n    \"name\": \"symbol\",\n    \"outputs\": [{\"name\": \"\", \"type\": \"string\"}],\n    \"payable\": false,\n    \"stateMutability\": \"view\",\n    \"type\": \"function\"\n  },\n  {\n    \"constant\": true,\n    \"inputs\": [],\n    \"name\": \"decimals\",\n    \"outputs\": [{\"name\": \"\", \"type\": \"uint8\"}],\n    \"payable\": false,\n    \"stateMutability\": \"view\",\n    \"type\": \"function\"\n  },\n  {\n    \"constant\": true,\n    \"inputs\": [],\n    \"name\": \"totalSupply\",\n    \"outputs\": [{\"name\": \"\", \"type\": \"uint256\"}],\n    \"payable\": false,\n    \"stateMutability\": \"view\",\n    \"type\": \"function\"\n  },\n  {\n    \"constant\": true,\n    \"inputs\": [{\"name\": \"_owner\", \"type\": \"address\"}],\n    \"name\": \"balanceOf\",\n    \"outputs\": [{\"name\": \"balance\", \"type\": \"uint256\"}],\n    \"payable\": false,\n    \"stateMutability\": \"view\",\n    \"type\": \"function\"\n  },\n  {\n    \"constant\": false,\n    \"inputs\": [{\"name\": \"_to\", \"type\": \"address\"}, {\"name\": \"_value\", \"type\": \"uint256\"}],\n    \"name\": \"transfer\",\n    \"outputs\": [{\"name\": \"\", \"type\": \"bool\"}],\n    \"payable\": false,\n    \"stateMutability\": \"nonpayable\",\n    \"type\": \"function\"\n  },\n  {\n    \"constant\": false,\n    \"inputs\": [{\"name\": \"_spender\", \"type\": \"address\"}, {\"name\": \"_value\", \"type\": \"uint256\"}],\n    \"name\": \"approve\",\n    \"outputs\": [{\"name\": \"\", \"type\": \"bool\"}],\n    \"payable\": false,\n    \"stateMutability\": \"nonpayable\",\n    \"type\": \"function\"\n  },\n  {\n    \"constant\": false,\n    \"inputs\": [{\"name\": \"_from\", \"type\": \"address\"}, {\"name\": \"_to\", \"type\": \"address\"}, {\"name\": \"_value\", \"type\": \"uint256\"}],\n    \"name\": \"transferFrom\",\n    \"outputs\": [{\"name\": \"\", \"type\": \"bool\"}],\n    \"payable\": false,\n    \"stateMutability\": \"nonpayable\",\n    \"type\": \"function\"\n  },\n  {\n    \"constant\": true,\n    \"inputs\": [{\"name\": \"_owner\", \"type\": \"address\"}, {\"name\": \"_spender\", \"type\": \"address\"}],\n    \"name\": \"allowance\",\n    \"outputs\": [{\"name\": \"\", \"type\": \"uint256\"}],\n    \"payable\": false,\n    \"stateMutability\": \"view\",\n    \"type\": \"function\"\n  },\n  {\n    \"anonymous\": false,\n    \"inputs\": [{\"indexed\": true, \"name\": \"_from\", \"type\": \"address\"}, {\"indexed\": true, \"name\": \"_to\", \"type\": \"address\"}, {\"indexed\": false, \"name\": \"_value\", \"type\": \"uint256\"}],\n    \"name\": \"Transfer\",\n    \"type\": \"event\"\n  },\n  {\n    \"anonymous\": false,\n    \"inputs\": [{\"indexed\": true, \"name\": \"_owner\", \"type\": \"address\"}, {\"indexed\": true, \"name\": \"_spender\", \"type\": \"address\"}, {\"indexed\": false, \"name\": \"_value\", \"type\": \"uint256\"}],\n    \"name\": \"Approval\",\n    \"type\": \"event\"\n  }\n]\n"
           }
         }
       ]
@@ -230,6 +250,11 @@
       "description": null,
       "stream_id": "kjzl6cwe1jw149tv38q4713dftwbbhsxf516ppuilpvfsp50cpg7f9w1nmrsswr",
       "logo": "/uploads/58752623a5fd202594026ef00.png"
+    },
+    {
+      "name": "DAI listener",
+      "description": null,
+      "stream_id": "kjzl6cwe1jw149rxjduunz713vf60w03281zdc4lk6nn7sne7mftyuhsbnoci0f"
     }
   ]
 }
