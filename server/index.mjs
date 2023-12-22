@@ -1,9 +1,11 @@
 import express from 'express';
+import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 
 import bodyParser from 'body-parser';
+import cors from 'cors';
 import next from 'next';
 
 import IndexingService from "./indexing/index.mjs";
@@ -24,11 +26,33 @@ const app = next({
 const handle = app.getRequestHandler();
 const server = express();
 
+const packageJson = JSON.parse(
+  fs.readFileSync(path.resolve(__dirname, "../package.json"))
+);
+
+const orbisdbSettings = JSON.parse(
+  fs.readFileSync(path.resolve(__dirname, "../orbisdb-settings.json"))
+);
+
 // Use body parser to parse body field for POST
 server.use(bodyParser.json());
+server.use(cors());
 
 async function startServer() {
   await app.prepare();
+
+  // Expose some OrbisDB settings through a metadata endpoint
+  server.get("/api/metadata", async (req, res) => {
+    return res.json({
+      version: packageJson.version,
+      models: orbisdbSettings.models,
+      plugins: (await loadPlugins()).map((plugin) => ({
+        id: plugin.id,
+        name: plugin.name,
+        hooks: plugin.hooks,
+      })),
+    });
+  });
 
   // Custom handling of some specific URLs may also go here. For example:
   server.get('/api/plugins/get', async (req, res) => {
@@ -75,6 +99,9 @@ async function startServer() {
     }
   });
 
+  // Ping-pong API endpoint
+  server.get("/api/ping", async (req, res) => res.send("pong"));
+
   // API endpoint to query a table
   server.get('/api/db/query-all/:table/:page', async (req, res) => {
     const { table, page } = req.params;
@@ -105,30 +132,30 @@ async function startServer() {
   });
 
   /** Will run the query wrote by user */
-  server.post('/api/db/query', async (req, res) => {
-    const { query } = req.body;
+  server.post("/api/db/query", async (req, res) => {
+    const { query, params } = req.body;
 
     try {
-      let response = await global.indexingService.database.query(query);
+      let response = await global.indexingService.database.query(query, params);
       if (response) {
         res.json({
           status: "200",
           data: response.data?.rows,
           totalCount: response.totalCount,
-          title: response.title
+          title: response.title,
         });
       } else {
         res.status(404).json({
           status: "404",
           data: [],
-          error: `There wasn't any results returned from table.`
+          error: `There wasn't any results returned from table.`,
         });
       }
     } catch (error) {
       console.error(error);
       res.status(500).json({
         status: "500",
-        result: "Internal server error while querying table."
+        result: "Internal server error while querying table.",
       });
     }
   });
@@ -171,6 +198,8 @@ async function init() {
 
   /** Subscribe to streams created on Mainnet */
   global.indexingService.subscribe();
+
+  global.indexingService.indexStream({streamId: "kjzl6kcym7w8y5j26h7ly3970xva9qynn1itgcd3utmayzckxtn8yohcsezptrb", model: "kjzl6hvfrbw6c5tpx35ssrjfjq5zaaq6qtvpovjnbvm29liqvlmw4s3rwwpz4e3"})
 }
 
 /** Start server */

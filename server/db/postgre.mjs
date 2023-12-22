@@ -127,7 +127,9 @@ export default class Postgre {
   }
 
   /** Will run any query and return the results */
-  async query(userQuery) {
+  async query(userQuery, params) {
+    console.log("Querying database", { query: userQuery, params });
+
     const defaultLimit = 100;
     let modifiedQuery = userQuery;
 
@@ -137,7 +139,7 @@ export default class Postgre {
     }*/
 
     try {
-      const res = await this.pool.query(userQuery);
+      const res = await this.pool.query(userQuery, params);
       return { data: res };
     } catch (e) {
       console.error(`Error executing query:`, e.message);

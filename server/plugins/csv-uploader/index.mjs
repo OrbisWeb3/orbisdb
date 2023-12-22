@@ -32,7 +32,7 @@ export default class CSVUploaderPlugin {
 
   /** Will connect to Ceramic using the seed passed by the plugin settings and trigger the fetch interval */
   async connect() {
-    this.model_id = "kjzl6hvfrbw6c8ok4ig3gm9rydjw8dpeit20myjsa6rpo0t3kgsfzmp4qfwvrlm";
+    this.model_id = "kjzl6hvfrbw6c6t75hu18y8lcaeq87mifp5sutl1kd7m182crlf5285gvhnftxy";
     this.ceramic = new CeramicClient("https://node2.orbis.club/");
     try {
       let seed = new Uint8Array(JSON.parse(this.ceramic_seed));
