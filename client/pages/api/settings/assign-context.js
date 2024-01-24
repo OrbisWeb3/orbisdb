@@ -42,15 +42,21 @@ export default async function handler(req, res) {
           uuid: uuidv4() // Assign a unique identifier to this plugin instance on install
         };
 
-        if (Object.keys(variables).length > 0) { // Check if variables is not empty
+        if (variables && Object.keys(variables).length > 0) { // Check if variables is not empty
           val.variables = variables;
         }
 
         // Update settings
-        if(settings.plugins[pluginIndex].contexts) {
-          settings.plugins[pluginIndex].contexts.push(val);
+        if(settings.plugins) {
+          if(settings.plugins[pluginIndex].contexts) {
+            settings.plugins[pluginIndex].contexts.push(val);
+          } else {
+            settings.plugins[pluginIndex].contexts = [val];
+          }
         } else {
-          settings.plugins[pluginIndex].contexts = [val];
+          settings.plugins = [{
+            contexts: [val]
+          }];
         }
 
       } else {

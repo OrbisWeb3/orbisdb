@@ -47,15 +47,20 @@ export default async function handler(req, res) {
 /** This will check if the plugin exists and either add it to the settings or update the existing one */
 function updateOrAddPlugin(settings, newPlugin) {
   // Check if the plugin already exists
-  const existingPluginIndex = settings.plugins.findIndex(p => p.plugin_id === newPlugin.plugin_id);
+  if(settings.plugins && settings.plugins.length > 0) {
+    const existingPluginIndex = settings?.plugins?.findIndex(p => p.plugin_id === newPlugin.plugin_id);
 
-  if (existingPluginIndex !== -1) {
-    // The plugin exists, update its variables
-    settings.plugins[existingPluginIndex].variables = newPlugin.variables;
+    if (existingPluginIndex && existingPluginIndex !== -1) {
+      // The plugin exists, update its variables
+      settings.plugins[existingPluginIndex].variables = newPlugin.variables;
+    } else {
+      // The plugin doesn't exist, add it to the list
+      settings.plugins = [...settings?.plugins, newPlugin];
+    }
   } else {
-    // The plugin doesn't exist, add it to the list
-    settings.plugins = [...settings.plugins, newPlugin];
+    settings.plugins = [newPlugin];
   }
 
   return settings; // Return the modified settings
+  
 }

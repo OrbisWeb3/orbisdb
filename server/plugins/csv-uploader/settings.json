@@ -7,11 +7,9 @@
   "routes": ["upload"],
   "variables": [
     {
-      "name": "Ceramic Seed",
-      "description": "The Ceramic seed that will be used to create the streams.",
-      "id": "ceramic_seed",
-      "private": true,
-      "type": "array"
+      "name": "Model ID",
+      "description": "The model ID used by the streams created by the plugin. It must fit the columns names of your CSV file.",
+      "id": "model_id"
     }
   ]
 }

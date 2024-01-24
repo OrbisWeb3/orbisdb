@@ -48,47 +48,53 @@ export const getPluginsByContext = (contextId, plugins) => {
 
   // Function to extract parent context IDs for a given context ID
   const getParentContexts = (contextId, plugins) => {
-    for (let plugin of plugins) {
-      if (plugin.contexts) { // Check if contexts are defined for the plugin
-        for (let context of plugin.contexts) {
-          if (context.context === contextId) {
-              // Return the path excluding the last element (the context itself)
-              return context.path.slice(0, -1);
+    if(plugins && plugins.length > 0) {
+      for (let plugin of plugins) {
+        if (plugin.contexts) { // Check if contexts are defined for the plugin
+          for (let context of plugin.contexts) {
+            if (context.context === contextId) {
+                // Return the path excluding the last element (the context itself)
+                return context.path.slice(0, -1);
+            }
           }
         }
       }
     }
+    
     return [];
   }
 
   const parentContexts = getParentContexts(contextId, plugins);
 
-  plugins.forEach(plugin => {
-    plugin?.contexts?.forEach(context => {
-      // Check for direct installations
-      let isDirect = context.context === contextId;
-
-      // Check for parent installations
-      let isParent = parentContexts.includes(context.context);
-
-      let pluginDetails = JSON.parse(JSON.stringify(plugin)); // Deep clone the plugin object
-      delete pluginDetails.contexts; // Remove the contexts array from the plugin details
-      pluginDetails.contextAssigned = context;
-      if (isDirect) {
-        directPlugins.push({
-          ...pluginDetails,
-          contextType: 'Direct',
-          installedContextId: context.context // Add the exact context ID on which the plugin is installed
-        });
-      } else if (isParent) {
-        parentPlugins.push({
-          ...pluginDetails,
-          contextType: 'Parent',
-          installedContextId: context.context // Add the exact context ID on which the plugin is installed
-        });
-      }
+  if(plugins && plugins.length > 0) {
+    plugins.forEach(plugin => {
+      plugin?.contexts?.forEach(context => {
+        // Check for direct installations
+        let isDirect = context.context === contextId;
+  
+        // Check for parent installations
+        let isParent = parentContexts.includes(context.context);
+  
+        let pluginDetails = JSON.parse(JSON.stringify(plugin)); // Deep clone the plugin object
+        delete pluginDetails.contexts; // Remove the contexts array from the plugin details
+        pluginDetails.contextAssigned = context;
+        if (isDirect) {
+          directPlugins.push({
+            ...pluginDetails,
+            contextType: 'Direct',
+            installedContextId: context.context // Add the exact context ID on which the plugin is installed
+          });
+        } else if (isParent) {
+          parentPlugins.push({
+            ...pluginDetails,
+            contextType: 'Parent',
+            installedContextId: context.context // Add the exact context ID on which the plugin is installed
+          });
+        }
+      });
     });
-  });
+  }
+  
 
   return {
     direct: directPlugins,

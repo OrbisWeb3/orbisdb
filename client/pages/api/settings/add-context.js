@@ -71,7 +71,6 @@ export default async function handler(req, res) {
           context.logo = logoPath;
         }
 
-        console.log("context:", context);
         try {
           // Check if the context is a sub-context or already exists
           if (context.context) {
@@ -88,17 +87,18 @@ export default async function handler(req, res) {
               if (parentOrExistingContext.stream_id === context.context) {
                 // It's a sub-context, update it
                 console.log("It's a sub-context, update it.");
-                updateContext(parentOrExistingContext.contexts, context);
+                parentOrExistingContext.contexts = updateContext(parentOrExistingContext.contexts, context);
               } else {
                 // Update or add the sub-context
-                updateContext(parentOrExistingContext.contexts, context);
+                parentOrExistingContext.contexts = updateContext(parentOrExistingContext.contexts, context);
               }
             } else {
               throw new Error(`Parent context not found for: ${context.context}`);
             }
           } else {
             // If it's not a sub-context, update or add it to the main contexts array
-            updateContext(settings.contexts, context);
+            settings.contexts = updateContext(settings.contexts, context);
+            console.log("Updated contexts with:", settings.contexts);
           }
 
           console.log("Updated settings:", settings);
@@ -143,12 +143,20 @@ const findContextById = (id, contexts) => {
 
 // Function to update an existing context or add a new one
 const updateContext = (contexts, newContext) => {
-  const index = contexts.findIndex(ctx => ctx.stream_id === newContext.stream_id);
-  if (index !== -1) {
-    // Context already exists, update it
-    contexts[index] = { ...contexts[index], ...newContext };
+  if(contexts && contexts.length > 0) {
+    const index = contexts.findIndex(ctx => ctx.stream_id === newContext.stream_id);
+    if (index !== -1) {
+      // Context already exists, update it
+      contexts[index] = { ...contexts[index], ...newContext };
+    } else {
+      // Context does not exist, add as new
+      contexts.push(newContext);
+    }
   } else {
-    // Context does not exist, add as new
-    contexts.push(newContext);
+    // If contexts is empty, simply add the new context
+    contexts = [newContext];
   }
+
+  console.log("contexts:", contexts);
+  return contexts; 
 };

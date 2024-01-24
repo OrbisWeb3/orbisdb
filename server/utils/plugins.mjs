@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import { getOrbisDBSettings } from "./helpers.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -41,16 +42,14 @@ export async function loadPlugins() {
 
 /** Will load all of the plugins being specified in the settings file and init them with their respective variables */
 export async function loadAndInitPlugins() {
-  const settingsPath = path.join(__dirname, '../../orbisdb-settings.json');
-  const settingsContent = fs.readFileSync(settingsPath, 'utf-8');
-  let appSettings = JSON.parse(settingsContent);
+  let appSettings = getOrbisDBSettings();
 
   const pluginsBaseDir = path.join(__dirname, '../plugins'); // Adjust the path as necessary
 
   // This array will hold all the instantiated and initialized plugins
   const loadedPlugins = [];
-
-  for (const pluginConfig of appSettings.plugins) {
+  
+  for (const pluginConfig of appSettings.plugins ?? []) {
     try {
       // Construct paths
       const pluginDir = path.join(pluginsBaseDir, pluginConfig.plugin_id);

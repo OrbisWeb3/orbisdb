@@ -26,8 +26,9 @@ export default function PluginDetails() {
   /** Use Next router to get conversation_id */
   const router = useRouter();
   const { plugin_id } = router.query;
-
-  const existingPluginIndex = settings.plugins.findIndex(p => p.plugin_id === plugin_id);
+  const existingPluginIndex = getPluginIndex();
+  
+  
 
   useEffect(() => {
     if(plugin_id) {
@@ -50,13 +51,29 @@ export default function PluginDetails() {
       }
 
       /** Check if plugin is already installed or not */
-      if (existingPluginIndex !== -1) {
+      if (existingPluginIndex != -1) {
         // Plugin is already installed, assign the default variables
         setIsInstalled(true);
-        setDefaultVariables(settings.plugins[existingPluginIndex].variables);
+        let _defaultVariables = settings.plugins[existingPluginIndex].variables;
+        console.log("_defaultVariables:", _defaultVariables); 
+        setDefaultVariables(_defaultVariables);
+        setVariableValues(_defaultVariables);
       }
     }
   }, [plugin_id]);
+
+  useEffect(() => {
+    console.log("variableValues:", variableValues);
+  }, [variableValues])
+
+  function getPluginIndex() {
+    let _existingPluginIndex = -1;
+    if(settings.plugins && settings.plugins.length > 0) {
+      _existingPluginIndex = settings.plugins.findIndex(p => p.plugin_id === plugin_id);
+    }
+    console.log("_existingPluginIndex:", _existingPluginIndex);
+    return _existingPluginIndex;
+  }
 
   /** Triggered when a variable field in the loop variable component is updated */
   const handleVariableChange = (variableId, value) => {

@@ -43,11 +43,11 @@ export default function Plugins() {
 const LoopPlugins = ({plugins}) => {
   return plugins.map((plugin, key) => {
     return (
-        <div className="flex flex-col items-center space-x-2 bg-white px-4 py-3 border border-slate-200 rounded-md" key={key}>
+        <div className="flex flex-col items-center bg-white px-4 py-3 border border-slate-200 rounded-md" key={key}>
           {/** Optional plugin logo */}
           {plugin.logo &&
             <Link href={"/plugins/" + plugin.id}>
-              <img src={plugin.logo} className="mr-3 h-12 w-12 rounded-md mb-1" />
+              <img src={plugin.logo} className="h-12 w-12 rounded-md mb-1" />
             </Link>
           }
 

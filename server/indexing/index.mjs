@@ -1,15 +1,20 @@
-import { sleep, getCeramicFromNetwork, getTopicFromNetwork } from "../utils/helpers.mjs"
+import { sleep } from "../utils/helpers.mjs"
+import { cliColors } from "../utils/cliColors.mjs"
 import { loadAndInitPlugins } from "../utils/plugins.mjs";
+import { EventSource  } from "cross-eventsource";
+import { StreamID } from "@ceramicnetwork/streamid";
+//import { JsonAsString, AggregationDocument } from '@ceramicnetwork/codecs';
+import { Type, type, decode } from 'codeco';
+import { commitIdAsString } from '@ceramicnetwork/codecs';
 
 /**
- * The indexing service class would be responsible for indexing the content while going through all of the plugins "installed"
- * through the orbisDB instance.
+ * The indexing service class is responsible for indexing the content stored on the Ceramic node while enabling all of the plugins "installed"
+ * on the OrbisDB instance.
  */
 export default class IndexingService {
-	constructor(network, database, hookHandler, server) {
-		console.log("Initialized new IndexingService class for " + network);
-		this.ceramic = getCeramicFromNetwork(network);
-		this.topic = getTopicFromNetwork(network);
+	constructor(ceramic, database, hookHandler, server) {
+		console.log(cliColors.text.green, "🔗 Initialized indexing service.", cliColors.reset) ; 
+		this.ceramic = ceramic;
 		this.database = database;
 		this.hookHandler = hookHandler;
 		this.server = server;
@@ -26,7 +31,7 @@ export default class IndexingService {
 		// Loads all plugins installed
 		const initPromises = this.plugins.map(async (plugin) => {
 			let { HOOKS, ROUTES } = await plugin.init();
-			console.log("Initialized plugin: " + plugin.id + " for context:" + plugin.context);
+			console.log(cliColors.text.cyan, "🤖 Initialized plugin: ", cliColors.reset, plugin.id, cliColors.text.cyan, "for context: ",cliColors.reset, plugin.context);
 
 			// Manage hooks declared by plugins
 			if(HOOKS) {
@@ -41,7 +46,6 @@ export default class IndexingService {
 				if(ROUTES.GET) {
 					for(const [route, method] of Object.entries(ROUTES.GET)) {
 						let api_route = `/api/plugins/:plugin_id/:context_id/${route}`;
-						console.log("Registering GET route:", api_route);
 						this.server.get(api_route, (req, res) => {
 							method(req, res);
 						});
@@ -52,7 +56,6 @@ export default class IndexingService {
 				if(ROUTES.POST) {
 					for(const [route, method] of Object.entries(ROUTES.POST)) {
 						let api_route = `/api/plugins/:plugin_id/:context_id/${route}`;
-						console.log("Registering POST route:", api_route);
 						this.server.post(api_route, (req, res) => {
 							method(req, res);
 						});
@@ -63,23 +66,47 @@ export default class IndexingService {
 
 		// Wait for all the initialization promises to resolve
 		await Promise.all(initPromises);
-
-		console.log("All plugins are initialized");
+		if(this.plugins && this.plugins.length > 0) {
+			console.log(cliColors.text.green, "🤖 Initialized ", cliColors.reset, this.plugins.length, cliColors.text.green, " plugin(s).", cliColors.reset);
+		} else {
+			console.log(cliColors.text.yellow, "There wasn't any plugin to initialize.", cliColors.reset);
+		}
+		
 
 		// Trigger the generate hook which can be used to generate new streams automatically
 		this.hookHandler.executeHook("generate");
 	}
 
-	// Will subscribe to the IPFS pubsub topic specified in the constructor
+	// Will subscribe to the Ceramic node using server side events
 	async subscribe() {
+		console.log(cliColors.text.cyan, "👀 Subscribed to Ceramic node updates.", cliColors.reset) ; 
+		const source = new EventSource(this.ceramic.node + 'api/v0/feed/aggregation/documents')
+		//const Codec = JsonAsString.pipe(AggregationDocument);
+
+		source.addEventListener('message', (event) => {
+			//use JsonAsString, and AggregationDocument to decode and use event.data
+			//const parsedData = decode(Codec, event.data);
+			//console.log('parsed', parsedData);
+			try {
+				const parsedData = decode(Codec, event.data);
+				this.indexStream({ stream: parsedData });
+			} catch(e) {
+				console.log(cliColors.text.red, "Error parsing the Ceramic event:", e, cliColors.reset);
+			}
+		})
+		
+		source.addEventListener('error', error => {
+			console.log('error', error)
+		})
+		
 		// in reality it'd be a ceramic listener, not a loop
-		while(true) {
+		/*while(true) {
 			await sleep(2500);
 			const stream = (fakeStreams.length && fakeStreams.pop()) || false;
 			if (stream) {
 				this.indexStream(stream);
 			}
-		}
+		}*/
 
 		/*try {
 			//await ipfs.pubsub.subscribe(this.topic, this.parsePubsubMsg);
@@ -105,18 +132,32 @@ export default class IndexingService {
 	}
 
 	/** Will load the stream details using Ceramic, process the plugins and save the stream in DB */
-  	async indexStream({ streamId, model }) {
-		console.log("Enter indexStream with: ", streamId);
+  	async indexStream({ stream, model }) {
+
+		if(!stream) {
+			console.log(cliColors.text.red, "Error indexing a new stream:", cliColors.reset, " stream details are needed to index a stream.");
+			return;
+		}
+
+		// Trying to retrieve the StreamID from CommitID
+		let streamId;
+		try {
+			streamId = stream.commitId.baseID?.toString();
+			console.log(cliColors.text.cyan, "👀 Discovered new stream:", cliColors.reset, streamId);
+		} catch(e) {
+			return console.log(cliColors.text.red, "Error retrieving the StreamID for this stream:", cliColors.reset, e);;
+		}
 
 		try {
-			// Load the stream details from Ceramic
-			let stream = await this.ceramic.loadStream(streamId);
+			let modelId = new StreamID(stream.metadata.model._type, stream.metadata.model._cid['/']);
+			let model = modelId.toString();
+			let controller = stream.metadata.controller ? stream.metadata.controller : stream.metadata.controllers[0];
 
 			// Data ingested by the plugin
 			let processedData = {
 				stream_id: streamId,
 				model: model,
-				controller: stream.metadata.controller ? stream.metadata.controller : stream.metadata.controllers[0],
+				controller: controller,
 				content: stream.content
 			};
 
@@ -126,9 +167,8 @@ export default class IndexingService {
 			if (stream) {
 				// Will execute all of the validator hooks and terminate if one of them reject the stream
 				const { isValid } = await this.hookHandler.executeHook("validate", processedData, contextId);
-				console.log("Is stream valid? ", isValid);
 				if(isValid == false) {
-					return console.log("This stream is not valid, don't index:", streamId);
+					return console.log(cliColors.text.gray, "Stream is not valid, don't index:", cliColors.reset, streamId);
 				}
 
 				// Will execute all of the "metadata" plugins and return a pluginsData object which will contain all of the metadata added by the different plugins
@@ -137,7 +177,7 @@ export default class IndexingService {
 				// Add additional fields to the content which will be saved in the database
 				let content = {
 					stream_id: streamId,
-					controller: stream.metadata.controller ? stream.metadata.controller : stream.metadata.controllers[0],
+					controller: controller,
 					...stream.content
 				}
 
@@ -148,9 +188,25 @@ export default class IndexingService {
 				this.hookHandler.executeHook("post_process", processedData, contextId);
 	    }
 		} catch(e) {
-			console.log("Error indexing stream:", e);
+			console.log(cliColors.text.red, "Error indexing stream:", cliColors.reset, e);
 		}
     }
 }
 
 const fakeStreams = [];
+
+
+
+export const JsonAsString = new Type('JSON-as-string', (_input) => true, (input, context) => {
+    try {
+        return context.success(JSON.parse(input));
+    }
+    catch {
+        return context.failure();
+    }
+}, (commitID) => JSON.stringify(commitID));
+export const AggregationDocument = type({
+    commitId: commitIdAsString,
+});
+//# sourceMappingURL=feed.js.map
+const Codec = JsonAsString.pipe(AggregationDocument)

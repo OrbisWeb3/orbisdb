@@ -1,12 +1,6 @@
-import { CeramicClient } from '@ceramicnetwork/http-client';
 import { Model } from '@ceramicnetwork/stream-model';
 import { ModelInstanceDocument } from "@ceramicnetwork/stream-model-instance";
 import { StreamID } from "@ceramicnetwork/streamid";
-
-/** To generate dids from a Seed */
-import { DID } from 'dids'
-import { Ed25519Provider } from 'key-did-provider-ed25519'
-import { getResolver } from 'key-did-resolver'
 
 export default class ChatGPTPlugin {
     async init() {
@@ -16,8 +10,8 @@ export default class ChatGPTPlugin {
             case "update":
                 HOOKS.update = (stream) => this.query(stream);
                 break;
-            case "classify":
-                HOOKS.add_metadata = (stream) => this.classify(stream);
+            case "add_metadata":
+                HOOKS.add_metadata = (stream) => this.enhance(stream);
                 break;
             case "generate":
                 HOOKS.generate = () => this.start();
@@ -37,31 +31,6 @@ export default class ChatGPTPlugin {
     }
 
     async start() {
-        /** Temporary fix for model */
-        this.model_id = "kjzl6hvfrbw6c6t75hu18y8lcaeq87mifp5sutl1kd7m182crlf5285gvhnftxy";
-
-        /** Initialize the Ceramic client (needed only when action = generate) */
-        this.ceramic = new CeramicClient("https://node2.orbis.club/");
-
-        console.log("IN CHATGPT PLUGIN! Should start the generation of new streams.");
-        let seed = new Uint8Array(JSON.parse(this.ceramic_seed));
-
-        /** Create the provider and resolve it */
-  		const provider = new Ed25519Provider(seed);
-  		let did = new DID({ provider, resolver: getResolver() })
-
-  		/** Authenticate the Did */
-  		await did.authenticate()
-
-  		/** Assign did to Ceramic object  */
-  		this.ceramic.did = did;
-  		this.session = {
-  			did: did,
-  			id: did.id
-  		};
-
-        console.log("Connected to Ceramic with DID:", did.id);
-
         // Perform first call
         this.createStream();
 
@@ -79,27 +48,20 @@ export default class ChatGPTPlugin {
             "role": "user",
             "content": parsedPrompt
         });
-        console.log("result:", result);
         if(result) {
             result.context = this.context;
 
             /** We then create the stream in Ceramic with the updated content */
             try {
                 let stream = await ModelInstanceDocument.create(
-                    this.ceramic,
+                    global.indexingService.ceramic.client,
                     result,
                     {
                         model: StreamID.fromString(this.model_id),
-                        controller: this.session.id
+                        controller: global.indexingService.ceramic.session.id
                     }
                 );
                 let stream_id = stream.id?.toString();
-        
-                // Force index stream in db if created on Ceramic
-                if(stream_id) {
-                    console.log("stream created:", stream_id);
-                    global.indexingService.indexStream({ streamId: stream_id, model: this.model_id });
-                }
             } catch(e) {
                 console.log("Error creating stream with model:", this.model_id);
             }
@@ -127,9 +89,7 @@ export default class ChatGPTPlugin {
     }
 
     /** Will return a JSON object classifying the book */
-    async classify(stream) {
-        console.log("Enter classify with stream:", stream);
-        console.log("will classify the the content in different categories.");
+    async enhance(stream) {
         const parsedPrompt = await this.buildPrompt(this.prompt, stream.content);
         const result = await this.fetchFromOpenAI({
             "role": "user",
@@ -173,7 +133,6 @@ export default class ChatGPTPlugin {
             prompt = prompt.replace(fullMatch, replacement);
         }
     
-        console.log("built prompt:", prompt);
         return prompt;
     }
     
@@ -295,7 +254,6 @@ export default class ChatGPTPlugin {
         }
     
         const data = await response.json();
-        console.log("AI response: ", data.choices[0].message.content);
         if(this.is_json == "yes") {
             return JSON.parse(data.choices[0].message.content);
         } else {

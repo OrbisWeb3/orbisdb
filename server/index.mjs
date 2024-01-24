@@ -3,15 +3,18 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import { cliColors } from "./utils/cliColors.mjs"
 
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import next from 'next';
 
 import IndexingService from "./indexing/index.mjs";
+import Ceramic from "./ceramic/config.mjs";
 import Postgre from "./db/postgre.mjs";
 import HookHandler from "./utils/hookHandler.mjs";
 import { loadPlugins } from "./utils/plugins.mjs";
+import { getOrbisDBSettings, updateOrbisDBSettings } from "./utils/helpers.mjs";
 
 /** Initialize dirname */
 const __filename = fileURLToPath(import.meta.url);
@@ -25,14 +28,13 @@ const app = next({
 });
 const handle = app.getRequestHandler();
 const server = express();
+const PORT = 7008;
 
 const packageJson = JSON.parse(
   fs.readFileSync(path.resolve(__dirname, "../package.json"))
 );
 
-const orbisdbSettings = JSON.parse(
-  fs.readFileSync(path.resolve(__dirname, "../orbisdb-settings.json"))
-);
+let orbisdbSettings = getOrbisDBSettings();
 
 // Use body parser to parse body field for POST
 server.use(bodyParser.json());
@@ -45,12 +47,13 @@ async function startServer() {
   server.get("/api/metadata", async (req, res) => {
     return res.json({
       version: packageJson.version,
-      models: orbisdbSettings.models,
+      models: orbisdbSettings?.models,
+      models_mapping: orbisdbSettings?.models_mapping,
       plugins: (await loadPlugins()).map((plugin) => ({
         id: plugin.id,
         name: plugin.name,
         hooks: plugin.hooks,
-      })),
+      })),  
     });
   });
 
@@ -67,6 +70,37 @@ async function startServer() {
         status: "300",
         result: "Error loading plugins."
       });
+    }
+  });
+  
+  // Custom handling of some specific URLs may also go here. For example:
+  server.post('/api/settings/update-configuration', async (req, res) => {
+    const { configuration } = req.body;
+    console.log("Trying to save:", configuration);
+
+    try {
+      // Retrieve current settings
+      let settings = getOrbisDBSettings();
+
+      // Assign new configuration values
+      settings.configuration = configuration;
+
+      // Rewrite the settings file
+      updateOrbisDBSettings(settings)
+
+      // Start indexing service
+      startIndexing();
+
+      // Send the response
+      res.status(200).json({
+        status: 200,
+        updatedSettings: settings,
+        result: "New configuration saved."
+      });
+
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Failed to update settings.' });
     }
   });
 
@@ -160,9 +194,9 @@ async function startServer() {
     }
   });
 
-  if (!dev) {
+  if(!dev) {
     // Serve static files from Next.js production build
-    console.log("🌹 Using production build.");
+    console.log("Using production build.");
     server.use('/_next', express.static(path.join(__dirname, '../client/.next')));
     server.use(express.static(path.join(__dirname, '../client/public')));
   }
@@ -172,38 +206,48 @@ async function startServer() {
     return handle(req, res);
   });
 
-  const PORT = process.env.PORT || 3000;
   server.listen(PORT, (err) => {
     if (err) throw err;
-    console.log(`> Ready on http://localhost:${PORT}`);
+    console.log(cliColors.text.green, "📞 OrbisDB ready on", cliColors.reset, "http://localhost:" + PORT);
   });
 }
 
-
 /** Initialize the app by loading all of the required plugins while initializng those and start the indexing service */
-async function init() {
-  /** Instantiate the database to use which should be saved in the "orbisdb-settings.json" file */
-  let database = new Postgre("doadmin", "defaultdb", "AVNS_puV0xIOIp_tdmU1kNEy", "test-orbisdb-do-user-10388596-0.c.db.ondigitalocean.com", 25060);
+export async function startIndexing() {
+  
+  // Retrieve OrbisDB current settings
+  let settings = getOrbisDBSettings();
+  
+  // If configuration settings are valid we start the indexing service
+  if(settings?.configuration) {
+    /** Instantiate the database to use which should be saved in the "orbisdb-settings.json" file */
+    let dbConfig = settings.configuration.db;
+    let database = new Postgre(dbConfig.user, dbConfig.database, dbConfig.password, dbConfig.host, dbConfig.port);
 
-  /** Initialize the hook handler */
-  let hookHandler = new HookHandler();
+    /** Instantiate the Ceramic object with node's url from config */
+    let seed = JSON.parse(settings.configuration.ceramic.seed);
+    let ceramic = new Ceramic(settings.configuration.ceramic.node, "http://localhost:" + PORT, seed)
 
-  /** Initialize the mainnet indexing service while specifying the plugins to use and database type */
-  global.indexingService = new IndexingService(
-    "mainnet",  // Ceramic network to subscribe to
-    database,   // Database instance to use
-    hookHandler, // Hookhandler
-    server
-  );
+    /** Initialize the hook handler */
+    let hookHandler = new HookHandler();
 
-  /** Subscribe to streams created on Mainnet */
-  global.indexingService.subscribe();
+    /** Initialize the mainnet indexing service while specifying the plugins to use and database type */
+    global.indexingService = new IndexingService(
+      ceramic,      // Ceramic class exposing node's url and client
+      database,     // Database instance to use
+      hookHandler,  // Hookhandler
+      server
+    );
 
-  global.indexingService.indexStream({streamId: "kjzl6kcym7w8y5j26h7ly3970xva9qynn1itgcd3utmayzckxtn8yohcsezptrb", model: "kjzl6hvfrbw6c5tpx35ssrjfjq5zaaq6qtvpovjnbvm29liqvlmw4s3rwwpz4e3"})
+    /** Subscribe to streams created on Mainnet */
+    global.indexingService.subscribe();
+  } else {
+    console.log("Couldn't init OrbisDB because configuration isn't setup yet.");
+  }
 }
 
 /** Start server */
 startServer().catch(console.error);
 
-/** Init classes */
-init();
+/** Initialize indexing service */
+startIndexing();

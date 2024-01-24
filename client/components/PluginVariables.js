@@ -49,7 +49,7 @@ const PluginVariable = ({variable, per_context, allVariables, variableValues, ha
     <div className="flex flex-col mb-4">
       <p className="text-base font-medium text-slate-900">{variable.name}:</p>
       {variable.description &&
-        <p className="text-base text-slate-500">{variable.description}</p>
+        <p className="text-sm text-slate-500">{variable.description}</p>
       }
       <VariableInput variable={variable} val={variableValues ? variableValues[variable.id] : ""} handleVariableChange={handleVariableChange} />
     </div>

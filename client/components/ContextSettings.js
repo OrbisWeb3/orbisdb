@@ -4,7 +4,7 @@ import { GlobalContext } from "../contexts/Global";
 import { STATUS, sleep } from "../utils";
 
 export default function ContextSettings ({context, setContext, callback, parentContext}) {
-  const { orbis, settings, setSettings } = useContext(GlobalContext);
+  const { orbisdb, settings, setSettings } = useContext(GlobalContext);
   const [status, setStatus] = useState(STATUS.ACTIVE);
   const [contextName, setContextName] = useState(context?.name ? context.name : "" );
   const [contextLogo, setContextLogo] = useState(context?.logo ? context.logo : null);
@@ -33,7 +33,7 @@ export default function ContextSettings ({context, setContext, callback, parentC
     let content = { ...context };
     console.log("Previous context:", content);
     content.name = contextName;
-    content.description = contextDescription ? contextDescription : null;
+    content.description = contextDescription ? contextDescription : "";
     console.log("New context:", content);
     if(parentContext) {
       content.context = parentContext;
@@ -44,13 +44,14 @@ export default function ContextSettings ({context, setContext, callback, parentC
     if(context) {
       res = await orbis.updateContext(context.stream_id, content);
     } else {
-      res = await orbis.createContext(content);
-      content.stream_id = res.doc;
+      const insertStatement = orbisdb.insert("kjzl6hvfrbw6c7f831brdq6w5j7cd3d1rjsmqm23zpp9imsxpu859d59koykunx").value(content);
+      res = await orbisdb.execute(insertStatement);
+      content.stream_id = res.id;
     }
     console.log("res:", res);
 
     /** If successful update in local settings */
-    if(res.status == 200) {
+    if(res.id) {
       const body = new FormData();
       body.append("file", contextLogoImg);
       body.append("context", JSON.stringify(content));
@@ -70,11 +71,10 @@ export default function ContextSettings ({context, setContext, callback, parentC
         setSettings(data.settings);
         setStatus(STATUS.SUCCESS);
         await sleep(500);
-        setStatus(STATUS.ACTIVE);
 
         /** Run callback if available (can be used to hide modal) */
         if(callback) {
-          callback();
+          callback(content);
         }
       } else {
         setStatus(STATUS.ERROR);

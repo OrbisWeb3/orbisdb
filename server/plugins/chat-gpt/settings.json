@@ -21,7 +21,7 @@
         "description": "Which action should the plugin perform?",
         "id": "action",
         "type": "select",
-        "options": [{"value": "update", "label": "Update a stream"}, {"value": "classify", "label": "Classify a stream"}, {"value": "generate", "label": "Create new streams"}],
+        "options": [{"value": "update", "label": "Update a stream"}, {"value": "add_metadata", "label": "Add metadata to a stream"}, {"value": "generate", "label": "Create new streams"}],
         "per_context": true
       },
       {
@@ -52,15 +52,6 @@
         "description": "The field that will be updated in your content object.",
         "id": "field",
         "conditions": [{"id": "action", "value": "update"}],
-        "per_context": true
-      },
-      {
-        "name": "Ceramic Seed",
-        "description": "The Ceramic seed that will be used to create the streams.",
-        "id": "ceramic_seed",
-        "private": true,
-        "conditions": [{"id": "action", "value": "generate"}],
-        "type": "array",
         "per_context": true
       },
       {

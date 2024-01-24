@@ -2,9 +2,7 @@ import React, { useState, useEffect, useContext } from "react";
 import Link from 'next/link';
 import { GlobalContext } from "../../contexts/Global";
 import { LoadingCircle, TableIcon, ViewIcon, CaretDown, RefreshIcon, FilterIcon, ArrowLeft, ArrowRight, AddIcon, PlayIcon, EyeIcon } from "../../components/Icons";
-import ContextDetails from "../../components/ContextDetails";
 import AddViewModal from "../../components/Modals/AddViewModal";
-import Button from "../../components/Button";
 import Alert from "../../components/Alert";
 import AceEditor from "react-ace";
 import "ace-builds/src-min-noconflict/mode-mysql";
@@ -12,8 +10,10 @@ import "ace-builds/src-noconflict/theme-sqlserver";
 import "ace-builds/src-min-noconflict/ext-language_tools";
 
 export default function Data() {
+  const { settings } = useContext(GlobalContext);
   const [addModalVis, setAddModalVis] = useState(false);
-  const [selectedTable, setSelectedTable] = useState({id: "kjzl6hvfrbw6c60ji9txuq3da0qic30tcioy25xah9g449zf40u3d0jmi8of0r7"});
+  const [selectedTable, setSelectedTable] = useState({id: "models_indexed"});
+  const [selectedTableModel, setSelectedTableModel] = useState("kh4q0ozorrgaq2mezktnrmdwleo1d");
   const [data, setData] = useState([]);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -33,8 +33,22 @@ export default function Data() {
   useEffect(() => {
     if(selectedTable) {
       loadData();
+      let modelId = getTableModelId(selectedTable?.id);
+      console.log("modelId:", modelId);
+      setSelectedTableModel(modelId);
     }
   }, [selectedTable, page]);
+
+  // Method to get the model ID for a human-readable table name
+  function getTableModelId(tableName) {
+    const modelsMapping = settings.models_mapping;
+    for (const [id, name] of Object.entries(modelsMapping || {})) {
+      if (name === tableName) {
+        return id;
+      }
+    }
+    return undefined;
+  }
 
   /** Will load all of the tables and views available in the database */
   async function loadSchema() {
@@ -160,7 +174,7 @@ export default function Data() {
           {/** Manage SQL editor */}
           <p className="font-medium text-xxs flex flex-row items-center space-x-1 mt-8 mb-1text-slate-600">SQL EDITOR</p>
           <p className="text-xxs flex flex-row items-center space-x-1 mb-3 text-slate-500">Perform custom queries or create views for your tables.</p>
-          <div className="flex justify-center">
+          <div className="flex justify-center pb-8">
             <div className="flex bg-[#4483FD] text-xxs text-white px-3 py-0.5 opacity-90 hover:opacity-100 cursor-pointer items-center rounded-full space-x-1 font-mono" onClick={() => setSelectedTable({id: "sql_editor"})}><span>Open SQL Editor</span></div>
           </div>
         </div>
@@ -169,6 +183,7 @@ export default function Data() {
         <div className="flex flex-1 flex-col bg-white h-full overflow-y-scroll">
           <Content
             selectedTable={selectedTable}
+            selectedTableModel={selectedTableModel}
             refresh={loadData}
             title={title}
             countResults={data ? data.length : 0}
@@ -210,7 +225,7 @@ const Content = (props) => {
   }
 }
 
-const SqlEditorCTAs = ({ title, runQuery, loading }) => {
+const SqlEditorCTAs = ({ runQuery, loading }) => {
   return(
     <div className="w-full text-[12px] table-data -mt-px -ml-px font-mono px-2 p-2 justify-start flex flex-row space-x-2 items-center border-b border-slate-200">
       <div className="text-[14px] ml-2 font-bold mr-2">SQL Editor</div>
@@ -230,7 +245,7 @@ const SqlEditorCTAs = ({ title, runQuery, loading }) => {
   )
 }
 
-const TableCTAs = ({ refresh, loading, page, setPage, countResults, countTotalResults, title, selectedTable, viewDefinition }) => {
+const TableCTAs = ({ selectedTableModel, refresh, loading, page, setPage, countResults, countTotalResults, title, selectedTable, viewDefinition }) => {
   function filter() {
     alert("Filters are coming soon.");
   }
@@ -252,7 +267,10 @@ const TableCTAs = ({ refresh, loading, page, setPage, countResults, countTotalRe
         <>
           {/** Show table title of available */}
           {selectedTable &&
-            <div className="text-[14px] ml-2 font-bold mr-2">{selectedTable.id}</div>
+            <div className="flex flex-row space-x-1 ml-2">
+              <div className="text-[14px] font-bold mr-2">{selectedTable.id}</div>
+              <div className="text-[10px] border border-dashed border-slate-300 rounded-full px-3 py-0.5 bg-slate-50">{selectedTableModel}</div>
+            </div>
           }
 
           {/** Show table CTAs */}
@@ -312,7 +330,7 @@ const SqlEditor = (props) => {
 
   return(
     <>
-      <SqlEditorCTAs title={props.title} runQuery={runQuery} loading={loading} />
+      <SqlEditorCTAs selectedTableModel={props.selectedTableModel} runQuery={runQuery} loading={loading} />
         <div className="flex flex-col w-full h-full font-mono text-[12px]">
           <div className="flex flex-1 w-full overflow-y-scroll sql_editor">
             <AceEditor

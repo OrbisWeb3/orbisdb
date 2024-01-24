@@ -10,12 +10,13 @@ import AddContextModal from "../../components/Modals/AddContext";
 import AssignContextModal from "../../components/Modals/AssignContext";
 import Button from "../../components/Button";
 import InternalNavigation from "../../components/InternalNavigation";
-import { SettingsIcon, DashIcon, ExternalLinkIcon } from "../../components/Icons";
+import { SettingsIcon, DashIcon, ExternalLinkIcon, LoadingCircle } from "../../components/Icons";
 
 export default function ContextDetails() {
-  const { settings, setSettings } = useContext(GlobalContext);
+  const { orbisdb, settings } = useContext(GlobalContext);
   const [context, setContext] = useState();
   const [plugins, setPlugins] = useState([]);
+  const [subContexts, setSubContexts] = useState([]);
   const [parentContext, setParentContext] = useState();
   const [addModalVis, setAddModalVis] = useState(false);
   const [selectedPlugin, setSelectedPlugin] = useState(null);
@@ -29,14 +30,27 @@ export default function ContextDetails() {
   useEffect(() => {
     if(context_id) {
       loadContextDetails();
+      loadSubContexts();
       loadContextPlugins();
       let result = findParentContextId(context_id, settings.contexts ? settings.contexts : null);
       setParentContext(result);
     }
 
     async function loadContextDetails() {
-      let _context = findContextById(settings.contexts, context_id);
-      setContext(_context);
+      let query = orbisdb.select().from("orbis_db_context").where({stream_id: context_id}).first()
+      const results = await orbisdb.execute(query);
+
+      if(results.rows && results.rows.length > 0) {
+        setContext(results.rows[0]);
+      } else {
+        alert("We couldn't find the details for this context on your OrbisDB instance.");
+      }
+    }
+
+    async function loadSubContexts() {
+      let query = orbisdb.select().from("orbis_db_context").where({context: context_id})
+      const results = await orbisdb.execute(query);
+      setSubContexts(results.rows);
     }
 
     function loadContextPlugins() {
@@ -50,7 +64,7 @@ export default function ContextDetails() {
   if(!context) {
     return(
       <div className="flex flex-row space-x-8">
-        <div className="px-16 py-12 md:w-2/3">Loading...</div>
+        <div className="px-16 py-12 w-full flex justify-center"><LoadingCircle /></div>
       </div>
     )
   }
@@ -96,8 +110,8 @@ export default function ContextDetails() {
               <h2 className="text-lg font-bold text-slate-900">Sub-contexts</h2>
               <p className="text-base text-slate-600">Create sub-contexts to have a more granular way to manage data in your application.</p>
               <div className="flex flex-col mt-3 space-y-2">
-                {(context.contexts && context.contexts.length  > 0) ?
-                  <Contexts contexts={context.contexts} />
+                {(subContexts && subContexts.length > 0) ?
+                  <Contexts contexts={subContexts} />
                 :
                   <div className="flex justify-center">
                     <Alert title="This context doesn't have any sub-contexts." />

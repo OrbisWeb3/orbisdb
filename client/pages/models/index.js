@@ -37,7 +37,7 @@ const LoopModels = () => {
       <div className="text-slate-500 text-center text-base"><em>Loading...</em></div>
     )
   } else {
-    return settings?.models.map((model, key) => {
+    return settings?.models?.map((model, key) => {
       return (
           <div className="flex flex-row items-center space-x-2">
             {/** Indexing hasn't been finalized for this model */}

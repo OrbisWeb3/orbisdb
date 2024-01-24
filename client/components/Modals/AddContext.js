@@ -8,7 +8,7 @@ import { STATUS, sleep } from "../../utils";
 import ContextDetails from "../ContextDetails";
 
 /** Modal to start tracking a new model */
-export default function AddContextModal({hide, parentContext}) {
+export default function AddContextModal({hide, parentContext, callback}) {
   const [step, setStep] = useState(1);
 
   return(
@@ -20,14 +20,14 @@ export default function AddContextModal({hide, parentContext}) {
           <StepsProgress steps={["Type", "Details", "Save in settings"]} currentStep={step} />
         </div>
 
-        <AddContextSteps step={step} setStep={setStep} parentContext={parentContext} hide={hide} />
+        <AddContextSteps callback={callback} step={step} setStep={setStep} parentContext={parentContext} hide={hide} />
       </div>
     </Modal>
   )
 }
 
-const AddContextSteps = ({step, setStep, hide, parentContext}) => {
-  const { orbis, setSettings } = useContext(GlobalContext);
+const AddContextSteps = ({step, setStep, hide, parentContext, callback}) => {
+  const { orbisdb, setSettings } = useContext(GlobalContext);
   const [selectedOption, setSelectedOption] = useState(null);
   const [contextId, setContextId] = useState("");
   const [contextName, setContextName] = useState("");
@@ -104,6 +104,15 @@ const AddContextSteps = ({step, setStep, hide, parentContext}) => {
     alert("Uploading");
   }
 
+  async function _callback(context) {
+    if(callback) {
+      callback(context);
+    }
+   
+    await sleep(500);
+    hide();
+  }
+
   switch (step) {
     /** Creating or updating a context */
     case 1:
@@ -111,8 +120,8 @@ const AddContextSteps = ({step, setStep, hide, parentContext}) => {
         <div className="flex flex-col items-center">
           <div className="space-y-2 flex flex-col mb-4 text-base mt-2 w-full">
             <ContextOption
-              title="Use existing context"
-              description="Add a context you created in the past."
+              title="Import existing context"
+              description="Import a context you created in the past to start using it in this instance."
               isSelected={selectedOption === 'existing'}
               onSelect={() => selectType('existing')} />
             <ContextOption
@@ -135,7 +144,7 @@ const AddContextSteps = ({step, setStep, hide, parentContext}) => {
         );
       } else if(selectedOption == "new") {
         return(
-          <ContextSettings callback={hide} parentContext={parentContext} />
+          <ContextSettings callback={_callback} parentContext={parentContext} />
         )
       };
 

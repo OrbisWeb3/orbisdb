@@ -1,12 +1,7 @@
-import { CeramicClient } from '@ceramicnetwork/http-client';
 import { ModelInstanceDocument } from "@ceramicnetwork/stream-model-instance";
 import { StreamID } from "@ceramicnetwork/streamid";
 import { Model } from '@ceramicnetwork/stream-model';
 
-/** To generate dids from a Seed */
-import { DID } from 'dids'
-import { Ed25519Provider } from 'key-did-provider-ed25519'
-import { getResolver } from 'key-did-resolver'
 
 export default class CSVUploaderPlugin {
   /**
@@ -14,9 +9,7 @@ export default class CSVUploaderPlugin {
    * A plugin can register multiple hooks, each hook being linked to a function that will be executed when the hook is triggered
    */
   async init() {
-    /** Will trigger the connection to Ceramic when ready */
-    this.connect();
-
+    // this.model_id = "kjzl6hvfrbw6c6t75hu18y8lcaeq87mifp5sutl1kd7m182crlf5285gvhnftxy";
     /** Return routes and hooks used by plugin */
     return {
       ROUTES: {
@@ -28,43 +21,6 @@ export default class CSVUploaderPlugin {
         }
       },
     };
-  }
-
-  /** Will connect to Ceramic using the seed passed by the plugin settings and trigger the fetch interval */
-  async connect() {
-    this.model_id = "kjzl6hvfrbw6c6t75hu18y8lcaeq87mifp5sutl1kd7m182crlf5285gvhnftxy";
-    this.ceramic = new CeramicClient("https://node2.orbis.club/");
-    try {
-      let seed = new Uint8Array(JSON.parse(this.ceramic_seed));
-
-      /** Create the provider and resolve it */
-  		const provider = new Ed25519Provider(seed);
-  		let did = new DID({ provider, resolver: getResolver() })
-
-  		/** Authenticate the Did */
-  		await did.authenticate()
-
-  		/** Assign did to Ceramic object  */
-  		this.ceramic.did = did;
-  		this.session = {
-  			did,
-  			id: did.id
-  		};
-
-      /*
-      let model_stream = await Model.create(this.ceramic,
-        modelDef,
-        {
-          model: "kh4q0ozorrgaq2mezktnrmdwleo1d",
-          controller: this.session.id
-        }
-      );
-      console.log("model_stream:", model_stream?.id?.toString())*/
-
-      console.log("Connected to Ceramic with DID:", did.id);
-    } catch(e) {
-      console.log("Couldn't connect to Ceramic, check the seed again:", e);
-    }
   }
 
   /** Example of an API route returning a simple HTML page. The routes declared by a plugin are automatically exposed by the OrbisDB instance */
@@ -183,15 +139,15 @@ export default class CSVUploaderPlugin {
 
             /** We call the update hook here in order to support hooks able to update data before it's created in Ceramic  */
 				    let __content = await global.indexingService.hookHandler.executeHook("update", _content, context_id);
-            console.log("__content:", __content);
 
             /** We then create the stream in Ceramic with the updated content */
             let stream = await ModelInstanceDocument.create(
-              this.ceramic,
+              global.indexingService.ceramic.client,
               __content,
               {
                 model: StreamID.fromString(this.model_id),
-                controller: this.session.id
+                context: "test-context",
+                controller: global.indexingService.ceramic.session.id
               }
             );
             let stream_id = stream.id?.toString();
@@ -200,7 +156,6 @@ export default class CSVUploaderPlugin {
             // Force index stream in db if created on Ceramic
             if(stream_id) {
               console.log("stream created:", stream_id);
-              global.indexingService.indexStream({ streamId: stream_id, model: this.model_id });
             }
             i++;
           } catch (error) {

@@ -1,254 +1,95 @@
 {
-  "models": [
-    {
-      "name": "SocialPost",
-      "stream_id": ""
+  "configuration": {
+    "ceramic": {
+      "node": "http://64.227.67.150:7007/",
+      "seed": "[213, 30,116, 231, 149, 125, 252, 34, 193, 195, 198, 224, 37, 222, 124, 12, 64, 215, 195, 147, 95, 71, 80, 91, 247, 161, 95, 235, 173, 100, 245, 209]"
     },
-    {
-      "name": "SocialReaction",
-      "stream_id": ""
-    },
-    {
-      "name": "SocialProfile",
-      "stream_id": ""
-    },
-    {
-      "name": "OamoProfileV1",
-      "stream_id": "kjzl6hvfrbw6c8tvfz7lavsv4niyx2t5fypwmg8ovtrulqwke6gmj0olj7y4r0d"
-    },
-    {
-      "name": "OamoWalletV1",
-      "stream_id": "kjzl6hvfrbw6c7ukto3sug7z4zfokwk98s0bxkulfe2k5jgd004f1nzadhnea7g"
-    },
-    {
-      "name": "OamoSocialV1",
-      "stream_id": "kjzl6hvfrbw6cb8b9j326870su0gmlziwepl5nu8jk9tybwxe7mobm67cqd58a3",
-      "status": 0
-    },
-    {
-      "name": "Project",
-      "stream_id": "kjzl6hvfrbw6c5e090bdcz5j0852t4fq0281rngqt0cfikzppa8bdfqnza3jyun",
-      "status": 1
-    },
-    {
-      "name": "Page",
-      "stream_id": "kjzl6hvfrbw6cb3f0gw4cjkijrb52ik1qx4th12tseoioud5f8slp57hezer3my",
-      "status": 2
+    "db": {
+      "user": "doadmin",
+      "database": "orbisdb_2",
+      "password": "AVNS_puV0xIOIp_tdmU1kNEy",
+      "host": "test-orbisdb-do-user-10388596-0.c.db.ondigitalocean.com",
+      "port": 25060
     }
-  ],
-  "plugins": [
-    {
-      "plugin_id": "hello-world",
-      "variables": {},
-      "contexts": []
-    },
-    {
-      "plugin_id": "data-source",
-      "variables": {
-        "ceramic_seed": "[213, 30,116, 231, 149, 125, 252, 34, 193, 195, 198, 224, 37, 222, 124, 12, 64, 215, 195, 147, 95, 71, 80, 91, 247, 161, 95, 235, 173, 100, 245, 209]",
-        "url": "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd",
-        "model_id": "kjzl6hvfrbw6c6tcey32ev5t4k0lzmq3bc03f8nv2a6dqvoamlpm7vdqdom7psv",
-        "secs_interval": "60",
-        "keys": "[\n      {\n        \"key\": \"asset\",\n        \"value\": \"bitcoin\"\n      },\n      {\n        \"key\": \"price\",\n        \"path\": [\"bitcoin\", \"usd\"]\n      },\n      {\n        \"key\": \"currency\",\n        \"value\": \"USD\"\n      }\n    ]"
-      },
-      "contexts": [
-        {
-          "path": [
-            "kjzl6cwe1jw149tv38q4713dftwbbhsxf516ppuilpvfsp50cpg7f9w1nmrsswr"
-          ],
-          "context": "kjzl6cwe1jw149tv38q4713dftwbbhsxf516ppuilpvfsp50cpg7f9w1nmrsswr",
-          "uuid": "2d20795c-0210-414f-ab11-a1147e914fd3",
-          "variables": {
-            "url": "https://pro-api.coingecko.com/api/v3/simple/price?ids=bitcoin,solana,ethereum&vs_currencies=usd&x_cg_pro_api_key=CG-W67XNyTNiNvfjAWYVu9FFRM9",
-            "model_id": "kjzl6hvfrbw6c60ji9txuq3da0qic30tcioy25xah9g449zf40u3d0jmi8of0r7",
-            "secs_interval": "6000",
-            "keys": "[\n  {\n    \"keys\": [\n      {\n        \"key\": \"asset\",\n        \"value\": \"bitcoin\"\n      },\n      {\n        \"key\": \"price\",\n        \"path\": [\"bitcoin\", \"usd\"],\n        \"type\": \"numeric\"\n      },\n      {\n        \"key\": \"currency\",\n        \"value\": \"USD\"\n      }\n    ]\n  },\n  {\n    \"keys\": [\n      {\n        \"key\": \"asset\",\n        \"value\": \"solana\"\n      },\n      {\n        \"key\": \"price\",\n        \"path\": [\"solana\", \"usd\"],\n        \"type\": \"numeric\"\n      },\n      {\n        \"key\": \"currency\",\n        \"value\": \"USD\"\n      }\n    ]\n  },\n{\n    \"keys\": [\n      {\n        \"key\": \"asset\",\n        \"value\": \"ethereum\"\n      },\n      {\n        \"key\": \"price\",\n        \"path\": [\"ethereum\", \"usd\"],\n        \"type\": \"numeric\"\n      },\n      {\n        \"key\": \"currency\",\n        \"value\": \"USD\"\n      }\n    ]\n  }\n]"
-          }
-        }
-      ]
-    },
-    {
-      "plugin_id": "gitcoin-passport",
-      "variables": {
-        "api_key": "G5WwLzpf.HCYtZLKZ9yGq4tOnyLf9OYxejgFXxaSb",
-        "scorer_id": "899"
-      },
-      "contexts": [
-        {
-          "path": [
-            "kjzl6cwe1jw147xm12icjydu88ds5ljx7dclx0z2quqdpocq6fq1wrdttr53hzy",
-            "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94jgeneral",
-            "kjzl6cwe1jw14bgaict0v7sr89dh7sgu4eb5h0gj4u9bik6dgtz8114bfl3efu6"
-          ],
-          "context": "kjzl6cwe1jw14bgaict0v7sr89dh7sgu4eb5h0gj4u9bik6dgtz8114bfl3efu6",
-          "uuid": "bbda4957-c025-4731-aeb0-2344ad909bb8",
-          "variables": {
-            "min_score": "10"
-          }
-        }
-      ]
-    },
-    {
-      "plugin_id": "csv-uploader",
-      "variables": {
-        "ceramic_seed": "[213, 30,116, 231, 149, 125, 252, 34, 193, 195, 198, 224, 37, 222, 124, 12, 64, 215, 195, 147, 95, 71, 80, 91, 247, 161, 95, 235, 173, 100, 245, 209]"
-      },
-      "contexts": [
-        {
-          "path": [
-            "kjzl6cwe1jw14aq7a51s50ua6ijd6hh79qoaf8ehhsomc14due0uhaazpy1nnaz",
-            "kjzl6cwe1jw145yqqh7bg63i22sl7q59tc3vn6n158b26p6e7msl1i4wx1d8u9d"
-          ],
-          "context": "kjzl6cwe1jw145yqqh7bg63i22sl7q59tc3vn6n158b26p6e7msl1i4wx1d8u9d",
-          "uuid": "7882c4e1-8bcf-4594-b95d-e125ef954948"
-        },
-        {
-          "path": [
-            "kjzl6cwe1jw14aq7a51s50ua6ijd6hh79qoaf8ehhsomc14due0uhaazpy1nnaz",
-            "kjzl6cwe1jw146nbdhwneyhnrxvaiz34ar6z0uwgfrk85me3m0cvre9n5royrcl"
-          ],
-          "context": "kjzl6cwe1jw146nbdhwneyhnrxvaiz34ar6z0uwgfrk85me3m0cvre9n5royrcl",
-          "uuid": "956cfb28-089b-44b8-9ebe-c198abafb9b1"
-        }
-      ]
-    },
-    {
-      "plugin_id": "chat-gpt",
-      "variables": {
-        "organization_id": "org-lxESgWKgBRJuQgfwrozZGFsa",
-        "secret_key": "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",
-        "model": "gpt-3.5-turbo",
-        "prompt": "Create a summary of this book using the markdown format"
-      },
-      "contexts": [
-        {
-          "path": [
-            "kjzl6cwe1jw14aq7a51s50ua6ijd6hh79qoaf8ehhsomc14due0uhaazpy1nnaz",
-            "kjzl6cwe1jw145yqqh7bg63i22sl7q59tc3vn6n158b26p6e7msl1i4wx1d8u9d"
-          ],
-          "context": "kjzl6cwe1jw145yqqh7bg63i22sl7q59tc3vn6n158b26p6e7msl1i4wx1d8u9d",
-          "uuid": "16fa3542-1f6f-43f7-80e6-4d1c9992c1a9",
-          "variables": {
-            "action": "generate",
-            "secs_interval": "6000",
-            "prompt": "Find a science fiction book and return a json object containing 5 fields:  title :string, author :string, description :string, classification :object. The classification field should be a JSON object classifying this book in multiple categories while evaluating the target readers as well as giving it a recommendation score from 0 to 10 based on whether or not you would recommend this book, it should have three keys: categories (array of string), readers (array of string) and review_score (integer) - the book returned should absolutely not be already mentioned in this list ${query.results}",
-            "is_json": "yes",
-            "ceramic_seed": "[213, 30,116, 231, 149, 125, 252, 34, 193, 195, 198, 224, 37, 222, 124, 12, 64, 215, 195, 147, 95, 71, 80, 91, 247, 161, 95, 235, 173, 100, 245, 209]",
-            "query": "select title from \"kjzl6hvfrbw6c6t75hu18y8lcaeq87mifp5sutl1kd7m182crlf5285gvhnftxy\""
-          }
-        },
-        {
-          "path": [
-            "kjzl6cwe1jw14aq7a51s50ua6ijd6hh79qoaf8ehhsomc14due0uhaazpy1nnaz",
-            "kjzl6cwe1jw145yqqh7bg63i22sl7q59tc3vn6n158b26p6e7msl1i4wx1d8u9d"
-          ],
-          "context": "kjzl6cwe1jw145yqqh7bg63i22sl7q59tc3vn6n158b26p6e7msl1i4wx1d8u9d",
-          "uuid": "c946ea2d-9361-4730-95d3-16b05853a6a9",
-          "variables": {
-            "action": "update",
-            "prompt": "Can you return a JSON object classifying this book in mutiple categories while evaluating the target readers for this book? The json object should have two keys: categories (array of string) and readers (array of string): ${title} by ${author}",
-            "is_json": "yes",
-            "field": "classification"
-          }
-        }
-      ]
-    },
-    {
-      "plugin_id": "evm-blockchain-listener",
-      "variables": {
-        "infura_key": "f4ec850030ff48e9b0c2c5ca665b4678"
-      },
-      "contexts": [
-        {
-          "path": [
-            "kjzl6cwe1jw149rxjduunz713vf60w03281zdc4lk6nn7sne7mftyuhsbnoci0f"
-          ],
-          "context": "kjzl6cwe1jw149rxjduunz713vf60w03281zdc4lk6nn7sne7mftyuhsbnoci0f",
-          "uuid": "fcb42cb9-e9c6-46bd-b0d0-629bdda8d235",
-          "variables": {
-            "chain": "mainnet",
-            "contract": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
-            "abi": "[\n  {\n    \"constant\": true,\n    \"inputs\": [],\n    \"name\": \"name\",\n    \"outputs\": [{\"name\": \"\", \"type\": \"string\"}],\n    \"payable\": false,\n    \"stateMutability\": \"view\",\n    \"type\": \"function\"\n  },\n  {\n    \"constant\": true,\n    \"inputs\": [],\n    \"name\": \"symbol\",\n    \"outputs\": [{\"name\": \"\", \"type\": \"string\"}],\n    \"payable\": false,\n    \"stateMutability\": \"view\",\n    \"type\": \"function\"\n  },\n  {\n    \"constant\": true,\n    \"inputs\": [],\n    \"name\": \"decimals\",\n    \"outputs\": [{\"name\": \"\", \"type\": \"uint8\"}],\n    \"payable\": false,\n    \"stateMutability\": \"view\",\n    \"type\": \"function\"\n  },\n  {\n    \"constant\": true,\n    \"inputs\": [],\n    \"name\": \"totalSupply\",\n    \"outputs\": [{\"name\": \"\", \"type\": \"uint256\"}],\n    \"payable\": false,\n    \"stateMutability\": \"view\",\n    \"type\": \"function\"\n  },\n  {\n    \"constant\": true,\n    \"inputs\": [{\"name\": \"_owner\", \"type\": \"address\"}],\n    \"name\": \"balanceOf\",\n    \"outputs\": [{\"name\": \"balance\", \"type\": \"uint256\"}],\n    \"payable\": false,\n    \"stateMutability\": \"view\",\n    \"type\": \"function\"\n  },\n  {\n    \"constant\": false,\n    \"inputs\": [{\"name\": \"_to\", \"type\": \"address\"}, {\"name\": \"_value\", \"type\": \"uint256\"}],\n    \"name\": \"transfer\",\n    \"outputs\": [{\"name\": \"\", \"type\": \"bool\"}],\n    \"payable\": false,\n    \"stateMutability\": \"nonpayable\",\n    \"type\": \"function\"\n  },\n  {\n    \"constant\": false,\n    \"inputs\": [{\"name\": \"_spender\", \"type\": \"address\"}, {\"name\": \"_value\", \"type\": \"uint256\"}],\n    \"name\": \"approve\",\n    \"outputs\": [{\"name\": \"\", \"type\": \"bool\"}],\n    \"payable\": false,\n    \"stateMutability\": \"nonpayable\",\n    \"type\": \"function\"\n  },\n  {\n    \"constant\": false,\n    \"inputs\": [{\"name\": \"_from\", \"type\": \"address\"}, {\"name\": \"_to\", \"type\": \"address\"}, {\"name\": \"_value\", \"type\": \"uint256\"}],\n    \"name\": \"transferFrom\",\n    \"outputs\": [{\"name\": \"\", \"type\": \"bool\"}],\n    \"payable\": false,\n    \"stateMutability\": \"nonpayable\",\n    \"type\": \"function\"\n  },\n  {\n    \"constant\": true,\n    \"inputs\": [{\"name\": \"_owner\", \"type\": \"address\"}, {\"name\": \"_spender\", \"type\": \"address\"}],\n    \"name\": \"allowance\",\n    \"outputs\": [{\"name\": \"\", \"type\": \"uint256\"}],\n    \"payable\": false,\n    \"stateMutability\": \"view\",\n    \"type\": \"function\"\n  },\n  {\n    \"anonymous\": false,\n    \"inputs\": [{\"indexed\": true, \"name\": \"_from\", \"type\": \"address\"}, {\"indexed\": true, \"name\": \"_to\", \"type\": \"address\"}, {\"indexed\": false, \"name\": \"_value\", \"type\": \"uint256\"}],\n    \"name\": \"Transfer\",\n    \"type\": \"event\"\n  },\n  {\n    \"anonymous\": false,\n    \"inputs\": [{\"indexed\": true, \"name\": \"_owner\", \"type\": \"address\"}, {\"indexed\": true, \"name\": \"_spender\", \"type\": \"address\"}, {\"indexed\": false, \"name\": \"_value\", \"type\": \"uint256\"}],\n    \"name\": \"Approval\",\n    \"type\": \"event\"\n  }\n]\n"
-          }
-        }
-      ]
-    }
-  ],
+  },
   "contexts": [
     {
-      "name": "Orbis Forum",
-      "logo": "/img/orbis-logo.png",
-      "stream_id": "kjzl6cwe1jw147xm12icjydu88ds5ljx7dclx0z2quqdpocq6fq1wrdttr53hzy",
+      "name": "test context 3",
+      "description": "",
+      "stream_id": "kjzl6kcym7w8y9bpsx4247luxldoakvm08cij35l3kij8aqdjgs18a813qasqc1",
       "contexts": [
         {
-          "name": "General",
-          "stream_id": "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94jgeneral",
+          "name": "test context 4",
+          "description": "description",
+          "context": "kjzl6kcym7w8y9bpsx4247luxldoakvm08cij35l3kij8aqdjgs18a813qasqc1",
+          "stream_id": "kjzl6kcym7w8y6h33wihwzwv6qunjr61fn7tu3awc1wwhdczo2wozpl090dm6gv",
           "contexts": [
             {
-              "name": "#Questions",
-              "stream_id": "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94jq"
-            },
-            {
-              "name": "humans-only",
-              "description": null,
-              "context": "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94jgeneral",
-              "stream_id": "kjzl6cwe1jw14bgaict0v7sr89dh7sgu4eb5h0gj4u9bik6dgtz8114bfl3efu6"
+              "name": "sub context of 4",
+              "description": "",
+              "context": "kjzl6kcym7w8y6h33wihwzwv6qunjr61fn7tu3awc1wwhdczo2wozpl090dm6gv",
+              "stream_id": "kjzl6kcym7w8y659hqzjzk2yqlxv87ximnf27uokc7d4l04tsuwc8krekunufn1"
             }
           ]
-        },
-        {
-          "name": "Technical questions",
-          "stream_id": "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94jtechnical"
-        },
-        {
-          "name": "Support",
-          "stream_id": "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94jsupport"
-        },
-        {
-          "name": "test under orbis forum",
-          "stream_id": "kjzl6cwe1jw149aof1qrp4jvd78qipvdht05h85k5q8rd2qtbus1g2a3x66tyk9",
-          "context": "kjzl6cwe1jw147eabkq3k4z6ka604w0xksr5k9ildy1glfe1ebkcfmtu8k2d94j",
-          "contexts": [
-            {
-              "name": "test under under",
-              "stream_id": "kjzl6cwe1jw149wbslahfvgb42itcdri7uji1deyui3s1nzp8r3u082d76wgabv",
-              "context": "kjzl6cwe1jw149aof1qrp4jvd78qipvdht05h85k5q8rd2qtbus1g2a3x66tyk9"
-            }
-          ]
-        }
-      ],
-      "description": null
-    },
-    {
-      "name": "Open Book Project",
-      "description": "A global database of books with an AI generated summary.",
-      "stream_id": "kjzl6cwe1jw14aq7a51s50ua6ijd6hh79qoaf8ehhsomc14due0uhaazpy1nnaz",
-      "logo": "/uploads/913b2fefaa3a0ce84c5b23c0d.png",
-      "contexts": [
-        {
-          "name": "Books list",
-          "description": null,
-          "context": "kjzl6cwe1jw14aq7a51s50ua6ijd6hh79qoaf8ehhsomc14due0uhaazpy1nnaz",
-          "stream_id": "kjzl6cwe1jw145yqqh7bg63i22sl7q59tc3vn6n158b26p6e7msl1i4wx1d8u9d"
-        },
-        {
-          "name": "Authors list",
-          "description": "List famous authors",
-          "context": "kjzl6cwe1jw14aq7a51s50ua6ijd6hh79qoaf8ehhsomc14due0uhaazpy1nnaz",
-          "stream_id": "kjzl6cwe1jw146nbdhwneyhnrxvaiz34ar6z0uwgfrk85me3m0cvre9n5royrcl"
         }
       ]
     },
     {
-      "name": "Open Price Feed Container",
-      "description": null,
-      "stream_id": "kjzl6cwe1jw149tv38q4713dftwbbhsxf516ppuilpvfsp50cpg7f9w1nmrsswr",
-      "logo": "/uploads/58752623a5fd202594026ef00.png"
+      "name": "Other context",
+      "description": "A cool context to test stuff",
+      "stream_id": "kjzl6kcym7w8y5wx705l85hmm9401mey9jav6cuv2zai9vpa41tt5u5iwce3z8r"
     },
     {
-      "name": "DAI listener",
-      "description": null,
-      "stream_id": "kjzl6cwe1jw149rxjduunz713vf60w03281zdc4lk6nn7sne7mftyuhsbnoci0f"
+      "name": "Another global context",
+      "description": "",
+      "stream_id": "kjzl6kcym7w8y7ms7ctu6j2cb91xl8acg6rypktqdbwpv4o49eftp7rqoipnrvp"
+    },
+    {
+      "name": "Again another global context",
+      "description": "",
+      "stream_id": "kjzl6kcym7w8y54qz0lu67pauxv1obbp0fgqgrx7aer060yafy5zq2gyfpts7g5",
+      "contexts": [
+        {
+          "name": "a sub context",
+          "description": "",
+          "context": "kjzl6kcym7w8y54qz0lu67pauxv1obbp0fgqgrx7aer060yafy5zq2gyfpts7g5",
+          "stream_id": "kjzl6kcym7w8y58urzjzw39y8ssybizlfwbntu95sq98hpfp7jaiejuz4vdkd70"
+        },
+        {
+          "name": "Another subcontext",
+          "description": "with a description",
+          "context": "kjzl6kcym7w8y54qz0lu67pauxv1obbp0fgqgrx7aer060yafy5zq2gyfpts7g5",
+          "stream_id": "kjzl6kcym7w8y92kwfqfvhlp1c3qg4oln8kcrxhsxhw4entqw4rhxrj8bgsksgp"
+        }
+      ]
+    },
+    {
+      "name": "agaiiiin",
+      "description": "",
+      "stream_id": "kjzl6kcym7w8y6909vtuq4dovn5jq5lv1abpf4qwv837si43g8zg4g7vnvc5ns9"
+    },
+    {
+      "name": "1",
+      "description": "",
+      "stream_id": "kjzl6kcym7w8y96hurdndrxah6f62t9ayq9t6y8b369jlmmm9qa7p6t86j3eedo"
+    },
+    {
+      "name": "2",
+      "description": "",
+      "stream_id": "kjzl6kcym7w8y6yp5qx3oxu7f56idoihffrzguuhzkgt2fsvttelkhid5hsnsn2"
+    },
+    {
+      "name": "3",
+      "description": "",
+      "stream_id": "kjzl6kcym7w8y5cfvt6mlfqw6a0xc6zvd4q29ojzw4d9o2t4b3ttqpmfq3n6n5w"
+    },
+    {
+      "name": "4",
+      "description": "",
+      "stream_id": "kjzl6kcym7w8y72925efc9dgc70e4w2t2e4v1dlulhuv2mi4htjbrpnexbgldbz"
     }
-  ]
+  ],
+  "models_mapping": {
+    "kjzl6hvfrbw6c7f831brdq6w5j7cd3d1rjsmqm23zpp9imsxpu859d59koykunx": "orbis_db_context"
+  }
 }

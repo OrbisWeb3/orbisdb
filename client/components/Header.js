@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { DashIcon } from "./Icons";
 
-export default function Header() {
+export default function Header({showItems}) {
   // Define navigation items and their paths
   const navItems = [
     { title: 'Contexts', path: '/', type: "equal" },
@@ -16,11 +16,17 @@ export default function Header() {
     <div className="bg-white px-12 border-b border-slate-200 w-full flex flex-row items-center">
       <p className="font-monospace mr-4 font-medium">orbisDB</p>
       <DashIcon />
-      <div className="flex space-x-9 flex-row items-center ml-6 text-sm text-slate-500 h-full">
-        {navItems.map((item) => (
-          <NavItem key={item.title} item={item} />
-        ))}
-      </div>
+      {showItems ?
+        <div className="flex space-x-9 flex-row items-center ml-6 text-sm text-slate-500 h-full">
+          {navItems.map((item) => (
+            <NavItem key={item.title} item={item} />
+          ))}
+        </div>
+      :
+        <div className="flex space-x-9 flex-row items-center ml-6 text-sm text-slate-500 h-full">
+          <NavItem key="Configuration" item={{ title: 'Configuration', path: '/', type: "equal" }} />
+        </div>
+      }
     </div>
   )
 }
