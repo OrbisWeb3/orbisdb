@@ -12,8 +12,8 @@ import "ace-builds/src-min-noconflict/ext-language_tools";
 export default function Data() {
   const { settings } = useContext(GlobalContext);
   const [addModalVis, setAddModalVis] = useState(false);
-  const [selectedTable, setSelectedTable] = useState({id: "models_indexed"});
-  const [selectedTableModel, setSelectedTableModel] = useState("kh4q0ozorrgaq2mezktnrmdwleo1d");
+  const [selectedTable, setSelectedTable] = useState({id: "kh4q0ozorrgaq2mezktnrmdwleo1d"});
+  const [selectedTableName, setSelectedTableName] = useState("models_indexed");
   const [data, setData] = useState([]);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -33,9 +33,9 @@ export default function Data() {
   useEffect(() => {
     if(selectedTable) {
       loadData();
-      let modelId = getTableModelId(selectedTable?.id);
-      console.log("modelId:", modelId);
-      setSelectedTableModel(modelId);
+      let currentTableName = getTableName(settings, selectedTable?.id);
+      console.log("currentTableName:", currentTableName);
+      setSelectedTableName(currentTableName);
     }
   }, [selectedTable, page]);
 
@@ -183,7 +183,7 @@ export default function Data() {
         <div className="flex flex-1 flex-col bg-white h-full overflow-y-scroll">
           <Content
             selectedTable={selectedTable}
-            selectedTableModel={selectedTableModel}
+            selectedTableName={selectedTableName}
             refresh={loadData}
             title={title}
             countResults={data ? data.length : 0}
@@ -245,7 +245,7 @@ const SqlEditorCTAs = ({ runQuery, loading }) => {
   )
 }
 
-const TableCTAs = ({ selectedTableModel, refresh, loading, page, setPage, countResults, countTotalResults, title, selectedTable, viewDefinition }) => {
+const TableCTAs = ({ selectedTableName, refresh, loading, page, setPage, countResults, countTotalResults, title, selectedTable, viewDefinition }) => {
   function filter() {
     alert("Filters are coming soon.");
   }
@@ -268,8 +268,10 @@ const TableCTAs = ({ selectedTableModel, refresh, loading, page, setPage, countR
           {/** Show table title of available */}
           {selectedTable &&
             <div className="flex flex-row space-x-1 ml-2">
-              <div className="text-[14px] font-bold mr-2">{selectedTable.id}</div>
-              <div className="text-[10px] border border-dashed border-slate-300 rounded-full px-3 py-0.5 bg-slate-50">{selectedTableModel}</div>
+              <div className="text-[14px] font-bold mr-2">{selectedTableName ? selectedTableName : selectedTable.id}</div>
+              {selectedTableName &&
+                <div className="text-[10px] border border-dashed border-slate-300 rounded-full px-3 py-0.5 bg-slate-50">{selectedTable.id}</div>
+              }
             </div>
           }
 
@@ -330,7 +332,7 @@ const SqlEditor = (props) => {
 
   return(
     <>
-      <SqlEditorCTAs selectedTableModel={props.selectedTableModel} runQuery={runQuery} loading={loading} />
+      <SqlEditorCTAs selectedTableName={props.selectedTableName} runQuery={runQuery} loading={loading} />
         <div className="flex flex-col w-full h-full font-mono text-[12px]">
           <div className="flex flex-1 w-full overflow-y-scroll sql_editor">
             <AceEditor
@@ -453,7 +455,7 @@ const TableData = ({ data, showSuccessIfEmpty }) => {
 
 /** Will render navigation for tables */
 const TablesListNav = ({selectedTable, select, items, type}) => {
-
+  
   const Icon = () => {
     switch (type) {
       case "tables":
@@ -476,10 +478,20 @@ const TablesListNav = ({selectedTable, select, items, type}) => {
   }
 
   return items.map((item, key) => {
+    const { settings } = useContext(GlobalContext);
+    const tableName = getTableName(settings, item.id);
     return (
         <div className={`text-[12px] flex flex-row items-center space-x-1 hover:underline cursor-pointer font-mono ${selectedTable?.id == item.id ? "text-[#4483FD] font-medium" : "text-slate-900"} `} onClick={() => select(item)} key={key}>
-          <Icon /> <span className="truncate flex-1">{item.name ? item.name : item.id}</span>
+          <Icon /> <span className="truncate flex-1">{tableName ? tableName : item.id}</span>
         </div>
     );
   });
 }
+
+  // Method to get the model ID for a human-readable table name
+  function getTableName(settings, model_id) {
+    const modelsMapping = settings.models_mapping;
+    if(modelsMapping) {
+      return modelsMapping[model_id];
+    }
+  }

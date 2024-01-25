@@ -2,7 +2,7 @@ import postgresql from 'pg';
 import { snakeCase } from 'change-case';
 import { cliColors } from "../utils/cliColors.mjs"
 const { Pool } = postgresql;
-import { getOrbisDBSettings, updateOrbisDBSettings, getTableName } from '../utils/helpers.mjs';
+import { getOrbisDBSettings, updateOrbisDBSettings, getTableName, getTableModelId } from '../utils/helpers.mjs';
 
 /**
  * DB implementation to index streams with Postgre
@@ -28,9 +28,6 @@ export default class Postgre {
     } catch(e) {
       console.log(cliColors.text.red, "🗄️  Error initializing PostgreSQL DB with user:", cliColors.reset, user) ; 
     }
-   
-
-    //this.renameTable("kjzl6hvfrbw6c8tvfz7lavsv4niyx2t5fypwmg8ovtrulqwke6gmj0olj7y4r0d", "OamoProfileV1");
   }
 
   /** Will try to insert variable in the model table */
@@ -44,10 +41,12 @@ export default class Postgre {
       }
 
     } else {
+      // Inserting a model in our models_indexed table
       variables = {
         stream_id: content.stream_id,
 				controller: content.controller,
         name: content.name ? content.name : content.title,
+        mapped_name: content.mapped_name,
         content: content
       }
     }
@@ -57,17 +56,15 @@ export default class Postgre {
     const values = Object.values(variables);
 
     // Retrieving table name from mapping
-    let tableName = getTableName(model);
+    let tableName = model;
 
     // Building the query
-    const queryText = `
-    INSERT INTO ${tableName} (${fields.join(', ')})
+    const queryText = `INSERT INTO ${tableName} (${fields.join(', ')})
     VALUES (${fields.map((_, index) => `$${index + 1}`).join(', ')})
     RETURNING *`;
 
     /** If stream is a model we trigger the indexing */
     if(model == "kh4q0ozorrgaq2mezktnrmdwleo1d") {
-      // Trigger indexing of new model with a callback to retry indexing this stream
       //this.indexModel(content.stream_id);
     }
 
@@ -89,16 +86,22 @@ export default class Postgre {
 
   /** Will prepare the indexing of a model by creating the corresponding table in our database */
   async indexModel(model, callback) {
+    let content;
     let title;
+    let uniqueFormattedTitle;
     let fields;
 
     if(model != "kh4q0ozorrgaq2mezktnrmdwleo1d") {
       // Step 1: Load model details if not genesis stream
-      let { content } = await global.indexingService.ceramic.client.loadStream(model);
+      let stream = await global.indexingService.ceramic.client.loadStream(model);
+      content = stream.content;
       if(content?.schema?.properties) {
 
         let postgresFields = this.jsonSchemaToPostgresFields(content.schema.properties);
         title = content.name ? content.name : content.title;
+
+        // Generate a unique table name
+        uniqueFormattedTitle = await this.generateUniqueTableName(title);
 
         // Step 2: Convert model variables in SQL columns
         fields = [
@@ -113,39 +116,46 @@ export default class Postgre {
       }
     } else {
       title = "models_indexed";
+      uniqueFormattedTitle = "models_indexed";
       fields = [
         { name: 'stream_id', type: 'TEXT PRIMARY KEY' }, // Added automatically
         { name: 'controller', type: 'TEXT' }, // Added automatically
         { name: 'name', type: 'TEXT' },
+        { name: 'mapped_name', type: 'TEXT' },
         { name: 'content', type: 'JSONB' },
         { name: 'indexed_at', type: 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP' } // Added automatically
       ];
     }
 
     // Step 3: Build SQL query and run
-    await this.createTable(model, fields, title, callback);
-  }
-
-  /** Will force rename a table using the COMMENT field */
-  async renameTable(model, title) {
-    // Construct the COMMENT ON TABLE SQL statement
-    const commentQuery = `COMMENT ON TABLE ${model} IS '${title}';`;
-
-    await this.pool.query(commentQuery);
+    await this.createTable(model, fields, uniqueFormattedTitle, callback);
+    
+    // Step 4: Insert new row in models_indexed table
+    if(model != "kh4q0ozorrgaq2mezktnrmdwleo1d") {
+      this.insert('kh4q0ozorrgaq2mezktnrmdwleo1d', {
+        stream_id: model,
+        controller: content.controller,
+        name: title,
+        mapped_name: uniqueFormattedTitle,
+        content: content
+      }, null);
+    }
+   
   }
 
   /** 
    * Will create a new table dynamically based on the model id and fields 
    */
-  async createTable(model, fields, title, callback) {
-    // Generate a unique table name
-    const uniqueFormattedTitle = await this.generateUniqueTableName(title);
-
+  async createTable(model, fields, uniqueFormattedTitle, callback) {
     // Construct the columns part of the SQL statement
     const columns = fields.map(field => `"${field.name}" ${field.type}`).join(', ');
 
     // Construct the full SQL statement for table creation
-    const createTableQuery = `CREATE TABLE IF NOT EXISTS "${uniqueFormattedTitle}" (${columns})`;
+    const createTableQuery = `CREATE TABLE IF NOT EXISTS "${model}" (${columns});
+      
+      CREATE INDEX IF NOT EXISTS "${model}_stream_id_idx" ON "${model}" ("stream_id");
+      CREATE INDEX IF NOT EXISTS "${model}_controller_idx" ON "${model}" ("controller");
+      CREATE INDEX IF NOT EXISTS "${model}_indexed_at_idx" ON "${model}" ("indexed_at");`;
 
     try {
       // Execute the table creation query
@@ -186,16 +196,20 @@ export default class Postgre {
    * Checks if a table exists in the database.
    */
   async doesTableExist(tableName) {
-    const checkTableQuery = `SELECT COUNT(*) FROM information_schema.tables WHERE table_name = $1`;
+    // Retrieve current settings
+    let settings = getOrbisDBSettings();
+
     try {
-      const result = await this.pool.query(checkTableQuery, [tableName]);
-      const count = parseInt(result.rows[0].count);
-      return count > 0;
-    } catch(e) {
-      console.log(cliColors.text.red, "Error loading information_schema from database.");
-      return false;
+      const modelsMapping = settings.models_mapping;
+      // Check if tableName exists as a value in models_mapping
+      if (modelsMapping && Object.values(modelsMapping).includes(tableName)) {
+          return true; // Table exists in models_mapping
+      }
+      return false; // Table not found in models_mapping
+    } catch (e) {
+        console.log(cliColors.text.red, "Error checking table existence:", e);
+        return false;
     }
-    
   }
 
   /** Will make sure we keep track of the relationship between the model id and readable table name */
@@ -218,7 +232,9 @@ export default class Postgre {
   /** Will run any query and return the results */
   async query(userQuery, params) {
     const defaultLimit = 100;
-    let modifiedQuery = userQuery;
+    let modifiedQuery = await this.replaceTableNames(userQuery);
+    console.log("userQuery:", userQuery);
+    console.log("modifiedQuery:", modifiedQuery);
 
     // Check if the query already contains a LIMIT clause
     /*if (!/LIMIT \d+/i.test(userQuery)) {
@@ -226,13 +242,33 @@ export default class Postgre {
     }*/
 
     try {
-      const res = await this.pool.query(userQuery, params);
+      const res = await this.pool.query(modifiedQuery, params);
       return { data: res };
     } catch (e) {
       console.error(`Error executing query:`, e.message);
       return false;
     }
   }
+
+  /** Will replace all the table names passed by the user with the mapped tabled name */
+  async replaceTableNames(sql) {
+    const tableNamePattern = /FROM\s+"?(\w+)"?/gi;
+    let resultSql = sql;
+    let match;
+
+    while ((match = tableNamePattern.exec(sql)) !== null) {
+        const originalTableName = match[1];
+        let replacementValue = getTableModelId(originalTableName);
+        if(!replacementValue) {
+          replacementValue = originalTableName;
+        }
+        console.log("Switching " + originalTableName + " with " + replacementValue);
+        const regex = new RegExp(`\\b${originalTableName}\\b`, 'g');
+        resultSql = resultSql.replace(regex, replacementValue);
+    }
+
+    return resultSql;
+}
 
   /** Will try to insert variable in the model table */
   async queryGlobal(table, page) {

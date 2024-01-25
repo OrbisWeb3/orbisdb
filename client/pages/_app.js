@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useContext } from "react";
 import Header from "../components/Header";
-import ConfigurationSettings from "../components/Settings";
+import ConfigurationSettings from "../components/ConfigurationSettings";
 
 /** Import OrbisDB libraries */
-import { OrbisDB } from "@orbisclub/dbsdk";
-import { OrbisKeyDidAuth } from "@orbisclub/dbsdk/auth";
+import { OrbisDB } from "@useorbis/db-sdk";
+import { OrbisKeyDidAuth } from "@useorbis/db-sdk/auth";
 
 /** Import Context */
 import { GlobalContext } from "../contexts/Global";
@@ -30,7 +30,6 @@ export default function App({ Component, pageProps }) {
       try {
         let result = await fetch("/api/settings/get");
         result = await result.json();
-        console.log("settings:", result);
         setSettings(result);
       } catch(e) {
         console.log("Error retrieving local settings, loading default one instead.");
@@ -46,7 +45,6 @@ export default function App({ Component, pageProps }) {
 
     async function connect() {
       let seed = settings.configuration.ceramic.seed
-      console.log("seed:", seed);
       let _orbisdb = new OrbisDB({
         ceramic: {
             gateway: settings.configuration.ceramic.node,
@@ -60,7 +58,6 @@ export default function App({ Component, pageProps }) {
       });
 
       let _seed = new Uint8Array(JSON.parse(seed));
-      console.log("_seed:", _seed);
       const auth = await OrbisKeyDidAuth.fromSeed(_seed);
 
       try {

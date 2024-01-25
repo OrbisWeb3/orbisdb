@@ -3,6 +3,7 @@ import { STATUS, sleep } from "../utils";
 import StepsProgress from "./StepsProgress";
 import { GlobalContext } from "../contexts/Global";
 import Button from "./Button";
+import { CheckIcon } from "./Icons";
 
 export default function ConfigurationSettings() {
     return(
@@ -13,6 +14,7 @@ export default function ConfigurationSettings() {
 export function ConfigurationSetup() {
   const { settings, setSettings } = useContext(GlobalContext);
   const [status, setStatus] = useState(STATUS.ACTIVE);
+  const [hasLocalNode, setHasLocalNode] = useState(false);
   const [ceramicNode, setCeramicNode] = useState(settings?.configuration?.ceramic?.node);
   const [ceramicSeed, setCeramicSeed] = useState(settings?.configuration?.ceramic?.seed);
   const [dbUser, setDbUser] = useState(settings?.configuration?.db?.user);
@@ -22,8 +24,57 @@ export function ConfigurationSetup() {
   const [dbPort, setDbPort] = useState(settings?.configuration?.db?.port);
   const [step, setStep] = useState(1);
 
+  useEffect(() => {
+    hasLocalNode();
+    async function hasLocalNode() {
+      let isValid = await checkCeramicNode("http://localhost:7007/");
+      if(isValid) {
+        setCeramicNode("http://localhost:7007/");
+        setHasLocalNode(true);
+      }
+    }
+  }, [])
+
+  async function checkCeramicNode(node) {
+    let isValid;
+    try {
+      let healtcheck_url = cleanCeramicNode(node) + 'api/v0/node/healthcheck';
+      console.log("healtcheck_url:", healtcheck_url);
+      let response = await fetch(healtcheck_url);
+      let res = await response.text();
+      console.log("checkLocalCeramicNode res:", res);
+      isValid = true;
+    } catch(e) {
+      console.log("Couldn't connect to Ceramic node.");
+      isValid = false;
+    }
+
+    return isValid;
+  }
+
+   // Check if the last character of the node URL is a "/", add it if it's not
+  function cleanCeramicNode(node) {
+    if (node.charAt(node.length - 1) !== '/') {
+      node += '/'; // Add a "/" to the end of the URL
+    }
+    return node;
+  }
+
+  async function next() {
+    let isValid = await checkCeramicNode(ceramicNode);
+    console.log("isValid:", isValid);
+    if(isValid) {
+      setStatus(STATUS.ACTIVE);
+      setStep(2);
+    } else {
+      alert("Your Ceramic node URL isn't valid, please check the url again.");
+      setStatus(STATUS.ERROR);
+      await sleep(1500);
+      setStatus(STATUS.ACTIVE);
+    }
+  }
+
   async function saveSettings() {
-    console.log("Enter save settings.");
     setStatus(STATUS.LOADING);
     try {
       let response = await fetch('/api/settings/update-configuration', {
@@ -34,7 +85,7 @@ export function ConfigurationSetup() {
         body: JSON.stringify({
           configuration: {
             ceramic: {
-              node: ceramicNode,
+              node: cleanCeramicNode(ceramicNode),
               seed: ceramicSeed
             },
             db: {
@@ -85,6 +136,9 @@ export function ConfigurationSetup() {
             <div className="mt-2">
               <label className="text-base font-medium mb-2">Ceramic node URL:</label>
               <input type="text" placeholder="Enter your Ceramic node URL" className="bg-white w-full px-2 py-1 rounded-md border border-slate-300 text-base text-slate-900 mb-1.5" onChange={(e) => setCeramicNode(e.target.value)} value={ceramicNode} />
+              {hasLocalNode &&
+                <p className="text-green-600 text-xs items-center space-x-1 flex flex-row"><CheckIcon /> <span>We found a local Ceramic node on this server.</span></p>
+              }
             </div>
 
             <div className="mt-3">
@@ -95,7 +149,7 @@ export function ConfigurationSetup() {
             
             {/** CTA to save updated context */}
             <div className="flex w-full justify-center mt-2">
-              <Button title="Next" onClick={() => setStep(2)} />
+              <Button title="Next" onClick={() => next()} />
             </div>
           </>
         }

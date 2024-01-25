@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
-import ConfigurationSettings from "../components/Settings";
+import ConfigurationSettings from "../components/ConfigurationSettings";
 
 export default function Settings() {
  return(

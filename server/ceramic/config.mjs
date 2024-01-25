@@ -1,6 +1,6 @@
 import { cliColors } from "../utils/cliColors.mjs"
-import { OrbisDB } from "@orbisclub/dbsdk";
-import { OrbisKeyDidAuth } from "@orbisclub/dbsdk/auth";
+import { OrbisDB } from "@useorbis/db-sdk";
+import { OrbisKeyDidAuth } from "@useorbis/db-sdk/auth";
 
 export default class Ceramic {
     constructor(node, instance, seed) {

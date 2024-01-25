@@ -8,7 +8,7 @@ import Button from "../components/Button";
 import Alert from "../components/Alert";
 
 export default function Contexts() {
-  const { orbisdb, settings } = useContext(GlobalContext);
+  const { orbisdb } = useContext(GlobalContext);
   const [addModalVis, setAddModalVis] = useState(false);
   const [contexts, setContexts] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -17,14 +17,20 @@ export default function Contexts() {
     loadContexts();
     async function loadContexts() {
       setLoading(true);
-      /** Building query statement */
-      const query = orbisdb.select().from("orbis_db_context").where("context", 'is', null).orderBy("indexed_at", "desc").limit(50); 
+      try {
+        /** Building query statement */
+        const query = orbisdb.select().from("orbis_db_context").where("context", 'is', null).orderBy("indexed_at", "desc").limit(50); 
 
-      /** Executing query */
-      const results = await orbisdb.execute(query);
-      setContexts(results.rows);
-      setLoading(false);
-      console.log("results:", results)
+        /** Executing query */
+        const results = await orbisdb.execute(query);
+        setContexts(results.rows);
+        setLoading(false);
+        console.log("results:", results)
+      } catch(e) {
+        console.log("Error retrieving contexts.");
+        setLoading(false);
+      }
+      
     }
   }, [])
 

@@ -6,7 +6,7 @@
     },
     "db": {
       "user": "doadmin",
-      "database": "orbisdb_2",
+      "database": "orbisdb_3",
       "password": "AVNS_puV0xIOIp_tdmU1kNEy",
       "host": "test-orbisdb-do-user-10388596-0.c.db.ondigitalocean.com",
       "port": 25060
@@ -14,82 +14,63 @@
   },
   "contexts": [
     {
-      "name": "test context 3",
-      "description": "",
-      "stream_id": "kjzl6kcym7w8y9bpsx4247luxldoakvm08cij35l3kij8aqdjgs18a813qasqc1",
-      "contexts": [
-        {
-          "name": "test context 4",
-          "description": "description",
-          "context": "kjzl6kcym7w8y9bpsx4247luxldoakvm08cij35l3kij8aqdjgs18a813qasqc1",
-          "stream_id": "kjzl6kcym7w8y6h33wihwzwv6qunjr61fn7tu3awc1wwhdczo2wozpl090dm6gv",
-          "contexts": [
-            {
-              "name": "sub context of 4",
-              "description": "",
-              "context": "kjzl6kcym7w8y6h33wihwzwv6qunjr61fn7tu3awc1wwhdczo2wozpl090dm6gv",
-              "stream_id": "kjzl6kcym7w8y659hqzjzk2yqlxv87ximnf27uokc7d4l04tsuwc8krekunufn1"
-            }
-          ]
-        }
-      ]
+      "name": "HelloWorld",
+      "description": "Test context",
+      "stream_id": "kjzl6kcym7w8y93nd7x5mzol982cpimszcebqaqvss31gwidlmhdmxa9ahwbuvt"
     },
     {
-      "name": "Other context",
-      "description": "A cool context to test stuff",
-      "stream_id": "kjzl6kcym7w8y5wx705l85hmm9401mey9jav6cuv2zai9vpa41tt5u5iwce3z8r"
+      "name": "hello context",
+      "description": "description",
+      "stream_id": "kjzl6kcym7w8y8a3nihoxj6xam58vv5rf7kong5qrwtz4r2y0o21w4khzblsxwr"
     },
     {
-      "name": "Another global context",
+      "name": "hello again context",
       "description": "",
-      "stream_id": "kjzl6kcym7w8y7ms7ctu6j2cb91xl8acg6rypktqdbwpv4o49eftp7rqoipnrvp"
+      "stream_id": "kjzl6kcym7w8yasntnam6ryapqwid3tf6dbwd9jk1int2htbp6r1e5xg9ai9nal"
     },
     {
-      "name": "Again another global context",
+      "name": "hello world",
       "description": "",
-      "stream_id": "kjzl6kcym7w8y54qz0lu67pauxv1obbp0fgqgrx7aer060yafy5zq2gyfpts7g5",
-      "contexts": [
-        {
-          "name": "a sub context",
-          "description": "",
-          "context": "kjzl6kcym7w8y54qz0lu67pauxv1obbp0fgqgrx7aer060yafy5zq2gyfpts7g5",
-          "stream_id": "kjzl6kcym7w8y58urzjzw39y8ssybizlfwbntu95sq98hpfp7jaiejuz4vdkd70"
-        },
-        {
-          "name": "Another subcontext",
-          "description": "with a description",
-          "context": "kjzl6kcym7w8y54qz0lu67pauxv1obbp0fgqgrx7aer060yafy5zq2gyfpts7g5",
-          "stream_id": "kjzl6kcym7w8y92kwfqfvhlp1c3qg4oln8kcrxhsxhw4entqw4rhxrj8bgsksgp"
-        }
-      ]
+      "stream_id": "kjzl6kcym7w8y91im2svmo1f5v5frfczavsjpy667vfikd0mvvq7q2fhu7l5uf1"
     },
     {
-      "name": "agaiiiin",
+      "name": "hey",
       "description": "",
-      "stream_id": "kjzl6kcym7w8y6909vtuq4dovn5jq5lv1abpf4qwv837si43g8zg4g7vnvc5ns9"
+      "stream_id": "kjzl6kcym7w8y778wwgkrgrhm21n6eqzjea6b2xdeyepuewgbm2dm4pi4ipierd"
     },
     {
-      "name": "1",
+      "name": "heeey",
       "description": "",
-      "stream_id": "kjzl6kcym7w8y96hurdndrxah6f62t9ayq9t6y8b369jlmmm9qa7p6t86j3eedo"
+      "stream_id": "kjzl6kcym7w8y7cn85v96mu7nwoxyuvqbs52adzv63yk7dkqiilzy5yxwm164pq"
     },
     {
-      "name": "2",
+      "name": "hey",
       "description": "",
-      "stream_id": "kjzl6kcym7w8y6yp5qx3oxu7f56idoihffrzguuhzkgt2fsvttelkhid5hsnsn2"
+      "stream_id": "kjzl6kcym7w8ya5i6yk3lz4c9wjct7pkwaq7ry2h9ebh9vum5352ftezj584w8j"
     },
     {
-      "name": "3",
+      "name": "hey",
       "description": "",
-      "stream_id": "kjzl6kcym7w8y5cfvt6mlfqw6a0xc6zvd4q29ojzw4d9o2t4b3ttqpmfq3n6n5w"
+      "stream_id": "kjzl6kcym7w8y9pzs3fd1cgh5de1omrsx5c76tz6svtdf9xq7933jwfa70inl1f"
     },
     {
-      "name": "4",
+      "name": "hello world",
       "description": "",
-      "stream_id": "kjzl6kcym7w8y72925efc9dgc70e4w2t2e4v1dlulhuv2mi4htjbrpnexbgldbz"
+      "stream_id": "kjzl6kcym7w8y7a1safbfw8lpi44ri0zwawojyk02qfmvh97wwqu9qwsc93jo9h"
+    },
+    {
+      "name": "hello_world",
+      "description": "",
+      "stream_id": "kjzl6kcym7w8y7lh0izb1fm3x072zglh8nftpw590f0a0cuiwre6u5g4tapgzt1"
+    },
+    {
+      "name": "hello new world",
+      "description": "",
+      "stream_id": "kjzl6kcym7w8y8vemnjk6zude2ajsr4noyrsfeuyuiu6mi4tgh3l1xvd9otwndj"
     }
   ],
   "models_mapping": {
-    "kjzl6hvfrbw6c7f831brdq6w5j7cd3d1rjsmqm23zpp9imsxpu859d59koykunx": "orbis_db_context"
+    "kjzl6hvfrbw6c7f831brdq6w5j7cd3d1rjsmqm23zpp9imsxpu859d59koykunx": "orbis_db_context",
+    "kh4q0ozorrgaq2mezktnrmdwleo1d": "models_indexed"
   }
 }
