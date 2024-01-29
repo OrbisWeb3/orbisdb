@@ -12,65 +12,112 @@
       "port": 25060
     }
   },
-  "contexts": [
-    {
-      "name": "HelloWorld",
-      "description": "Test context",
-      "stream_id": "kjzl6kcym7w8y93nd7x5mzol982cpimszcebqaqvss31gwidlmhdmxa9ahwbuvt"
-    },
-    {
-      "name": "hello context",
-      "description": "description",
-      "stream_id": "kjzl6kcym7w8y8a3nihoxj6xam58vv5rf7kong5qrwtz4r2y0o21w4khzblsxwr"
-    },
-    {
-      "name": "hello again context",
-      "description": "",
-      "stream_id": "kjzl6kcym7w8yasntnam6ryapqwid3tf6dbwd9jk1int2htbp6r1e5xg9ai9nal"
-    },
-    {
-      "name": "hello world",
-      "description": "",
-      "stream_id": "kjzl6kcym7w8y91im2svmo1f5v5frfczavsjpy667vfikd0mvvq7q2fhu7l5uf1"
-    },
-    {
-      "name": "hey",
-      "description": "",
-      "stream_id": "kjzl6kcym7w8y778wwgkrgrhm21n6eqzjea6b2xdeyepuewgbm2dm4pi4ipierd"
-    },
-    {
-      "name": "heeey",
-      "description": "",
-      "stream_id": "kjzl6kcym7w8y7cn85v96mu7nwoxyuvqbs52adzv63yk7dkqiilzy5yxwm164pq"
-    },
-    {
-      "name": "hey",
-      "description": "",
-      "stream_id": "kjzl6kcym7w8ya5i6yk3lz4c9wjct7pkwaq7ry2h9ebh9vum5352ftezj584w8j"
-    },
-    {
-      "name": "hey",
-      "description": "",
-      "stream_id": "kjzl6kcym7w8y9pzs3fd1cgh5de1omrsx5c76tz6svtdf9xq7933jwfa70inl1f"
-    },
-    {
-      "name": "hello world",
-      "description": "",
-      "stream_id": "kjzl6kcym7w8y7a1safbfw8lpi44ri0zwawojyk02qfmvh97wwqu9qwsc93jo9h"
-    },
-    {
-      "name": "hello_world",
-      "description": "",
-      "stream_id": "kjzl6kcym7w8y7lh0izb1fm3x072zglh8nftpw590f0a0cuiwre6u5g4tapgzt1"
-    },
-    {
-      "name": "hello new world",
-      "description": "",
-      "stream_id": "kjzl6kcym7w8y8vemnjk6zude2ajsr4noyrsfeuyuiu6mi4tgh3l1xvd9otwndj"
-    }
-  ],
   "models_mapping": {
     "kjzl6hvfrbw6c7f831brdq6w5j7cd3d1rjsmqm23zpp9imsxpu859d59koykunx": "orbis_db_context",
-    "kh4q0ozorrgaq2mezktnrmdwleo1d": "models_indexed"
-  }
+    "kh4q0ozorrgaq2mezktnrmdwleo1d": "models_indexed",
+    "kjzl6hvfrbw6c5zkq3h2trfgeu681e6z2czfrte87oe06f6hvm9cw7vutn4295d": "book_data",
+    "kjzl6hvfrbw6c646f9as8ecl9ni6l5qh06hxnx1gbectvymjwjiz48dtlkadyrp": "social_post_test",
+    "kjzl6hvfrbw6c9q2rtmzylcuvba782ck7co36wnoppn9x80qsq2oas01ou1zgwr": "social_profile_test"
+  },
+  "plugins": [
+    {
+      "plugin_id": "chat-gpt",
+      "variables": {
+        "organization_id": "org-lxESgWKgBRJuQgfwrozZGFsa",
+        "secret_key": "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"
+      },
+      "contexts": [
+        {
+          "path": [
+            "kjzl6kcym7w8y82s7yl7b9awbtjl5n6tv3zsr63v91k7r7pmajkm6yeymmztzzi"
+          ],
+          "context": "kjzl6kcym7w8y82s7yl7b9awbtjl5n6tv3zsr63v91k7r7pmajkm6yeymmztzzi",
+          "uuid": "166df15b-1e02-41ad-a167-f5104d3d4c0f",
+          "variables": {
+            "action": "add_metadata",
+            "prompt": "In which language is this post shared?",
+            "is_json": "no"
+          }
+        }
+      ]
+    },
+    {
+      "plugin_id": "csv-uploader",
+      "variables": {
+        "model_id": "kjzl6hvfrbw6c6tcey32ev5t4k0lzmq3bc03f8nv2a6dqvoamlpm7vdqdom7psv"
+      },
+      "contexts": [
+        {
+          "path": [
+            "kjzl6kcym7w8y7fa8adwdemunsp89epw5t2pdnz2m2b3sy6r8bfl94eeuhwltov"
+          ],
+          "context": "kjzl6kcym7w8y7fa8adwdemunsp89epw5t2pdnz2m2b3sy6r8bfl94eeuhwltov",
+          "uuid": "d60eb489-a45c-4f90-90d4-534e02e958b9"
+        },
+        {
+          "path": [
+            "kjzl6kcym7w8y6hijy9bbseesmuq1e0kk3eeae1bhryildy1vvzlnkk9sg2nq0a"
+          ],
+          "context": "kjzl6kcym7w8y6hijy9bbseesmuq1e0kk3eeae1bhryildy1vvzlnkk9sg2nq0a",
+          "uuid": "1d9553f5-3602-4ed0-83b1-f1345464d884"
+        }
+      ]
+    },
+    {
+      "plugin_id": "social-push-notifications",
+      "variables": null,
+      "contexts": [
+        {
+          "path": [
+            "kjzl6kcym7w8y7fa8adwdemunsp89epw5t2pdnz2m2b3sy6r8bfl94eeuhwltov"
+          ],
+          "context": "kjzl6kcym7w8y7fa8adwdemunsp89epw5t2pdnz2m2b3sy6r8bfl94eeuhwltov",
+          "uuid": "06d5c41d-085e-47e6-b1f4-339aa387af56"
+        }
+      ]
+    },
+    {
+      "plugin_id": "hello-world",
+      "variables": null,
+      "contexts": [
+        {
+          "path": [
+            "kjzl6kcym7w8y7fa8adwdemunsp89epw5t2pdnz2m2b3sy6r8bfl94eeuhwltov"
+          ],
+          "context": "kjzl6kcym7w8y7fa8adwdemunsp89epw5t2pdnz2m2b3sy6r8bfl94eeuhwltov",
+          "uuid": "b35a63b0-7fd8-43f2-b96d-8eb988f6de59",
+          "variables": {
+            "secs_interval": "30"
+          }
+        }
+      ]
+    }
+  ],
+  "contexts": [
+    {
+      "name": "hello_world_2",
+      "description": "",
+      "stream_id": "kjzl6kcym7w8y6hijy9bbseesmuq1e0kk3eeae1bhryildy1vvzlnkk9sg2nq0a"
+    },
+    {
+      "name": "Context with CSV",
+      "description": "",
+      "stream_id": "kjzl6kcym7w8y82s7yl7b9awbtjl5n6tv3zsr63v91k7r7pmajkm6yeymmztzzi"
+    },
+    {
+      "name": "New plugin with CSV",
+      "description": "",
+      "stream_id": "kjzl6kcym7w8y6ksu3cuy022l05por7o3pyrvsp2zvxm9gnfhp6r2ox1hrnokzp"
+    },
+    {
+      "name": "New context with CSV",
+      "description": "",
+      "stream_id": "kjzl6kcym7w8y8c7yhzrjdly1nv4s0uzge93ma5bu5p0a1ga973kef6yzz0ibt9"
+    },
+    {
+      "name": "Test Social App",
+      "description": "",
+      "stream_id": "kjzl6kcym7w8y7fa8adwdemunsp89epw5t2pdnz2m2b3sy6r8bfl94eeuhwltov"
+    }
+  ]
 }

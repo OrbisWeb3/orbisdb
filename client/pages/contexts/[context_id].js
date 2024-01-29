@@ -284,7 +284,7 @@ const OnePlugin = ({ plugin, context_id, setSelectedPlugin, setAssignedContext }
           <div className="mr-1 font-medium">Routes:</div>
           <>
             {pluginDetails.routes.map((route, index) => (
-              <Link href={"/api/plugins/" + pluginDetails.id + "/" + context_id + "/" + route} target="_blank" className="bg-white border border-slate-200 hover:border-[#4483FD]  rounded-md px-3 py-2 text-xs font-medium text-slate-800 space-x-1 flex flex-row items-center" key={index}>
+              <Link href={"/api/plugin-routes/" + plugin.contextAssigned.uuid + "/" + route} target="_blank" className="bg-white border border-slate-200 hover:border-[#4483FD]  rounded-md px-3 py-2 text-xs font-medium text-slate-800 space-x-1 flex flex-row items-center" key={index}>
                 <ExternalLinkIcon />
                 <span className="font-mono">/{route}</span>
               </Link>

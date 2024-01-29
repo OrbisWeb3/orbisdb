@@ -27,13 +27,9 @@ export default function AddContextModal({hide, parentContext, callback}) {
 }
 
 const AddContextSteps = ({step, setStep, hide, parentContext, callback}) => {
-  const { orbisdb, setSettings } = useContext(GlobalContext);
   const [selectedOption, setSelectedOption] = useState(null);
   const [contextId, setContextId] = useState("");
-  const [contextName, setContextName] = useState("");
-  const [contextDescription, setContextDescription] = useState("");
   const [status, setStatus] = useState(STATUS.ACTIVE);
-  const [logoStatus, setLogoStatus] = useState(STATUS.ACTIVE);
   const [contextDetails, setContextDetails] = useState();
 
   /** Step 1: Load models details */
@@ -98,12 +94,7 @@ const AddContextSteps = ({step, setStep, hide, parentContext, callback}) => {
     setSelectedOption(type);
     setStep(2)
   }
-
-  /** Will upload a logo for this context */
-  async function uploadLogo() {
-    alert("Uploading");
-  }
-
+  
   async function _callback(context) {
     if(callback) {
       callback(context);

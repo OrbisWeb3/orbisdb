@@ -25,25 +25,6 @@ export default class DataSourcePlugin {
   /** Will connect to Ceramic using the seed passed by the plugin settings and trigger the fetch interval */
   async start() {
     try {
-      this.ceramic = new CeramicClient("https://node2.orbis.club/");
-      let seed = new Uint8Array(JSON.parse(this.ceramic_seed));
-
-      /** Create the provider and resolve it */
-  		const provider = new Ed25519Provider(seed);
-  		let did = new DID({ provider, resolver: getResolver() })
-
-  		/** Authenticate the Did */
-  		await did.authenticate()
-
-  		/** Assign did to Ceramic object  */
-  		this.ceramic.did = did;
-  		this.session = {
-  			did: did,
-  			id: did.id
-  		};
-
-      console.log("Connected to Ceramic with DID:", did.id);
-
       /**
       let model_stream = await Model.create(this.ceramic,
         modelDef,
@@ -64,6 +45,15 @@ export default class DataSourcePlugin {
 
     } catch(e) {
       console.log("Couldn't connect to Ceramic, check the seed again:", e);
+    }
+  }
+
+  /** Will stop the plugin's interval */
+  async stop() {
+    console.log('Stopping plugin:', this.uuid);
+    if(this.interval) {
+        clearInterval(this.interval);
+        this.interval = null; // Clear the stored interval ID
     }
   }
 
@@ -88,20 +78,14 @@ export default class DataSourcePlugin {
 
             /** We then create the stream with the updated content */
             let stream = await ModelInstanceDocument.create(
-              this.ceramic,
+              global.indexingService.ceramic.client,
               __content,
               {
                 model: StreamID.fromString(this.model_id),
-                controller: this.session.id
+                controller: global.indexingService.ceramic.session.id
               }
             );
-            let stream_id = stream.id?.toString();
-
-            // Force index stream in db if created on Ceramic
-            if(stream_id) {
-              console.log("stream created:", stream_id);
-              global.indexingService.indexStream({ streamId: stream_id, model: this.model_id });
-            }
+            console.log("Stream created:", stream);
 
           } catch (e) {
             console.log("Error creating model stream:", e);

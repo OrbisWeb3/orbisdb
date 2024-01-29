@@ -70,13 +70,16 @@ export const countSubContexts = (stream_id, contexts) => {
 
   // Recursive function to find a context by its stream_id
   const findContext = (id, ctxs) => {
-    for (let ctx of ctxs) {
-      if (ctx.stream_id === id) return ctx;
-      if (ctx.contexts) {
-        const found = findContext(id, ctx.contexts);
-        if (found) return found;
+    if(ctxs) {
+      for (let ctx of ctxs) {
+        if (ctx.stream_id === id) return ctx;
+        if (ctx.contexts) {
+          const found = findContext(id, ctx.contexts);
+          if (found) return found;
+        }
       }
     }
+    
     return null;
   }
 

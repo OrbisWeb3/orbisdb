@@ -251,6 +251,7 @@ export default function PluginDetails() {
 
 
 const OneContext = ({context, setSelectedContext, pluginDetails}) => {
+  console.log("pluginDetails context:", context);
   const { settings } = useContext(GlobalContext);
 
   return(
@@ -296,7 +297,7 @@ const OneContext = ({context, setSelectedContext, pluginDetails}) => {
           <div className="mr-1 font-medium">Routes:</div>
           <>
             {pluginDetails.routes.map((route, index) => (
-              <Link href={"/api/plugins/" + pluginDetails.id + "/" + context.context + "/" + route} target="_blank" className="bg-white border border-slate-200 hover:border-[#4483FD]  rounded-md px-3 py-2 text-xs font-medium text-slate-800 space-x-1 flex flex-row items-center" key={index}>
+              <Link href={"/api/plugin-routes/" + context.uuid + "/" + route} target="_blank" className="bg-white border border-slate-200 hover:border-[#4483FD]  rounded-md px-3 py-2 text-xs font-medium text-slate-800 space-x-1 flex flex-row items-center" key={index}>
                 <ExternalLinkIcon />
                 <span className="font-mono">/{route}</span>
               </Link>

@@ -18,50 +18,20 @@ export default class IndexingService {
 		this.database = database;
 		this.hookHandler = hookHandler;
 		this.server = server;
+		this.eventSource = null;
 
 		// Go through the list of all plugins used and enable them
-		this.initialize();
+		this.initializePlugins();
 	}
 
 	// Map each plugin to the init promise and execute it
-	async initialize() {
+	async initializePlugins() {
 		// Retrive all plugins installed
 		this.plugins = await loadAndInitPlugins();
 
 		// Loads all plugins installed
 		const initPromises = this.plugins.map(async (plugin) => {
-			let { HOOKS, ROUTES } = await plugin.init();
-			console.log(cliColors.text.cyan, "🤖 Initialized plugin: ", cliColors.reset, plugin.id, cliColors.text.cyan, "for context: ",cliColors.reset, plugin.context);
-
-			// Manage hooks declared by plugins
-			if(HOOKS) {
-				for(const [hook, handler] of Object.entries(HOOKS)) {
-					this.hookHandler.addHookHandler(hook, plugin.id, plugin.context, handler);
-				}
-			}
-
-			// Register API routes requested by this plugin
-			if(ROUTES) {
-				// Handle GET routes
-				if(ROUTES.GET) {
-					for(const [route, method] of Object.entries(ROUTES.GET)) {
-						let api_route = `/api/plugins/:plugin_id/:context_id/${route}`;
-						this.server.get(api_route, (req, res) => {
-							method(req, res);
-						});
-					}
-				}
-
-				// Handle POST routes
-				if(ROUTES.POST) {
-					for(const [route, method] of Object.entries(ROUTES.POST)) {
-						let api_route = `/api/plugins/:plugin_id/:context_id/${route}`;
-						this.server.post(api_route, (req, res) => {
-							method(req, res);
-						});
-					}
-				}
-			}
+			this.initPlugin(plugin)
 		});
 
 		// Wait for all the initialization promises to resolve
@@ -71,19 +41,31 @@ export default class IndexingService {
 		} else {
 			console.log(cliColors.text.yellow, "There wasn't any plugin to initialize.", cliColors.reset);
 		}
-		
 
 		// Trigger the generate hook which can be used to generate new streams automatically
 		this.hookHandler.executeHook("generate");
 	}
 
+	/** Will init one plugin */
+	async initPlugin(plugin) {
+		let { HOOKS } = await plugin.init();
+		console.log(cliColors.text.cyan, "🤖 Initialized plugin: ", cliColors.reset, plugin.id, cliColors.text.cyan, "for context: ",cliColors.reset, plugin.context);
+
+		// Manage hooks declared by plugins
+		if(HOOKS) {
+			for(const [hook, handler] of Object.entries(HOOKS)) {
+				this.hookHandler.addHookHandler(hook, plugin.id, plugin.context, handler);
+			}
+		}
+	}
+
 	// Will subscribe to the Ceramic node using server side events
 	async subscribe() {
 		console.log(cliColors.text.cyan, "👀 Subscribed to Ceramic node updates.", cliColors.reset) ; 
-		const source = new EventSource(this.ceramic.node + 'api/v0/feed/aggregation/documents')
+		this.eventSource = new EventSource(this.ceramic.node + 'api/v0/feed/aggregation/documents')
 		//const Codec = JsonAsString.pipe(AggregationDocument);
 
-		source.addEventListener('message', (event) => {
+		this.eventSource.addEventListener('message', (event) => {
 			//use JsonAsString, and AggregationDocument to decode and use event.data
 			//const parsedData = decode(Codec, event.data);
 			//console.log('parsed', parsedData);
@@ -95,45 +77,48 @@ export default class IndexingService {
 			}
 		})
 		
-		source.addEventListener('error', error => {
+		this.eventSource.addEventListener('error', error => {
 			console.log('error', error)
 		})
-		
-		// in reality it'd be a ceramic listener, not a loop
-		/*while(true) {
-			await sleep(2500);
-			const stream = (fakeStreams.length && fakeStreams.pop()) || false;
-			if (stream) {
-				this.indexStream(stream);
+	}
+
+	// Triggered after a new plugin install
+	async resetPlugins() {
+		console.log(cliColors.text.cyan, "🤖 Resetting all plugins.", cliColors.reset);
+
+		// Loop through all plugins instances and stop them
+		this.plugins.map(async (plugin) => {
+			if(plugin.stop) {
+				await plugin.stop();
 			}
-		}*/
+		});
 
-		/*try {
-			//await ipfs.pubsub.subscribe(this.topic, this.parsePubsubMsg);
-		} catch(e) {
-			console.log("Error subscribing to the IPFS pubsub topic:", this.topic);
-		}*/
+		// Restart plugins
+		this.initializePlugins();
 	}
 
-	// Will parse the message received via the pubsub topic
-	parsePubsubMsg(msg) {
-		let data = new TextDecoderLite().decode(msg.data);
-		const parsed = JSON.parse(data);
-		switch (parsed.typ) {
-			/** Type 0 are the only type of write and update */
-			case 0:
-				console.log("parsed: ", parsed);
-				this.indexStream(parsed.model, parsed.stream);
-				break;
-			default:
-				console.log("Do nothing.");
-				break;
-		}
-	}
+	// Implement the stop method
+    async stop() {
+		// Loop through all plugins instances and stop them
+		this.plugins.map(async (plugin) => {
+			if(plugin.stop) {
+				await plugin.stop();
+			}
+		});
+
+        // Close the EventSource if it exists
+        if (this.eventSource) {
+            this.eventSource.close();
+            this.eventSource = null;
+            console.log(cliColors.text.cyan, "🛑 Unsubscribed from Ceramic node updates.", cliColors.reset);
+        }
+
+        // Might add additional cleanup logic (if necessary) for example, releasing database connections, resetting internal state, etc.
+        console.log(cliColors.text.green, "Indexing service stopped successfully.", cliColors.reset);
+    }
 
 	/** Will load the stream details using Ceramic, process the plugins and save the stream in DB */
   	async indexStream({ stream, model }) {
-
 		if(!stream) {
 			console.log(cliColors.text.red, "Error indexing a new stream:", cliColors.reset, " stream details are needed to index a stream.");
 			return;
@@ -149,8 +134,19 @@ export default class IndexingService {
 		}
 
 		try {
+			// Get model
 			let modelId = new StreamID(stream.metadata.model._type, stream.metadata.model._cid['/']);
 			let model = modelId.toString();
+
+			// Get context
+			let context;
+			let contextId;
+			if(stream.metadata.context) {
+				context = new StreamID(stream.metadata.context._type, stream.metadata.context._cid['/']);
+				contextId = context.toString();
+			}			
+
+			// Get controller
 			let controller = stream.metadata.controller ? stream.metadata.controller : stream.metadata.controllers[0];
 
 			// Data ingested by the plugin
@@ -160,9 +156,6 @@ export default class IndexingService {
 				controller: controller,
 				content: stream.content
 			};
-
-			// Retrieve context id for identified stream
-			let contextId = stream.content.context;
 
 			if (stream) {
 				// Will execute all of the validator hooks and terminate if one of them reject the stream
@@ -178,7 +171,8 @@ export default class IndexingService {
 				let content = {
 					stream_id: streamId,
 					controller: controller,
-					...stream.content
+					...stream.content,
+					_metadata_context: contextId
 				}
 
 				// Save the stream content and indexing data in the specified database
@@ -192,10 +186,6 @@ export default class IndexingService {
 		}
     }
 }
-
-const fakeStreams = [];
-
-
 
 export const JsonAsString = new Type('JSON-as-string', (_input) => true, (input, context) => {
     try {

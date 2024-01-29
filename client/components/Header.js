@@ -8,20 +8,32 @@ export default function Header({showItems}) {
     { title: 'Contexts', path: '/', type: "equal" },
     { title: 'Plugins', path: '/plugins', type: "includes" },
     { title: 'Data', path: '/data', type: "includes" },
-    { title: 'Models', path: '/models', type: "includes" },
+    //{ title: 'Models', path: '/models', type: "includes" },
     { title: 'Settings', path: '/settings', type: "equal" }
   ];
+
+  async function restart() {
+    let result = await fetch("/api/restart");
+    let res = await result.json();
+    console.log("res:", res);
+    alert("Indexing service restarted.");
+  }
 
   return(
     <div className="bg-white px-12 border-b border-slate-200 w-full flex flex-row items-center">
       <p className="font-monospace mr-4 font-medium">orbisDB</p>
       <DashIcon />
       {showItems ?
-        <div className="flex space-x-9 flex-row items-center ml-6 text-sm text-slate-500 h-full">
-          {navItems.map((item) => (
-            <NavItem key={item.title} item={item} />
-          ))}
-        </div>
+        <>
+          <div className="flex space-x-9 flex-1 flex-row items-center ml-6 text-sm text-slate-500 h-full">
+            {navItems.map((item) => (
+              <NavItem key={item.title} item={item} />
+            ))}
+          </div>
+          <div className='pr-4'>
+            <button onClick={() => restart()} className='bg-red-50 border border-dashed hover:border-solid cursor-pointer border-red-200 text-red-600 px-3 py-1 rounded-md text-sm'>Restart</button>
+          </div>
+        </>
       :
         <div className="flex space-x-9 flex-row items-center ml-6 text-sm text-slate-500 h-full">
           <NavItem key="Configuration" item={{ title: 'Configuration', path: '/', type: "equal" }} />

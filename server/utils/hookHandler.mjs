@@ -71,7 +71,6 @@ export default class HookHandler {
     for (const [pluginId, handler] of handlers) {
       // Safely execute the hook.
       const result = await this.safeExecute(handler, JSON.parse(JSON.stringify(data)));
-      console.log("result in executeHook:", result);
 
       // Handle hook executed based on its type
       if (result) {

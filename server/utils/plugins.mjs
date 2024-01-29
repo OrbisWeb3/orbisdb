@@ -100,3 +100,19 @@ export async function loadAndInitPlugins() {
 
   return loadedPlugins;
 }
+
+/** Will return one plugin object based on the UUID passed */
+export async function loadPlugin(plugin_uuid) {
+  // Retrive all plugins installed
+  let allPlugins = await loadAndInitPlugins();
+  console.log("allPlugins:", allPlugins);
+
+  // Loads all plugins installed
+  for (const plugin of allPlugins) {
+    if (plugin.uuid == plugin_uuid) {
+      return plugin;
+    }
+  }
+
+  return null;
+}

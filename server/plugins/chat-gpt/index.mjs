@@ -4,6 +4,7 @@ import { StreamID } from "@ceramicnetwork/streamid";
 
 export default class ChatGPTPlugin {
     async init() {
+        this.model_id = "kjzl6hvfrbw6c5zkq3h2trfgeu681e6z2czfrte87oe06f6hvm9cw7vutn4295d";
         let HOOKS = {};
 
         switch(this.action) {
@@ -25,7 +26,7 @@ export default class ChatGPTPlugin {
                 POST: {
                     "chat-submit": (req, res) => this.chatSubmit(req, res)
                 }
-                },
+            },
             HOOKS: HOOKS,
         };
     }
@@ -40,30 +41,38 @@ export default class ChatGPTPlugin {
         }, this.secs_interval * 1000);
     }
 
+    /** Will stop the plugin's interval */
+    async stop() {
+        console.log('Stopping plugin:', this.uuid);
+        if(this.interval) {
+            clearInterval(this.interval);
+            this.interval = null; // Clear the stored interval ID
+        }
+    }
+
     /** Will create a stream every x seconds based on the user prompt */
     async createStream() {
-        console.log("this.prompt:", this.prompt);
         const parsedPrompt = await this.buildPrompt(this.prompt);
         const result = await this.fetchFromOpenAI({
             "role": "user",
             "content": parsedPrompt
         });
         if(result) {
-            result.context = this.context;
-
+            let metadata = {
+                model: StreamID.fromString("kjzl6hvfrbw6c5zkq3h2trfgeu681e6z2czfrte87oe06f6hvm9cw7vutn4295d"),
+                context: StreamID.fromString("kjzl6kcym7w8y93nd7x5mzol982cpimszcebqaqvss31gwidlmhdmxa9ahwbuvt")
+            };
+            console.log("metadata:", metadata);
             /** We then create the stream in Ceramic with the updated content */
             try {
                 let stream = await ModelInstanceDocument.create(
                     global.indexingService.ceramic.client,
                     result,
-                    {
-                        model: StreamID.fromString(this.model_id),
-                        controller: global.indexingService.ceramic.session.id
-                    }
+                    metadata
                 );
                 let stream_id = stream.id?.toString();
             } catch(e) {
-                console.log("Error creating stream with model:", this.model_id);
+                console.log("Error creating stream with model:" + this.model_id + ":", e);
             }
             
         } else {
@@ -138,7 +147,6 @@ export default class ChatGPTPlugin {
     
 
     chatHtml(req, res) {
-        const { plugin_id, context_id } = req.params;
         res.send(`
           <html>
             <head>

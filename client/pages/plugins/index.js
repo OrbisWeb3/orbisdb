@@ -30,7 +30,7 @@ export default function Plugins() {
   return(
     <>
       <div className="px-16 py-12 w-2/3">
-        <h1 className="text-3xl font-bold text-slate-900">Plugins</h1>
+        <h1 className="text-3xl font-bold text-slate-900 flex flex-row items-center"><span>Plugins</span> <span className="bg-blue-50 border border-dashed border-blue-200 px-3 py-1 text-sm rounded-full font-medium ml-3 text-blue-900">Experimental</span></h1>
         <p className="text-slate-600 mt-1 text-base">Plugins can be used to extand Ceramic possibilities. Select the plugins you would like to use here.</p>
         <div className="grid grid-cols-3 gap-4 mt-4 items-start">
           <LoopPlugins plugins={plugins} />

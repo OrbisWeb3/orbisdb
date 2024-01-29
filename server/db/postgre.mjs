@@ -108,6 +108,7 @@ export default class Postgre {
           { name: 'stream_id', type: 'TEXT PRIMARY KEY' }, // Added automatically
           { name: 'controller', type: 'TEXT' }, // Added automatically
           ...postgresFields,
+          { name: '_metadata_context', type: 'TEXT' }, // Added automatically
           { name: 'plugins_data', type: 'JSONB' }, // Added automatically
           { name: 'indexed_at', type: 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP' } // Added automatically
         ];
@@ -233,8 +234,6 @@ export default class Postgre {
   async query(userQuery, params) {
     const defaultLimit = 100;
     let modifiedQuery = await this.replaceTableNames(userQuery);
-    console.log("userQuery:", userQuery);
-    console.log("modifiedQuery:", modifiedQuery);
 
     // Check if the query already contains a LIMIT clause
     /*if (!/LIMIT \d+/i.test(userQuery)) {
@@ -325,7 +324,7 @@ export default class Postgre {
         postgresType = this.jsonTypeToPostgresType(value.type);
       }
 
-      postgresFields.push({ name: key, type: postgresType });
+      postgresFields.push({ name: key.toLowerCase(), type: postgresType });
     }
 
     return postgresFields;

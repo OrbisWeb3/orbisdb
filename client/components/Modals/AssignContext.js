@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from "react";
 import { GlobalContext } from "../../contexts/Global";
 import Modal from "../Modals";
+import Alert from "../Alert";
 import Button from "../Button";
 import { STATUS, sleep, findContextById } from "../../utils";
 import { DropdownArrow } from "../Icons";
@@ -161,7 +162,7 @@ export default function AssignContextModal({hide, plugin_id, selectedContext}) {
       {/** Step 2: Set variables */}
       {step == 2 &&
         <form onSubmit={saveOrUpdateContext} className="mt-6 flex flex-col">
-          {pluginDetails?.variables ?
+          {(pluginDetails?.variables && pluginDetails.variables.length > 0) ?
             <LoopPluginVariables variables={pluginDetails?.variables} variableValues={variableValues} handleVariableChange={handleVariableChange} per_context={true} />
           :
             <div className="bg-amber-100 rounded-md border-dashed border border-amber-200 w-full py-2 justify-center flex mb-4">

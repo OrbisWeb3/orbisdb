@@ -1,3 +1,5 @@
+import { ModelInstanceDocument } from "@ceramicnetwork/stream-model-instance";
+import { StreamID } from "@ceramicnetwork/streamid";
 
 export default class HelloWorldPlugin {
   /**
@@ -19,8 +21,52 @@ export default class HelloWorldPlugin {
   }
 
   /** Will kickstart the generation of a new stream */
-  start() {
-    console.log("Start subscription in HelloWorld plugin to generate a new stream every x seconds");
+  async start() {
+    console.log("Start subscription in HelloWorld plugin to generate a new stream every " + this.secs_interval + " seconds");
+    
+    // Perform first call
+    this.createStream();
+
+    // Start the interval function
+    if(this.secs_interval) {
+      this.interval = setInterval(() => {
+          this.createStream();
+      }, this.secs_interval * 1000);  
+    } else {
+      console.log("The interval hasn't been specified.");
+    }
+    
+  }
+
+  /** Will stop the plugin's interval */
+  async stop() {
+      console.log('Stopping plugin:', this.uuid);
+      if(this.interval) {
+          clearInterval(this.interval);
+          this.interval = null; // Clear the stored interval ID
+      }
+  }
+
+  async createStream() {
+    console.log("Enter createStream in HelloWorld plugin.");
+    let metadata = {
+      model: StreamID.fromString("kjzl6hvfrbw6c646f9as8ecl9ni6l5qh06hxnx1gbectvymjwjiz48dtlkadyrp"),
+      context: StreamID.fromString(this.context)
+    };
+    /** We then create the stream in Ceramic with the updated content */
+    try {
+        let stream = await ModelInstanceDocument.create(
+          global.indexingService.ceramic.client,
+          {
+            body: "hello world!",
+            mention: ""
+          },
+          metadata
+        );
+        console.log("Stream created in HelloWorld plugin.");
+    } catch(e) {
+        console.log("Error creating stream with model:" + this.model_id + ":", e);
+    }
   }
 
   /** Will mark al of the streams as valid */

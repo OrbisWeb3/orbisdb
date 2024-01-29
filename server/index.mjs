@@ -13,7 +13,7 @@ import IndexingService from "./indexing/index.mjs";
 import Ceramic from "./ceramic/config.mjs";
 import Postgre from "./db/postgre.mjs";
 import HookHandler from "./utils/hookHandler.mjs";
-import { loadPlugins } from "./utils/plugins.mjs";
+import { loadAndInitPlugins, loadPlugins, loadPlugin } from "./utils/plugins.mjs";
 import { getOrbisDBSettings, updateOrbisDBSettings } from "./utils/helpers.mjs";
 
 /** Initialize dirname */
@@ -34,17 +34,17 @@ const packageJson = JSON.parse(
   fs.readFileSync(path.resolve(__dirname, "../package.json"))
 );
 
-let orbisdbSettings = getOrbisDBSettings();
-
 // Use body parser to parse body field for POST
 server.use(bodyParser.json());
 server.use(cors());
+
 
 async function startServer() {
   await app.prepare();
 
   // Expose some OrbisDB settings through a metadata endpoint
   server.get("/api/metadata", async (req, res) => {
+    let orbisdbSettings = getOrbisDBSettings();
     return res.json({
       version: packageJson.version,
       models: orbisdbSettings?.models,
@@ -104,6 +104,53 @@ async function startServer() {
     }
   });
 
+  /** Dynamic route to handle GET routes exposed by installed plugins */
+  server.get('/api/plugin-routes/:plugin_uuid/:plugin_route', async (req, res) => {
+    const { plugin_uuid, plugin_route } = req.params;
+    let method;
+
+    // Retrive all plugins installed
+    let plugin = await loadPlugin(plugin_uuid);
+    let { ROUTES } = await plugin.init();
+    method = ROUTES?.GET[plugin_route];
+
+    if(method) {
+      await method(req, res);
+    } else {
+      res.status(200).json({
+        status: 200,
+        plugin_uuid,
+        plugin_route,
+        result: "Couldn't access this route, make sure that this plugin is properly installed."
+      });
+    }
+  })
+
+  /** Dynamic route to handle GET routes exposed by installed plugins */
+  server.post('/api/plugin-routes/:plugin_uuid/:plugin_route', async (req, res) => {
+    const { plugin_uuid, plugin_route } = req.params;
+    console.log("Trying to load method for plugin: " + plugin_uuid + " and route:" + plugin_route);
+    let method;
+
+    // Retrive all plugins installed
+    let plugin = await loadPlugin(plugin_uuid);
+    let { ROUTES } = await plugin.init();
+    console.log("ROUTES:", ROUTES);
+    method = ROUTES?.POST[plugin_route];
+    console.log("method:", method);
+
+    if(method) {
+      await method(req, res);
+    } else {
+      res.status(200).json({
+        status: 200,
+        plugin_uuid,
+        plugin_route,
+        result: "Couldn't access this route, make sure that this plugin is properly installed."
+      });
+    }
+  })
+
   // API endpoint to get details of a specific plugin
   server.get('/api/plugins/:plugin_id', async (req, res) => {
     const { plugin_id } = req.params;
@@ -131,6 +178,23 @@ async function startServer() {
         result: "Internal server error while loading plugins."
       });
     }
+  });
+
+  // Restart the Indexing service
+  server.get('/api/restart', async (req, res) => {
+    console.log(cliColors.text.cyan, "⚰️ Restarting indexing service...", cliColors.reset);
+
+    // Stop the current indexing service
+    global.indexingService.stop();
+
+    // Start a new indexing service
+    startIndexing();
+
+    // Return results
+    res.json({
+      status: "200",
+      result: "Indexing service restarted."
+    });
   });
 
   // Ping-pong API endpoint
@@ -208,7 +272,7 @@ async function startServer() {
 
   server.listen(PORT, (err) => {
     if (err) throw err;
-    console.log(cliColors.text.green, "📞 OrbisDB ready on", cliColors.reset, "http://localhost:" + PORT);
+    console.log(cliColors.text.green, "📞 OrbisDB UI ready on", cliColors.reset, "http://localhost:" + PORT);
   });
 }
 

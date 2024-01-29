@@ -7,13 +7,6 @@
   "hooks": ["generate"],
   "variables": [
     {
-      "name": "Ceramic Seed",
-      "description": "The Ceramic seed that will be used to create the streams.",
-      "id": "ceramic_seed",
-      "private": true,
-      "type": "array"
-    },
-    {
       "name": "URL Endpoint",
       "description": "Endpoint to call to retrieve the results.",
       "id": "url",

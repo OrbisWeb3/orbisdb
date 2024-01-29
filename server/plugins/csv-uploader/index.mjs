@@ -9,7 +9,7 @@ export default class CSVUploaderPlugin {
    * A plugin can register multiple hooks, each hook being linked to a function that will be executed when the hook is triggered
    */
   async init() {
-    // this.model_id = "kjzl6hvfrbw6c6t75hu18y8lcaeq87mifp5sutl1kd7m182crlf5285gvhnftxy";
+    this.model_id = "kjzl6hvfrbw6c5zkq3h2trfgeu681e6z2czfrte87oe06f6hvm9cw7vutn4295d";
     /** Return routes and hooks used by plugin */
     return {
       ROUTES: {
@@ -25,8 +25,7 @@ export default class CSVUploaderPlugin {
 
   /** Example of an API route returning a simple HTML page. The routes declared by a plugin are automatically exposed by the OrbisDB instance */
   uploadRoute(req, res) {
-    const { context_id } = req.params;
-    console.log("context_id is:", context_id);
+    
     res.send(`<!DOCTYPE html>
       <html lang="en">
       <head>
@@ -54,7 +53,7 @@ export default class CSVUploaderPlugin {
       </head>
       <body class="p-8 text-sm justify-center items-center flex flex-col">
           <h2 class="text-xl font-bold">Upload CSV File</h2>
-          <p class="mt-2 text-slate-600 mb-4 text-center">Context: <a target="_blank" href="https://cerscan.com/mainnet/stream/${context_id}" class="text-blue-600 hover:underline">${context_id}</a><br/>Model: <a target="_blank" href="https://cerscan.com/mainnet/stream/${this.model_id}" class="text-blue-600 hover:underline">${this.model_id}</a></p>
+          <p class="mt-2 text-slate-600 mb-4 text-center">Context: <a target="_blank" href="https://cerscan.com/mainnet/stream/${this.context}" class="text-blue-600 hover:underline">${this.context}</a><br/>Model: <a target="_blank" href="https://cerscan.com/mainnet/stream/${this.model_id}" class="text-blue-600 hover:underline">${this.model_id}</a></p>
           <input class="mb-4" type="file" id="csvFileInput" accept=".csv" onchange="handleFileSelect()" />
           <button id="submit" class="hidden bg-main text-white text-sm px-2.5 py-1.5 rounded-md font-medium pointer flex-row items-center justify-center" onclick="handleUpload()">Upload and Parse</button>
           <pre id="output" class="mb-2"></pre>
@@ -122,7 +121,6 @@ export default class CSVUploaderPlugin {
     console.log("req.params:", req.params);
     let stream_ids = [];
     if(req.body) {
-      const { plugin_id, context_id } = req.params;
       const { data } = req.body;
       console.log('Received CSV Data:', data);
       let i = 0;
@@ -132,13 +130,10 @@ export default class CSVUploaderPlugin {
         // Optionally, you can check if the content is not empty
         if (Object.keys(content).length > 0) {
           try {
-            let _content = {
-              ...content,
-              context: context_id
-            };
+            console.log("this.context:", this.context);
 
             /** We call the update hook here in order to support hooks able to update data before it's created in Ceramic  */
-				    let __content = await global.indexingService.hookHandler.executeHook("update", _content, context_id);
+				    let __content = await global.indexingService.hookHandler.executeHook("update", content, this.context);
 
             /** We then create the stream in Ceramic with the updated content */
             let stream = await ModelInstanceDocument.create(
@@ -146,17 +141,11 @@ export default class CSVUploaderPlugin {
               __content,
               {
                 model: StreamID.fromString(this.model_id),
-                context: "test-context",
-                controller: global.indexingService.ceramic.session.id
+                context: StreamID.fromString(this.context)
               }
             );
             let stream_id = stream.id?.toString();
             stream_ids.push(stream_id);
-
-            // Force index stream in db if created on Ceramic
-            if(stream_id) {
-              console.log("stream created:", stream_id);
-            }
             i++;
           } catch (error) {
             console.error('Error creating stream:', error);

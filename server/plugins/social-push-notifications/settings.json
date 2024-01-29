@@ -1,0 +1,14 @@
+{
+  "id": "social-push-notifications",
+  "name": "Social Push Notifications",
+  "logo": "/img/social-push-notifications-logo.png",
+  "description": "Module.triggering push notifications for the SocialPost and BasicProfile models.",
+  "hooks": ["post_process"],
+  "variables": [
+    {
+      "name": "Admin DIDs",
+      "description": "DIDs authorized to trigger push notifications for protected mentions such as @everyone.",
+      "id": "admin_dids"
+    }
+  ]
+}
