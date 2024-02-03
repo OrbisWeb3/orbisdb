@@ -31,7 +31,7 @@ export default class Postgre {
   }
 
   /** Will try to insert variable in the model table */
-  async insert(model, content, pluginsData) {
+  async upsert(model, content, pluginsData) {
     let variables;
     if(model != "kh4q0ozorrgaq2mezktnrmdwleo1d") {
       // Generate variables to insert
@@ -55,13 +55,19 @@ export default class Postgre {
     const fields = Object.keys(variables);
     const values = Object.values(variables);
 
+    // Define which fields to update in case of conflict
+    const updateFields = fields.filter(field => field !== 'stream_id');
+
     // Retrieving table name from mapping
     let tableName = model;
 
     // Building the query
-    const queryText = `INSERT INTO ${tableName} (${fields.join(', ')})
+    const queryText = `
+    INSERT INTO ${tableName} (${fields.join(', ')})
     VALUES (${fields.map((_, index) => `$${index + 1}`).join(', ')})
-    RETURNING *`;
+    ON CONFLICT (stream_id)
+    DO UPDATE SET ${updateFields.map(field => `${field} = EXCLUDED.${field}`).join(', ')}
+    RETURNING *;`;
 
     /** If stream is a model we trigger the indexing */
     if(model == "kh4q0ozorrgaq2mezktnrmdwleo1d") {
@@ -71,7 +77,7 @@ export default class Postgre {
     /** Try to insert stream in the corresponding table */
     try {
       const res = await this.pool.query(queryText, values);
-      console.log(cliColors.text.cyan,  `✅ Inserted stream `, cliColors.reset, variables.stream_id, cliColors.text.cyan, " in ", cliColors.reset, tableName);
+      console.log(cliColors.text.cyan,  `✅ Upserted stream `, cliColors.reset, variables.stream_id, cliColors.text.cyan, " in ", cliColors.reset, tableName);
       return true;
     } catch (e) {
       if (e.code === '42P01') {

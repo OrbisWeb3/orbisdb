@@ -22,6 +22,20 @@ export default class IndexingService {
 
 		// Go through the list of all plugins used and enable them
 		this.initializePlugins();
+
+		this.testUpdate();
+	}
+
+	async testUpdate() {
+		await sleep(3000);
+		let res = await this.ceramic.orbisdb.ceramic.updateDocument("kjzl6kcym7w8y8oad2ugcadsxdnigmy88tjn7m5nmb3wdzkl1s56uo0qd1xro5a", {
+			content: {
+				body: 'hello updated world!', 
+				mention: 'baptiste'
+			}
+		})
+		console.log("res testUpdate:", res);
+		
 	}
 
 	// Map each plugin to the init promise and execute it
@@ -71,7 +85,27 @@ export default class IndexingService {
 			//console.log('parsed', parsedData);
 			try {
 				const parsedData = decode(Codec, event.data);
-				this.indexStream({ stream: parsedData });
+				console.log("parsedData.eventType:", parsedData.eventType);
+
+				// Perform different action based on eventType
+			
+				switch(parsedData.eventType) {
+					// Discoverd a new stream
+					case 0:
+						console.log(cliColors.text.cyan, "👀 Discovered new stream:", cliColors.reset, parsedData.commitId.baseID?.toString());
+						this.indexStream({ stream: parsedData });
+						break;
+					// Updated a new stream
+					case 1:
+						console.log(cliColors.text.cyan, "👀 Update discovered for stream:", cliColors.reset, parsedData.commitId.baseID?.toString());
+						this.indexStream({ stream: parsedData });
+						break;
+					// Detect anchoring
+					case 2:
+						console.log(cliColors.text.cyan, "👀 Detected anchoring for stream:", cliColors.reset, parsedData.commitId.baseID?.toString());
+						break;
+				}
+				
 			} catch(e) {
 				console.log(cliColors.text.red, "Error parsing the Ceramic event:", e, cliColors.reset);
 			}
@@ -118,7 +152,7 @@ export default class IndexingService {
     }
 
 	/** Will load the stream details using Ceramic, process the plugins and save the stream in DB */
-  	async indexStream({ stream, model }) {
+  	async indexStream({ stream }) {
 		if(!stream) {
 			console.log(cliColors.text.red, "Error indexing a new stream:", cliColors.reset, " stream details are needed to index a stream.");
 			return;
@@ -128,23 +162,19 @@ export default class IndexingService {
 		let streamId;
 		try {
 			streamId = stream.commitId.baseID?.toString();
-			console.log(cliColors.text.cyan, "👀 Discovered new stream:", cliColors.reset, streamId);
 		} catch(e) {
 			return console.log(cliColors.text.red, "Error retrieving the StreamID for this stream:", cliColors.reset, e);;
 		}
 
 		try {
+			// Get content
+			let content = JSON.parse(stream.content);
+
 			// Get model
-			let modelId = new StreamID(stream.metadata.model._type, stream.metadata.model._cid['/']);
-			let model = modelId.toString();
+			let model = stream.metadata.model;
 
 			// Get context
-			let context;
-			let contextId;
-			if(stream.metadata.context) {
-				context = new StreamID(stream.metadata.context._type, stream.metadata.context._cid['/']);
-				contextId = context.toString();
-			}			
+			let context = stream.metadata.context;
 
 			// Get controller
 			let controller = stream.metadata.controller ? stream.metadata.controller : stream.metadata.controllers[0];
@@ -154,32 +184,33 @@ export default class IndexingService {
 				stream_id: streamId,
 				model: model,
 				controller: controller,
-				content: stream.content
+				content: content
 			};
 
 			if (stream) {
 				// Will execute all of the validator hooks and terminate if one of them reject the stream
-				const { isValid } = await this.hookHandler.executeHook("validate", processedData, contextId);
+				const { isValid } = await this.hookHandler.executeHook("validate", processedData, context);
 				if(isValid == false) {
 					return console.log(cliColors.text.gray, "Stream is not valid, don't index:", cliColors.reset, streamId);
 				}
 
 				// Will execute all of the "metadata" plugins and return a pluginsData object which will contain all of the metadata added by the different plugins
-				const { pluginsData } = await this.hookHandler.executeHook("add_metadata", processedData, contextId);
+				const { pluginsData } = await this.hookHandler.executeHook("add_metadata", processedData, context);
 
 				// Add additional fields to the content which will be saved in the database
-				let content = {
+				let insertedContent = {
 					stream_id: streamId,
 					controller: controller,
-					...stream.content,
-					_metadata_context: contextId
+					...content,
+					_metadata_context: context
 				}
 
+				// Perform insert or update based on event type
 				// Save the stream content and indexing data in the specified database
-				await this.database.insert(model, content, pluginsData);
+				await this.database.upsert(model, insertedContent, pluginsData);
 
 				// Will execute all of the post-processor plugins.
-				this.hookHandler.executeHook("post_process", processedData, contextId);
+				this.hookHandler.executeHook("post_process", processedData, context);
 	    }
 		} catch(e) {
 			console.log(cliColors.text.red, "Error indexing stream:", cliColors.reset, e);
