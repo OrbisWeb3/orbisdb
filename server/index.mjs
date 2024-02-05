@@ -94,7 +94,7 @@ async function startServer() {
       updateOrbisDBSettings(settings);
 
       // Start indexing service
-      startIndexing(true);
+      startIndexing();
 
       // Send the response
       res.status(200).json({
@@ -314,6 +314,29 @@ async function startServer() {
     }
   });
 
+  /** Will check if a local Ceramic node is running on the same server */
+  server.get("/api/local-ceramic-node", async (req, res) => {
+    try {
+      let healtcheck_url = 'http://localhost:7007/api/v0/node/healthcheck';
+      console.log("healtcheck_url:", healtcheck_url);
+      let response = await fetch(healtcheck_url);
+      let resNode = await response.text();
+
+      res.json({
+        status: "200",
+        res: resNode
+      });
+    } catch(e) {
+      res.status(500).json({
+        status: "500",
+        result: "There isn't any Ceramic node running locally.",
+      });
+    }
+    
+  });
+
+  
+
   if (!dev) {
     // Serve static files from Next.js production build
     console.log("Using production build.");
@@ -341,7 +364,7 @@ async function startServer() {
 }
 
 /** Initialize the app by loading all of the required plugins while initializng those and start the indexing service */
-export async function startIndexing(afterConfig) {
+export async function startIndexing() {
   // Retrieve OrbisDB current settings
   let settings = getOrbisDBSettings();
 
@@ -354,8 +377,7 @@ export async function startIndexing(afterConfig) {
       dbConfig.database,
       dbConfig.password,
       dbConfig.host,
-      dbConfig.port
-    , afterConfig);
+      dbConfig.port);
 
     /** Instantiate the Ceramic object with node's url from config */
     let seed = JSON.parse(settings.configuration.ceramic.seed);
@@ -387,4 +409,4 @@ export async function startIndexing(afterConfig) {
 startServer().catch(console.error);
 
 /** Initialize indexing service */
-startIndexing(true);
+startIndexing();

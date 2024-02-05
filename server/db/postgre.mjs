@@ -8,7 +8,7 @@ import { getOrbisDBSettings, updateOrbisDBSettings, getTableName, getTableModelI
  * DB implementation to index streams with Postgre
  */
 export default class Postgre {
-  constructor(user, database, password, host, port, addReadOnlyUser) {
+  constructor(user, database, password, host, port) {
     try {
       this.connection = null;
 

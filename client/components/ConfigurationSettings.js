@@ -38,12 +38,16 @@ export function ConfigurationSetup() {
   async function checkCeramicNode(node) {
     let isValid;
     try {
-      let healtcheck_url = cleanCeramicNode(node) + 'api/v0/node/healthcheck';
-      console.log("healtcheck_url:", healtcheck_url);
-      let response = await fetch(healtcheck_url);
-      let res = await response.text();
+      let response = await fetch("/api/local-ceramic-node");
+      let res = await response.json();
       console.log("checkLocalCeramicNode res:", res);
-      isValid = true;
+
+      if(res.status == 200) {
+        isValid = true;
+      } else {
+        isValid = false;
+      }
+      
     } catch(e) {
       console.log("Couldn't connect to Ceramic node.");
       isValid = false;
