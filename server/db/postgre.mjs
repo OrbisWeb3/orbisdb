@@ -150,7 +150,7 @@ export default class Postgre {
     } catch (e) {
       if (e.code === '42P01') {
         // Trigger indexing of new model with a callback to retry indexing this stream
-        this.indexModel(model, () => this.insert(model, content, pluginsData));
+        this.indexModel(model, () => this.upsert(model, content, pluginsData));
       } else {
         console.error(cliColors.text.red, `Error inserting stream ${variables.stream_id}:`, cliColors.reset, e.message);
       }
@@ -207,7 +207,7 @@ export default class Postgre {
     
     // Step 4: Insert new row in models_indexed table
     if(model != "kh4q0ozorrgaq2mezktnrmdwleo1d") {
-      this.insert('kh4q0ozorrgaq2mezktnrmdwleo1d', {
+      this.upsert('kh4q0ozorrgaq2mezktnrmdwleo1d', {
         stream_id: model,
         controller: content.controller,
         name: title,
