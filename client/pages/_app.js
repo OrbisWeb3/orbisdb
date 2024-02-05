@@ -44,30 +44,35 @@ export default function App({ Component, pageProps }) {
     }
 
     async function connect() {
-      let seed = settings.configuration.ceramic.seed
-      let _orbisdb = new OrbisDB({
-        ceramic: {
-            gateway: settings.configuration.ceramic.node,
-        },
-        nodes: [
-          {
-              gateway: "http://localhost:7008",
-              key: "<YOUR_API_KEY>",
-          },
-        ],
-      });
-
-      let _seed = new Uint8Array(JSON.parse(seed));
-      const auth = await OrbisKeyDidAuth.fromSeed(_seed);
-
       try {
-          const result = await _orbisdb.connectUser({ auth });
-          setOrbisdb(_orbisdb);
-          setUser(result.user);
-          console.log("Connected to OrbisDB SDK with did:", result.user.did);
+        let seed = settings.configuration.ceramic.seed
+        let _orbisdb = new OrbisDB({
+          ceramic: {
+              gateway: settings.configuration.ceramic.node,
+          },
+          nodes: [
+            {
+                gateway: "http://localhost:7008",
+                key: "<YOUR_API_KEY>",
+            },
+          ],
+        });
+  
+        let _seed = new Uint8Array(JSON.parse(seed));
+        const auth = await OrbisKeyDidAuth.fromSeed(_seed);
+  
+        try {
+            const result = await _orbisdb.connectUser({ auth });
+            setOrbisdb(_orbisdb);
+            setUser(result.user);
+            console.log("Connected to OrbisDB SDK with did:", result.user.did);
+        } catch(e) {
+            console.log(cliColors.text.red, "Error connecting to OrbisDB:", cliColors.reset, e);
+        }
       } catch(e) {
-          console.log(cliColors.text.red, "Error connecting to OrbisDB:", cliColors.reset, e);
+        console.log("Error initiaiting OrbisDB object:", e);
       }
+      
     }
   }, [settings])
 
@@ -76,28 +81,27 @@ export default function App({ Component, pageProps }) {
       <div className="h-full w-full flex flex-col">
         {settings ?
           <>
-            {user ?
+            {!settings.configuration ?
               <>
-                {settings.configuration ?
+                <Header showItems={false} />
+                <ConfigurationSetup />
+              </>
+            :
+              <>
+                {user ?
                   <>
                     <Header showItems={true} />
                     <Component {...pageProps} />
                   </>
                 :
-                  <>
-                    <Header showItems={false} />
-                    <ConfigurationSetup />
-                  </>
+                  <div className="flex justify-center w-full mt-12">
+                    <div className="flex flex-col w-2/3 items-center">
+                      <p className="text-slate-900 text-base mb-2">You need to be connected to access your Orbis DB instance, is the seed you entered in the configuration correct?.</p>
+                    </div>
+                  </div>
                 }
               </>
-            :
-              <div className="flex justify-center w-full mt-12">
-                <div className="flex flex-col w-2/3 items-center">
-                  <p className="text-slate-900 text-base mb-2">You need to be connected to access your Orbis DB instance.</p>
-                </div>
-              </div>
             }
-
           </>
         :
           <p className="text-base w-full text-center pt-12">Loading settings...</p>
