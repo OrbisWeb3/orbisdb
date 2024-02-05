@@ -1,15 +1,1 @@
-{
-  "configuration": {
-    "ceramic": {
-      "node": "http://64.227.67.150:7007/",
-      "seed": "[213, 30,116, 231, 149, 125, 252, 34, 193, 195, 198, 224, 37, 222, 124, 12, 64, 215, 195, 147, 95, 71, 80, 91, 247, 161, 95, 235, 173, 100, 245, 209]"
-    },
-    "db": {
-      "user": "doadmin",
-      "database": "orbisdb_3",
-      "password": "AVNS_puV0xIOIp_tdmU1kNEy",
-      "host": "test-orbisdb-do-user-10388596-0.c.db.ondigitalocean.com",
-      "port": 25060
-    }
-  }
-}
+{}
