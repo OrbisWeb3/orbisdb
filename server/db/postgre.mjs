@@ -42,31 +42,52 @@ export default class Postgre {
     const readOnlyUserExists = await this.checkIfDbUserExists(readOnlyUsername);
 
     // If read only user doesn't exist we create it
+    const client = await this.adminPool.connect();
+
+    // Step 1: Create a new user (role)
     if(!readOnlyUserExists) {
-      const client = await this.adminPool.connect();
       try {
-          // Step 1: Create a new user (role)
-          await client.query(`CREATE USER ${readOnlyUsername} WITH PASSWORD '${readOnlyPassword}';`);
-  
-          // Step 2: Grant connect permission on the database
-          await client.query(`GRANT CONNECT ON DATABASE ${database} TO ${readOnlyUsername};`);
-  
-          // Step 3: Grant usage permission on the schema
-          await client.query(`GRANT USAGE ON SCHEMA public TO ${readOnlyUsername};`);
-  
-          // Step 4: Grant select permission on all tables in the schema
-          await client.query(`GRANT SELECT ON ALL TABLES IN SCHEMA public TO ${readOnlyUsername};`);
-  
-          // Make the privileges effective immediately for new tables
-          await client.query(`ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO ${readOnlyUsername};`);
-  
-          console.log(cliColors.text.cyan, '👁️  Read-only user created with:', cliColors.reset, readOnlyUsername);
-      } catch (err) {
-          console.error(cliColors.text.red, '👁️  Error creating read-only user:', cliColors.reset, err.stack);
-      } finally {
-          client.release();
+        await client.query(`CREATE USER ${readOnlyUsername} WITH PASSWORD '${readOnlyPassword}';`);
+        console.log(cliColors.text.cyan, '👁️  Read-only user created with:', cliColors.reset, readOnlyUsername);
+      } catch(e) {
+        console.error(cliColors.text.red, '👁️  Error creating read-only user:', cliColors.reset, e.stack);
       }
     }
+
+    // Step 2: Grant connect permission on the database
+    try {
+      await client.query(`GRANT CONNECT ON DATABASE ${database} TO ${readOnlyUsername};`);
+      console.log(cliColors.text.cyan, '👁️  Granting connect permission to read-only user:', cliColors.reset, readOnlyUsername);
+    } catch(e) {
+      console.error(cliColors.text.red, '👁️  Error granting connect to read-only user:', cliColors.reset, e.stack);
+    }
+
+    // Step 3: Grant usage permission on the schema
+    try {
+      await client.query(`GRANT USAGE ON SCHEMA public TO ${readOnlyUsername};`);
+      console.log(cliColors.text.cyan, '👁️  Granting usage permission on schema to read-only user:', cliColors.reset, readOnlyUsername);
+    } catch(e) {
+      console.error(cliColors.text.red, '👁️  Error granting usage permission on schema to read-only user:', cliColors.reset, e.stack);
+    }
+
+    // Step 4: Grant select permission on all tables in the schema
+    try {
+      await client.query(`GRANT SELECT ON ALL TABLES IN SCHEMA public TO ${readOnlyUsername};`);
+      console.log(cliColors.text.cyan, '👁️  Granting select permission on all tables to read-only user:', cliColors.reset, readOnlyUsername);
+    } catch(e) {
+      console.error(cliColors.text.red, '👁️  Error granting select permission on all tables to read-only user:', cliColors.reset, e.stack);
+    }
+
+    // Step 5: Make the privileges effective immediately for new tables
+    try {  
+        await client.query(`ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO ${readOnlyUsername};`);
+        console.log(cliColors.text.cyan, '👁️  Applying privileges to read-only user:', cliColors.reset, readOnlyUsername);
+    } catch (e) {
+        console.error(cliColors.text.red, '👁️  Error applying privileges to read-only user:', cliColors.reset, e.stack);
+    }
+
+    // Release client
+    client.release();
 
     // Instantiate new pool for postgresql database
     this.readOnlyPool = new Pool({
@@ -96,7 +117,7 @@ export default class Postgre {
     } finally {
         client.release();
     }
-}
+  }  
 
   /** Will try to insert variable in the model table */
   async upsert(model, content, pluginsData) {
@@ -302,6 +323,42 @@ export default class Postgre {
 
     // Rewrite the settings file
     updateOrbisDBSettings(settings)
+  }
+
+  /** Will query DB Schema with admin user */
+  async query_schema() {
+    // Build schema query
+    let query = `SELECT
+        t.table_name,
+        'TABLE' as type,
+        NULL as view_definition
+      FROM
+        information_schema.tables t
+      WHERE
+        t.table_type = 'BASE TABLE'
+        AND t.table_schema = 'public'
+
+      UNION ALL
+
+      SELECT
+        v.table_name,
+        'VIEW' as type,
+        v.view_definition
+      FROM
+        information_schema.views v
+      WHERE
+        v.table_schema = 'public';`;
+
+    // Perform query and return results
+    try {
+      const client = await this.adminPool.connect();
+      const res = await client.query(query);
+      client.release();
+      return { data: res };
+    } catch (e) {
+      console.error(cliColors.text.red, `❌ Error executing schema query:`, cliColors.reset, e.message);
+      return false;
+    }
   }
 
   /** Will run any query and return the results */

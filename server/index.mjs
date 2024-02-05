@@ -286,6 +286,35 @@ async function startServer() {
   });
 
   /** Will run the query wrote by user */
+  server.get("/api/db/query-schema", async (req, res) => {
+    console.log("Enter query-schema")
+
+    try {
+      let response = await global.indexingService.database.query_schema();
+      if (response) {
+        res.json({
+          status: "200",
+          data: response.data?.rows,
+          totalCount: response.totalCount,
+          title: response.title,
+        });
+      } else {
+        res.status(404).json({
+          status: "404",
+          data: [],
+          error: `There wasn't any results returned from table.`,
+        });
+      }
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({
+        status: "500",
+        result: "Internal server error while querying table.",
+      });
+    }
+  });
+
+  /** Will run the query wrote by user */
   server.post("/api/db/query", async (req, res) => {
     const { query, params } = req.body;
 

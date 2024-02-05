@@ -53,38 +53,12 @@ export default function Data() {
   /** Will load all of the tables and views available in the database */
   async function loadSchema() {
     setSchemaLoading(true);
-    let query = `SELECT
-      t.table_name,
-      'TABLE' as type,
-      NULL as view_definition
-    FROM
-      information_schema.tables t
-    WHERE
-      t.table_type = 'BASE TABLE'
-      AND t.table_schema = 'public'
-
-    UNION ALL
-
-    SELECT
-      v.table_name,
-      'VIEW' as type,
-      v.view_definition
-    FROM
-      information_schema.views v
-    WHERE
-      v.table_schema = 'public';`;
 
     /** Will run custom query wrote by user */
-    console.log("Running query:", query);
     try {
-      let result = await fetch("/api/db/query", {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ query: query })
-      });
+      let result = await fetch("/api/db/query-schema");
       result = await result.json();
+      console.log("result:", result);
       if (result.status == 200) {
         const fetchedTables = result.data.filter(item => item.type === 'TABLE').map(item => ({ id: item.table_name }));;
         const fetchedViews = result.data.filter(item => item.type === 'VIEW').map(item => ({ id: item.table_name, ...item }));;
