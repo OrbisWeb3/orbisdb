@@ -8,12 +8,12 @@ import { getOrbisDBSettings, updateOrbisDBSettings, getTableName, getTableModelI
  * DB implementation to index streams with Postgre
  */
 export default class Postgre {
-  constructor(user, database, password, host, port) {
+  constructor(user, database, password, host, port, addReadOnlyUser) {
     try {
       this.connection = null;
 
       // Instantiate new pool for postgresql database
-      this.pool = new Pool({
+      this.adminPool = new Pool({
         user,
         database,
         password,
@@ -23,12 +23,80 @@ export default class Postgre {
           rejectUnauthorized: false // Or configure a proper SSL certificate if available
         }
       });
+
+      // Create read only user if needed
+      this.checkReadOnlyUser(database, host, port);
   
-      console.log(cliColors.text.green, "🗄️  Initialized PostgreSQL DB with user:", cliColors.reset, user) ; 
+      console.log(cliColors.text.cyan, "🗄️  Initialized PostgreSQL DB with admin user:", cliColors.reset, user) ; 
     } catch(e) {
-      console.log(cliColors.text.red, "🗄️  Error initializing PostgreSQL DB with user:", cliColors.reset, user) ; 
+      console.log(cliColors.text.red, "🗄️  Error initializing PostgreSQL DB with admin user:", cliColors.reset, user, ":", e) ; 
     }
   }
+
+  /** Will create a new read only user to make sure only SELECT queries can be performed from front-end */
+  async checkReadOnlyUser(database, host, port) {
+    let readOnlyUsername = "read_only_orbisdb_3";
+    let readOnlyPassword = "read_only_orbisdb_pw";
+
+    // Check if readonly user exists
+    const readOnlyUserExists = await this.checkIfDbUserExists(readOnlyUsername);
+
+    // If read only user doesn't exist we create it
+    if(!readOnlyUserExists) {
+      const client = await this.adminPool.connect();
+      try {
+          // Step 1: Create a new user (role)
+          await client.query(`CREATE USER ${readOnlyUsername} WITH PASSWORD '${readOnlyPassword}';`);
+  
+          // Step 2: Grant connect permission on the database
+          await client.query(`GRANT CONNECT ON DATABASE ${database} TO ${readOnlyUsername};`);
+  
+          // Step 3: Grant usage permission on the schema
+          await client.query(`GRANT USAGE ON SCHEMA public TO ${readOnlyUsername};`);
+  
+          // Step 4: Grant select permission on all tables in the schema
+          await client.query(`GRANT SELECT ON ALL TABLES IN SCHEMA public TO ${readOnlyUsername};`);
+  
+          // Make the privileges effective immediately for new tables
+          await client.query(`ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO ${readOnlyUsername};`);
+  
+          console.log(cliColors.text.cyan, '👁️  Read-only user created with:', cliColors.reset, readOnlyUsername);
+      } catch (err) {
+          console.error(cliColors.text.red, '👁️  Error creating read-only user:', cliColors.reset, err.stack);
+      } finally {
+          client.release();
+      }
+    }
+
+    // Instantiate new pool for postgresql database
+    this.readOnlyPool = new Pool({
+      user: readOnlyUsername,
+      database,
+      password: readOnlyPassword,
+      host,
+      port,
+      ssl: {
+        rejectUnauthorized: false // Or configure a proper SSL certificate if available
+      }
+    });
+
+    console.log(cliColors.text.cyan, '🗄️  Initialized read-only db pool with: ', cliColors.reset, readOnlyUsername);
+  }
+
+  // Will check if a specific DB user exists with username
+  async checkIfDbUserExists(username) {
+    const client = await this.adminPool.connect();
+    try {
+        const queryText = `SELECT 1 FROM pg_roles WHERE rolname = $1`;
+        const res = await client.query(queryText, [username]);
+        return res.rowCount > 0;
+    } catch (err) {
+        console.error('Error querying the database:', err.stack);
+        return false;
+    } finally {
+        client.release();
+    }
+}
 
   /** Will try to insert variable in the model table */
   async upsert(model, content, pluginsData) {
@@ -76,8 +144,8 @@ export default class Postgre {
 
     /** Try to insert stream in the corresponding table */
     try {
-      const res = await this.pool.query(queryText, values);
-      console.log(cliColors.text.cyan,  `✅ Upserted stream `, cliColors.reset, variables.stream_id, cliColors.text.cyan, " in ", cliColors.reset, tableName);
+      const res = await this.adminPool.query(queryText, values);
+      console.log(cliColors.text.green,  `✅ Upserted stream `, cliColors.reset, variables.stream_id, cliColors.text.cyan, " in ", cliColors.reset, tableName);
       return true;
     } catch (e) {
       if (e.code === '42P01') {
@@ -166,7 +234,7 @@ export default class Postgre {
 
     try {
       // Execute the table creation query
-      await this.pool.query(createTableQuery);
+      await this.adminPool.query(createTableQuery);
 
       // Keep track of new table name
       this.mapTableName(model, uniqueFormattedTitle);
@@ -214,7 +282,7 @@ export default class Postgre {
       }
       return false; // Table not found in models_mapping
     } catch (e) {
-        console.log(cliColors.text.red, "Error checking table existence:", e);
+        console.log(cliColors.text.red, "❌ Error checking table existence:", cliColors.reset, e);
         return false;
     }
   }
@@ -247,10 +315,12 @@ export default class Postgre {
     }*/
 
     try {
-      const res = await this.pool.query(modifiedQuery, params);
+      const client = await this.readOnlyPool.connect();
+      const res = await client.query(modifiedQuery, params);
+      client.release();
       return { data: res };
     } catch (e) {
-      console.error(`Error executing query:`, e.message);
+      console.error(cliColors.text.red, `❌ Error executing query:`, cliColors.reset, e.message);
       return false;
     }
   }
@@ -293,9 +363,11 @@ export default class Postgre {
       WHERE relname = '${table}';`;
 
     try {
-      const res = await this.pool.query(queryText);
-      const countResult = await this.pool.query(countQuery);
-      const commentResult = await this.pool.query(commentQuery);
+      const client = await this.readOnlyPool.connect();
+      const res = await client.query(queryText);
+      const countResult = await client.query(countQuery);
+      const commentResult = await client.query(commentQuery);
+      client.release();
 
       // Extracting total count from countResult
       const totalCount = countResult.rows[0].count;

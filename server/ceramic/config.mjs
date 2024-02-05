@@ -22,7 +22,7 @@ export default class Ceramic {
             });
 
             this.client = this.orbisdb.ceramic.client;
-            console.log(cliColors.text.green, "📍 Initialized Ceramic client via dbsdk with node:", cliColors.reset, this.node);
+            console.log(cliColors.text.cyan, "📍 Initialized Ceramic client via dbsdk with node:", cliColors.reset, this.node);
 
             // Connect to Ceramic using seed
             this.connect(seed);
@@ -39,7 +39,7 @@ export default class Ceramic {
         try {
             const result = await this.orbisdb.connectUser({ auth });
             this.session = result.session;
-            console.log(cliColors.text.green, "📍 Connected to Ceramic via dbsdk with did:", cliColors.reset, result.user.did);
+            console.log(cliColors.text.cyan, "📍 Connected to Ceramic via dbsdk with did:", cliColors.reset, result.user.did);
         } catch(e) {
             console.log(cliColors.text.red, "Error connecting to OrbisDB:", cliColors.reset, e);
         }

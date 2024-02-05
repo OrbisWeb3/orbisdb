@@ -89,7 +89,7 @@ async function startServer() {
       updateOrbisDBSettings(settings)
 
       // Start indexing service
-      startIndexing();
+      startIndexing(true);
 
       // Send the response
       res.status(200).json({
@@ -272,12 +272,12 @@ async function startServer() {
 
   server.listen(PORT, (err) => {
     if (err) throw err;
-    console.log(cliColors.text.green, "📞 OrbisDB UI ready on", cliColors.reset, "http://localhost:" + PORT);
+    console.log(cliColors.text.cyan, "📞 OrbisDB UI ready on", cliColors.reset, "http://localhost:" + PORT);
   });
 }
 
 /** Initialize the app by loading all of the required plugins while initializng those and start the indexing service */
-export async function startIndexing() {
+export async function startIndexing(afterConfig) {
   
   // Retrieve OrbisDB current settings
   let settings = getOrbisDBSettings();
@@ -286,7 +286,7 @@ export async function startIndexing() {
   if(settings?.configuration) {
     /** Instantiate the database to use which should be saved in the "orbisdb-settings.json" file */
     let dbConfig = settings.configuration.db;
-    let database = new Postgre(dbConfig.user, dbConfig.database, dbConfig.password, dbConfig.host, dbConfig.port);
+    let database = new Postgre(dbConfig.user, dbConfig.database, dbConfig.password, dbConfig.host, dbConfig.port, afterConfig);
 
     /** Instantiate the Ceramic object with node's url from config */
     let seed = JSON.parse(settings.configuration.ceramic.seed);
@@ -314,4 +314,4 @@ export async function startIndexing() {
 startServer().catch(console.error);
 
 /** Initialize indexing service */
-startIndexing();
+startIndexing(true);

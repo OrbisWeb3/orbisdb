@@ -13,7 +13,7 @@ import { commitIdAsString } from '@ceramicnetwork/codecs';
  */
 export default class IndexingService {
 	constructor(ceramic, database, hookHandler, server) {
-		console.log(cliColors.text.green, "🔗 Initialized indexing service.", cliColors.reset) ; 
+		console.log(cliColors.text.cyan, "🔗 Initialized indexing service.", cliColors.reset) ; 
 		this.ceramic = ceramic;
 		this.database = database;
 		this.hookHandler = hookHandler;
@@ -22,20 +22,6 @@ export default class IndexingService {
 
 		// Go through the list of all plugins used and enable them
 		this.initializePlugins();
-
-		this.testUpdate();
-	}
-
-	async testUpdate() {
-		await sleep(3000);
-		let res = await this.ceramic.orbisdb.ceramic.updateDocument("kjzl6kcym7w8y8oad2ugcadsxdnigmy88tjn7m5nmb3wdzkl1s56uo0qd1xro5a", {
-			content: {
-				body: 'hello updated world!', 
-				mention: 'baptiste'
-			}
-		})
-		console.log("res testUpdate:", res);
-		
 	}
 
 	// Map each plugin to the init promise and execute it
@@ -53,7 +39,7 @@ export default class IndexingService {
 		if(this.plugins && this.plugins.length > 0) {
 			console.log(cliColors.text.green, "🤖 Initialized ", cliColors.reset, this.plugins.length, cliColors.text.green, " plugin(s).", cliColors.reset);
 		} else {
-			console.log(cliColors.text.yellow, "There wasn't any plugin to initialize.", cliColors.reset);
+			console.log(cliColors.text.yellow, "🤖 There wasn't any plugin to initialize.", cliColors.reset);
 		}
 
 		// Trigger the generate hook which can be used to generate new streams automatically
@@ -85,10 +71,8 @@ export default class IndexingService {
 			//console.log('parsed', parsedData);
 			try {
 				const parsedData = decode(Codec, event.data);
-				console.log("parsedData.eventType:", parsedData.eventType);
 
 				// Perform different action based on eventType
-			
 				switch(parsedData.eventType) {
 					// Discoverd a new stream
 					case 0:
