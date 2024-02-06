@@ -1,19 +1,22 @@
 import React, { useState, useEffect, useContext } from "react";
 import Link from 'next/link';
-import { GlobalContext } from "../../contexts/Global";
-import { CheckIcon, CloseIcon, QuestionMarkIcon } from "../../components/Icons";
-import AddModelModal from "../../components/Modals/AddModel";
-import Button from "../../components/Button";
+import { useGlobal } from "../../contexts/Global";
 
 export default function Plugins() {
-  const [addModalVis, setAddModalVis] = useState(false);
+  const { sessionJwt } = useGlobal();
   const [plugins, setPlugins] = useState([]);
 
   useEffect(() => {
     loadPlugins();
     async function loadPlugins() {
       try {
-        let result = await fetch("/api/plugins/get");
+        let result = await fetch("/api/plugins/get", {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${sessionJwt}`
+          }
+        });
         result = await result.json();
         console.log("plugins:", result);
         if(result.status == 200) {

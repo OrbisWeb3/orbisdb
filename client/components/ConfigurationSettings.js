@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useContext } from "react";
 import { STATUS, sleep } from "../utils";
 import StepsProgress from "./StepsProgress";
-import { GlobalContext } from "../contexts/Global";
+import { useGlobal } from "../contexts/Global";
 import Button from "./Button";
 import { CheckIcon } from "./Icons";
+import { OrbisDB } from "@useorbis/db-sdk";
+import { OrbisEVMAuth } from "@useorbis/db-sdk/auth";
 
 export default function ConfigurationSettings() {
     return(
@@ -12,8 +14,9 @@ export default function ConfigurationSettings() {
 }
 
 export function ConfigurationSetup() {
-  const { settings, setSettings } = useContext(GlobalContext);
+  const { settings, setSettings, sessionJwt, setSessionJwt, setIsAdmin } = useGlobal();
   const [status, setStatus] = useState(STATUS.ACTIVE);
+  const [statusConnect, setStatusConnect] = useState(STATUS.ACTIVE);
   const [hasLocalNode, setHasLocalNode] = useState(false);
   const [ceramicNode, setCeramicNode] = useState(settings?.configuration?.ceramic?.node);
   const [ceramicSeed, setCeramicSeed] = useState(settings?.configuration?.ceramic?.seed);
@@ -22,12 +25,17 @@ export function ConfigurationSetup() {
   const [dbPassword, setDbPassword] = useState(settings?.configuration?.db?.password);
   const [dbHost, setDbHost] = useState(settings?.configuration?.db?.host);
   const [dbPort, setDbPort] = useState(settings?.configuration?.db?.port);
+  const [adminAccount, setAdminAccount] = useState(settings?.configuration?.admins[0]);
   const [step, setStep] = useState(1);
 
   useEffect(() => {
-    hasLocalNode();
+    // Check if a local node exists only if there isn't already one saved in settings
+    if(!settings?.configuration?.ceramic?.node) {
+      hasLocalNode();
+    }
+    
     async function hasLocalNode() {
-      let isValid = await checkCeramicNode("http://localhost:7007/");
+      let isValid = await checkLocalCeramicNode();
       if(isValid) {
         setCeramicNode("http://localhost:7007/");
         setHasLocalNode(true);
@@ -35,7 +43,7 @@ export function ConfigurationSetup() {
     }
   }, [])
 
-  async function checkCeramicNode(node) {
+  async function checkLocalCeramicNode() {
     let isValid;
     try {
       let response = await fetch("/api/local-ceramic-node");
@@ -64,30 +72,40 @@ export function ConfigurationSetup() {
     return node;
   }
 
-  async function next() {
-    let isValid = await checkCeramicNode(ceramicNode);
-    console.log("isValid:", isValid);
-    if(isValid) {
-      setStatus(STATUS.ACTIVE);
-      setStep(2);
-    } else {
-      alert("Your Ceramic node URL isn't valid, please check the url again.");
-      setStatus(STATUS.ERROR);
-      await sleep(1500);
-      setStatus(STATUS.ACTIVE);
-    }
+  async function goStep2() {
+    if((!ceramicNode || ceramicNode == "") || (!ceramicSeed || ceramicSeed == "")) {
+      alert("The node URL and Ceramic seed are required.");
+      return;
+    } 
+    setStatus(STATUS.ACTIVE);
+    setStep(2);
+  }
+
+  async function goStep3() {
+    if((!dbDatabase || dbDatabase == "") || (!dbUser || dbUser == "") || (!dbPassword || dbPassword == "")) {
+      alert("The database credentials are required.");
+      return;
+    } 
+    setStatus(STATUS.ACTIVE);
+    setStep(3);
   }
 
   async function saveSettings() {
+    if((!adminAccount || adminAccount == "")) {
+      alert("Having at least one admin is required.");
+      return;
+    }
     setStatus(STATUS.LOADING);
     try {
       let response = await fetch('/api/settings/update-configuration', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${sessionJwt}`
         },
         body: JSON.stringify({
           configuration: {
+            admins: [adminAccount.toLowerCase()],
             ceramic: {
               node: cleanCeramicNode(ceramicNode),
               seed: ceramicSeed
@@ -110,7 +128,11 @@ export function ConfigurationSetup() {
         setStatus(STATUS.SUCCESS);
         setSettings(response.updatedSettings);
       } else {
-        console.log("Error updating configuration.");
+        alert("Error updating configuration.");
+        console.log("response:", response);
+        setStatus(STATUS.ERROR);
+        await sleep(1500);
+        setStatus(STATUS.ACTIVE);
       }
     } catch(e) {
       setStatus(STATUS.ERROR);
@@ -129,10 +151,34 @@ export function ConfigurationSetup() {
     setCeramicSeed(seedStr);
   }
 
+  async function connectMM() {
+    setStatusConnect(STATUS.LOADING);
+    let adminOrbisDB = new OrbisDB({
+        ceramic: {
+            gateway: settings?.configuration?.ceramic?.node,
+        },
+        nodes: [
+          {
+              gateway: "http://localhost:7008",
+              key: "<YOUR_API_KEY>",
+          },
+        ],
+    });
+    const auth = new OrbisEVMAuth(window.ethereum);
+    const result = await adminOrbisDB.connectUser({ auth, saveSession: false });
+    localStorage.setItem("orbisdb-admin-session", result.session.session);
+    if(result?.user) {
+      setAdminAccount(result.user.did);
+      setIsAdmin(true);
+      setSessionJwt(result.session.session);
+    }
+    setStatusConnect(STATUS.SUCCESS);
+  }
+
   return(
     <>
         {/** Stepper to show progress */}
-        <StepsProgress steps={["Ceramic Settings", "Database"]} currentStep={step} />
+        <StepsProgress steps={["Ceramic Settings", "Database", "Admins"]} currentStep={step} />
         
         {/** Step 1: Ceramic node */}
         {step == 1 &&
@@ -153,7 +199,7 @@ export function ConfigurationSetup() {
             
             {/** CTA to save updated context */}
             <div className="flex w-full justify-center mt-2">
-              <Button title="Next" onClick={() => next()} />
+              <Button title="Next" onClick={() => goStep2()} />
             </div>
           </>
         }
@@ -173,7 +219,28 @@ export function ConfigurationSetup() {
             
             {/** CTA to save updated context */}
             <div className="flex w-full justify-center mt-2">
-              <Button title={settings.configuration ? "Save" : "Get started"} status={status} onClick={() => saveSettings()} />
+              <Button title="Next" status={status} onClick={() => goStep3()} />
+            </div>
+          </>
+        }
+        
+        {/** Step 3: Add admins */}
+        {step == 3 &&
+          <>
+            <div className="mt-2">
+              <label className="text-base font-medium text-center">Add your OrbisDB admin:</label>
+              <p className="text-sm text-slate-500 mb-2">Connect with your address which will be considered the admin and able to perform admin actions on your OrbisDB instance.</p>
+              <div className="flex flex-col items-center">
+                <Button type="secondary" title="Connect with Metamask" successTitle="Connected with Metamask" status={statusConnect} onClick={() => connectMM()} />
+                {adminAccount &&
+                  <p className="text-sm text-slate-500 mt-1">Admin: {adminAccount}</p>
+                }
+              </div>
+            </div>
+            
+            {/** CTA to save updated context */}
+            <div className="flex w-full justify-center mt-4">
+              <Button title={settings.configuration ? "Save" : "Get started"} status={adminAccount ? status : STATUS.DISABLED} onClick={() => saveSettings()} />
             </div>
           </>
         }

@@ -1,9 +1,11 @@
 import express from "express";
+import session from 'express-session';
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 import { cliColors } from "./utils/cliColors.mjs";
+import { DIDSession } from 'did-session'
 
 import bodyParser from "body-parser";
 import cors from "cors";
@@ -13,6 +15,7 @@ import IndexingService from "./indexing/index.mjs";
 import Ceramic from "./ceramic/config.mjs";
 import Postgre from "./db/postgre.mjs";
 import HookHandler from "./utils/hookHandler.mjs";
+
 import {
   loadAndInitPlugins,
   loadPlugins,
@@ -32,6 +35,7 @@ const app = next({
   dev,
   dir: "./client",
 });
+
 const handle = app.getRequestHandler();
 const server = express();
 const PORT = 7008;
@@ -40,9 +44,46 @@ const packageJson = JSON.parse(
   fs.readFileSync(path.resolve(__dirname, "../package.json"))
 );
 
-// Use body parser to parse body field for POST
+const authMiddleware = async (req, res, next) => {
+  let settings = getOrbisDBSettings();
+  const authHeader = req.headers['authorization'];
+
+  if(authHeader) {
+    const token = authHeader.split(' ')[1]; // Split 'Bearer <token>'
+    if(token) {
+      try {
+        let resAdminSession = await DIDSession.fromSession(token, null);
+        let didId = resAdminSession.did.parent;
+        const _isAdmin = settings?.configuration?.admins?.includes(didId);
+        const _isAdminsEmpty = !settings?.configuration?.admins || settings.configuration.admins.length === 0;
+  
+        if(didId && (_isAdmin || _isAdminsEmpty)) {
+            return next();
+        } else {
+            return res.json({status: 401, result: "This account isn't an admin."});
+        }
+      } catch(e) {
+        return res.json({status: 401, result: "Error checking session JWT with " + token});
+      }
+      
+      
+    } else {
+      return res.json({status: 401, result: "You must be connected in order to access this endpoint."});
+    }
+  } else {
+    return res.json({status: 401, result: "You must be connected in order to access this endpoint."});
+  }
+};
+
+// Use body parser to parse body field for POST and session
 server.use(bodyParser.json());
 server.use(cors());
+server.use(session({
+  secret: 'your_secret_key',
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: !true } // Set true if using https
+}));
 
 async function startServer() {
   await app.prepare();
@@ -63,7 +104,7 @@ async function startServer() {
   });
 
   // Custom handling of some specific URLs may also go here. For example:
-  server.get("/api/plugins/get", async (req, res) => {
+  server.get("/api/plugins/get", authMiddleware, async (req, res) => {
     try {
       let plugins = await loadPlugins();
       res.json({
@@ -79,7 +120,7 @@ async function startServer() {
   });
 
   // Custom handling of some specific URLs may also go here. For example:
-  server.post("/api/settings/update-configuration", async (req, res) => {
+  server.post("/api/settings/update-configuration", authMiddleware, async (req, res) => {
     const { configuration } = req.body;
     console.log("Trying to save:", configuration);
 
@@ -137,6 +178,7 @@ async function startServer() {
   /** Dynamic route to handle GET routes exposed by installed plugins */
   server.post(
     "/api/plugin-routes/:plugin_uuid/:plugin_route",
+    authMiddleware,
     async (req, res) => {
       const { plugin_uuid, plugin_route } = req.params;
       console.log(
@@ -169,7 +211,7 @@ async function startServer() {
   );
 
   // API endpoint to get details of a specific plugin
-  server.get("/api/plugins/:plugin_id", async (req, res) => {
+  server.get("/api/plugins/:plugin_id", authMiddleware, async (req, res) => {
     const { plugin_id } = req.params;
 
     try {
@@ -198,7 +240,7 @@ async function startServer() {
   });
 
   // Restart the Indexing service
-  server.get("/api/restart", async (req, res) => {
+  server.get("/api/restart", authMiddleware, async (req, res) => {
     console.log(
       cliColors.text.cyan,
       "⚰️ Restarting indexing service...",
@@ -286,9 +328,7 @@ async function startServer() {
   });
 
   /** Will run the query wrote by user */
-  server.get("/api/db/query-schema", async (req, res) => {
-    console.log("Enter query-schema")
-
+  server.get("/api/db/query-schema", authMiddleware, async (req, res) => {
     try {
       let response = await global.indexingService.database.query_schema();
       if (response) {
@@ -315,7 +355,7 @@ async function startServer() {
   });
 
   /** Will run the query wrote by user */
-  server.post("/api/db/query", async (req, res) => {
+  server.post("/api/db/query", authMiddleware, async (req, res) => {
     const { query, params } = req.body;
 
     try {
@@ -362,23 +402,22 @@ async function startServer() {
       });
     }
     
-  });
-
-  
+  });  
 
   if (!dev) {
     // Serve static files from Next.js production build
     console.log("Using production build.");
     server.use(
       "/_next",
+      authMiddleware,
       express.static(path.join(__dirname, "../client/.next"))
     );
     server.use(express.static(path.join(__dirname, "../client/public")));
   }
-
+  
   // Default catch-all handler to allow Next.js to handle all other routes:
   server.all("*", (req, res) => {
-    return handle(req, res);
+    return handle(req, res); // Continue with Next.js handling if authenticated or if it's the '/auth' path
   });
 
   server.listen(PORT, (err) => {

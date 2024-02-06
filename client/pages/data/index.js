@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import Link from 'next/link';
-import { GlobalContext } from "../../contexts/Global";
+import { useGlobal } from "../../contexts/Global";
 import { LoadingCircle, TableIcon, ViewIcon, CaretDown, RefreshIcon, FilterIcon, ArrowLeft, ArrowRight, AddIcon, PlayIcon, EyeIcon } from "../../components/Icons";
 import AddViewModal from "../../components/Modals/AddViewModal";
 import Alert from "../../components/Alert";
@@ -10,7 +10,7 @@ import "ace-builds/src-noconflict/theme-sqlserver";
 import "ace-builds/src-min-noconflict/ext-language_tools";
 
 export default function Data() {
-  const { settings } = useContext(GlobalContext);
+  const { settings, sessionJwt } = useGlobal();
   const [addModalVis, setAddModalVis] = useState(false);
   const [selectedTable, setSelectedTable] = useState({id: "kh4q0ozorrgaq2mezktnrmdwleo1d"});
   const [selectedTableName, setSelectedTableName] = useState("models_indexed");
@@ -34,21 +34,9 @@ export default function Data() {
     if(selectedTable) {
       loadData();
       let currentTableName = getTableName(settings, selectedTable?.id);
-      console.log("currentTableName:", currentTableName);
       setSelectedTableName(currentTableName);
     }
   }, [selectedTable, page]);
-
-  // Method to get the model ID for a human-readable table name
-  function getTableModelId(tableName) {
-    const modelsMapping = settings.models_mapping;
-    for (const [id, name] of Object.entries(modelsMapping || {})) {
-      if (name === tableName) {
-        return id;
-      }
-    }
-    return undefined;
-  }
 
   /** Will load all of the tables and views available in the database */
   async function loadSchema() {
@@ -56,9 +44,15 @@ export default function Data() {
 
     /** Will run custom query wrote by user */
     try {
-      let result = await fetch("/api/db/query-schema");
+      let result = await fetch("/api/db/query-schema",{
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${sessionJwt}`
+        }
+      });
+      
       result = await result.json();
-      console.log("result:", result);
       if (result.status == 200) {
         const fetchedTables = result.data.filter(item => item.type === 'TABLE').map(item => ({ id: item.table_name }));;
         const fetchedViews = result.data.filter(item => item.type === 'VIEW').map(item => ({ id: item.table_name, ...item }));;
@@ -452,7 +446,7 @@ const TablesListNav = ({selectedTable, select, items, type}) => {
   }
 
   return items.map((item, key) => {
-    const { settings } = useContext(GlobalContext);
+    const { settings } = useGlobal();
     const tableName = getTableName(settings, item.id);
     return (
         <div className={`text-[12px] flex flex-row items-center space-x-1 hover:underline cursor-pointer font-mono ${selectedTable?.id == item.id ? "text-[#4483FD] font-medium" : "text-slate-900"} `} onClick={() => select(item)} key={key}>

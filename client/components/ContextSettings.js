@@ -42,11 +42,12 @@ export default function ContextSettings ({context, setContext, callback, parentC
 
     /** Update if existing or create new context */
     if(context) {
+      // TODO: Finalize update
       res = await orbis.updateContext(context.stream_id, content);
     } else {
-      const insertStatement = orbisdb.insert("kjzl6hvfrbw6c7f831brdq6w5j7cd3d1rjsmqm23zpp9imsxpu859d59koykunx").value(content);
-      res = await orbisdb.execute(insertStatement);
-      content.stream_id = res.id;
+      res = await orbisdb.insert("kjzl6hvfrbw6c7f831brdq6w5j7cd3d1rjsmqm23zpp9imsxpu859d59koykunx").value(content).run();
+      console.log("res:", res);
+      content.stream_id = res?.id;
     }
     console.log("res:", res);
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext, useRef } from "react";
 import Link from 'next/link';
-import { GlobalContext } from "../../contexts/Global";
+import { GlobalContext, useGlobal } from "../../contexts/Global";
 import { STATUS, findContextById, getPluginsByContext, findParentContextId, sleep } from "../../utils";
 import { useRouter } from 'next/router'
 import { PluginsCountTag, countSubContexts, countPluginsByContext } from "../../components/ContextDetails";
@@ -13,10 +13,9 @@ import InternalNavigation from "../../components/InternalNavigation";
 import { SettingsIcon, DashIcon, ExternalLinkIcon, LoadingCircle } from "../../components/Icons";
 
 export default function ContextDetails() {
-  const { orbisdb, settings } = useContext(GlobalContext);
+  const { settings } = useGlobal();
   const [context, setContext] = useState();
   const [plugins, setPlugins] = useState([]);
-  const [subContexts, setSubContexts] = useState([]);
   const [parentContext, setParentContext] = useState();
   const [addModalVis, setAddModalVis] = useState(false);
   const [selectedPlugin, setSelectedPlugin] = useState(null);
@@ -30,27 +29,14 @@ export default function ContextDetails() {
   useEffect(() => {
     if(context_id) {
       loadContextDetails();
-      loadSubContexts();
       loadContextPlugins();
       let result = findParentContextId(context_id, settings.contexts ? settings.contexts : null);
       setParentContext(result);
     }
 
     async function loadContextDetails() {
-      let query = orbisdb.select().from("orbis_db_context").where({stream_id: context_id}).first()
-      const results = await orbisdb.execute(query);
-
-      if(results.rows && results.rows.length > 0) {
-        setContext(results.rows[0]);
-      } else {
-        alert("We couldn't find the details for this context on your OrbisDB instance.");
-      }
-    }
-
-    async function loadSubContexts() {
-      let query = orbisdb.select().from("orbis_db_context").where({context: context_id})
-      const results = await orbisdb.execute(query);
-      setSubContexts(results.rows);
+      let _context = findContextById(settings.contexts, context_id);
+      setContext(_context);
     }
 
     function loadContextPlugins() {
@@ -110,8 +96,8 @@ export default function ContextDetails() {
               <h2 className="text-lg font-bold text-slate-900">Sub-contexts</h2>
               <p className="text-base text-slate-600">Create sub-contexts to have a more granular way to manage data in your application.</p>
               <div className="flex flex-col mt-3 space-y-2">
-                {(subContexts && subContexts.length > 0) ?
-                  <Contexts contexts={subContexts} />
+                {(context.contexts && context.contexts.length  > 0) ?
+                  <Contexts contexts={context.contexts} />
                 :
                   <div className="flex justify-center">
                     <Alert title="This context doesn't have any sub-contexts." />
@@ -218,7 +204,7 @@ const PluginsInstalled = ({ plugins, context_id, setSelectedPlugin, setAssignedC
 
 const OnePlugin = ({ plugin, context_id, setSelectedPlugin, setAssignedContext }) => {
   console.log("plugin:", plugin);
-  const { settings } = useContext(GlobalContext);
+  const { settings, sessionJwt } = useGlobal();
   const [pluginDetails, setPluginDetails] = useState();
 
   const existingPluginIndex = settings.plugins.findIndex(p => p.plugin_id === plugin.plugin_id);
@@ -229,7 +215,13 @@ const OnePlugin = ({ plugin, context_id, setSelectedPlugin, setAssignedContext }
     loadPluginDetails();
     async function loadPluginDetails() {
       try {
-        let result = await fetch("/api/plugins/" +  plugin.plugin_id);
+        let result = await fetch("/api/plugins/" +  plugin.plugin_id, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${sessionJwt}`
+          }
+        });
         result = await result.json();
         console.log("plugin details:", result);
         if(result.status == 200) {
@@ -305,7 +297,7 @@ const OnePlugin = ({ plugin, context_id, setSelectedPlugin, setAssignedContext }
 
 
 const Breadcrumbs = ({ context_id }) => {
-  const { settings, setSettings } = useContext(GlobalContext);
+  const { settings } = useGlobal();
   const breadcrumbPath = findBreadcrumbPath(settings.contexts, context_id);
 
   if (!breadcrumbPath) {

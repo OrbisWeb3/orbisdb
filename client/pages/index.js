@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from "react";
 import Link from 'next/link';
-import { GlobalContext } from "../contexts/Global";
+import { useGlobal } from "../contexts/Global";
 import { LoadingCircle } from "../components/Icons";
 import ContextDetails from "../components/ContextDetails";
 import AddContextModal from "../components/Modals/AddContext";
@@ -8,31 +8,10 @@ import Button from "../components/Button";
 import Alert from "../components/Alert";
 
 export default function Contexts() {
-  const { orbisdb } = useContext(GlobalContext);
+  const { settings } = useGlobal();
   const [addModalVis, setAddModalVis] = useState(false);
   const [contexts, setContexts] = useState([]);
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    loadContexts();
-    async function loadContexts() {
-      setLoading(true);
-      try {
-        /** Building query statement */
-        const query = orbisdb.select().from("orbis_db_context").where("context", 'is', null).orderBy("indexed_at", "desc").limit(50); 
-
-        /** Executing query */
-        const results = await orbisdb.execute(query);
-        setContexts(results.rows);
-        setLoading(false);
-        console.log("results:", results)
-      } catch(e) {
-        console.log("Error retrieving contexts.");
-        setLoading(false);
-      }
-      
-    }
-  }, [])
 
   function callback(context) {
     let _contexts = [context, ...contexts];
@@ -52,9 +31,9 @@ export default function Contexts() {
             </div>
           :
             <>
-              {(contexts && contexts.length > 0) ?
+              {(settings.contexts && settings.contexts.length > 0) ?
                 <div className="grid grid-cols-2 gap-4 items-start mb-4">
-                  <LoopContexts contexts={contexts} />
+                  <LoopContexts />
                 </div>
               :
                 <div className="flex justify-center w-full">
@@ -79,8 +58,9 @@ export default function Contexts() {
   )
 }
 
-const LoopContexts = ({contexts}) => {
-  return contexts?.map((context, key) => {
+const LoopContexts = () => {
+  const { settings } = useGlobal();
+  return settings.contexts.map((context, key) => {
     return (
         <ContextDetails context={context} key={key} />
     );

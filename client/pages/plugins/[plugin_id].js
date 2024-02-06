@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from "react";
 import Link from 'next/link';
-import { GlobalContext } from "../../contexts/Global";
+import { useGlobal } from "../../contexts/Global";
 import { CheckIcon, SettingsIcon, DashIcon, ExternalLinkIcon } from "../../components/Icons";
 import Alert from "../../components/Alert";
 import PluginSettingsModal from "../../components/Modals/PluginSettings";
@@ -12,7 +12,7 @@ import { STATUS, sleep, findContextById } from "../../utils";
 import useContextDetails from "../../hooks/useContextDetails";
 
 export default function PluginDetails() {
-  const { settings, setSettings } = useContext(GlobalContext);
+  const { settings, setSettings, sessionJwt } = useGlobal();
   const [pluginDetails, setPluginDetails] = useState();
   const [status, setStatus] = useState(STATUS.ACTIVE);
   const [defaultVariables, setDefaultVariables] = useState();
@@ -38,7 +38,13 @@ export default function PluginDetails() {
     async function loadPluginDetails() {
       /** Load plugin details */
       try {
-        let result = await fetch("/api/plugins/" + plugin_id);
+        let result = await fetch("/api/plugins/" + plugin_id, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${sessionJwt}`
+          }
+        });
         result = await result.json();
         console.log("plugin details:", result);
         if(result.status == 200) {
@@ -94,6 +100,7 @@ export default function PluginDetails() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${sessionJwt}`
         },
         body: JSON.stringify({
           plugin: {
@@ -252,7 +259,7 @@ export default function PluginDetails() {
 
 const OneContext = ({context, setSelectedContext, pluginDetails}) => {
   console.log("pluginDetails context:", context);
-  const { settings } = useContext(GlobalContext);
+  const { settings } = useGlobal();
 
   return(
     <div className="rounded-md bg-white border border-slate-200 flex flex-col overflow-hidden mb-3 mr-3 min-w-[170px] max-w-[350px]">
