@@ -1,15 +1,9 @@
-import { ModelInstanceDocument } from "@ceramicnetwork/stream-model-instance";
-import { StreamID } from "@ceramicnetwork/streamid";
-import { Model } from '@ceramicnetwork/stream-model';
-
-
 export default class CSVUploaderPlugin {
   /**
    * This will initialize all of the hooks used by this plugin.
    * A plugin can register multiple hooks, each hook being linked to a function that will be executed when the hook is triggered
    */
   async init() {
-    this.model_id = "kjzl6hvfrbw6c5zkq3h2trfgeu681e6z2czfrte87oe06f6hvm9cw7vutn4295d";
     /** Return routes and hooks used by plugin */
     return {
       ROUTES: {
@@ -25,7 +19,8 @@ export default class CSVUploaderPlugin {
 
   /** Example of an API route returning a simple HTML page. The routes declared by a plugin are automatically exposed by the OrbisDB instance */
   uploadRoute(req, res) {
-    
+    const authHeader = req.headers['authorization'];
+    console.log("authHeader:", authHeader);
     res.send(`<!DOCTYPE html>
       <html lang="en">
       <head>
@@ -136,14 +131,8 @@ export default class CSVUploaderPlugin {
 				    let __content = await global.indexingService.hookHandler.executeHook("update", content, this.context);
 
             /** We then create the stream in Ceramic with the updated content */
-            let stream = await ModelInstanceDocument.create(
-              global.indexingService.ceramic.client,
-              __content,
-              {
-                model: StreamID.fromString(this.model_id),
-                context: StreamID.fromString(this.context)
-              }
-            );
+            let stream = await global.indexingService.ceramic.orbisdb.insert(this.model_id).value(__content).context(this.context).run();
+
             let stream_id = stream.id?.toString();
             stream_ids.push(stream_id);
             i++;
@@ -155,41 +144,5 @@ export default class CSVUploaderPlugin {
 
       res.send({ message: 'CSV data uploaded to Ceramic successfully.', count: i, streams: stream_ids });
     }
-  }
-}
-
-
-let modelDef = {
-  "name": "OpenBookData",
-  "description": "Model storing books data.",
-  "version": "1.0",
-  "accountRelation": {
-    "type": "list"
-  },
-  "schema": {
-    "type": "object",
-    "$schema": "https://json-schema.org/draft/2020-12/schema",
-    "required": [
-      "title",
-      "author"
-    ],
-    "properties": {
-      "title": {
-        "type": "string"
-      },
-      "description": {
-        "type": ["string", "null"]
-      },
-      "author": {
-        "type": "string"
-      },
-      "classification": {
-        "type": ["object", "null"]
-      },
-      "context": {
-        "type": "string"
-      }
-    },
-    "additionalProperties": false
   }
 }

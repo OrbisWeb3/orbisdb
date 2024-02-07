@@ -4,6 +4,7 @@
   "logo": "/img/social-push-notifications-logo.png",
   "description": "Module.triggering push notifications for the SocialPost and BasicProfile models.",
   "hooks": ["post_process"],
+  "visible": false,
   "variables": [
     {
       "name": "Admin DIDs",

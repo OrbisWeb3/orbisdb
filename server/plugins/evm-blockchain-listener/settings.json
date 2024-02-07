@@ -3,6 +3,7 @@
     "name": "EVM Blockchain Listener",
     "description": "Listen to any smart contract event on EVM chains and create or update a Ceramic stream following the event.",
     "hooks": ["generate"],
+    "visible": false,
     "variables": [
       {
         "name": "Infura API key",

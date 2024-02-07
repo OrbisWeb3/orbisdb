@@ -1,19 +1,27 @@
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { DashIcon } from "./Icons";
+import { useGlobal } from '../contexts/Global';
 
 export default function Header({showItems}) {
+  const { sessionJwt } = useGlobal();
+
   // Define navigation items and their paths
   const navItems = [
     { title: 'Contexts', path: '/', type: "equal" },
     { title: 'Plugins', path: '/plugins', type: "includes" },
     { title: 'Data', path: '/data', type: "includes" },
-    //{ title: 'Models', path: '/models', type: "includes" },
     { title: 'Settings', path: '/settings', type: "equal" }
   ];
 
   async function restart() {
-    let result = await fetch("/api/restart");
+    let result = await fetch("/api/restart", {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${sessionJwt}`
+      }
+    });
     let res = await result.json();
     console.log("res:", res);
     alert("Indexing service restarted.");
@@ -29,6 +37,9 @@ export default function Header({showItems}) {
             {navItems.map((item) => (
               <NavItem key={item.title} item={item} />
             ))}
+          </div>
+          <div className='pr-4'>
+            <Link href="/models" className='bg-blue-50 border border-dashed hover:border-solid cursor-pointer border-blue-200 text-blue-600 px-3 py-1.5 rounded-md text-sm'>Create model</Link>
           </div>
           <div className='pr-4'>
             <button onClick={() => restart()} className='bg-red-50 border border-dashed hover:border-solid cursor-pointer border-red-200 text-red-600 px-3 py-1 rounded-md text-sm'>Restart</button>

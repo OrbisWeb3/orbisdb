@@ -20,6 +20,7 @@ export const GlobalProvider = ({ children }) => {
     /** If user isn't connected after check we redirect to the auth page */
     useEffect(() => {
         if(!adminLoading && !isAdmin && router.pathname != '/auth') {
+            console.log("Redirecting to /auth");
             router.push('/auth');
         }
     }, [adminLoading, isAdmin, router])

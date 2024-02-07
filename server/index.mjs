@@ -66,7 +66,6 @@ const authMiddleware = async (req, res, next) => {
         return res.json({status: 401, result: "Error checking session JWT with " + token});
       }
       
-      
     } else {
       return res.json({status: 401, result: "You must be connected in order to access this endpoint."});
     }
@@ -178,7 +177,6 @@ async function startServer() {
   /** Dynamic route to handle GET routes exposed by installed plugins */
   server.post(
     "/api/plugin-routes/:plugin_uuid/:plugin_route",
-    authMiddleware,
     async (req, res) => {
       const { plugin_uuid, plugin_route } = req.params;
       console.log(

@@ -45,6 +45,9 @@ export default function Plugins() {
 
 const LoopPlugins = ({plugins}) => {
   return plugins.map((plugin, key) => {
+    if(plugin.visible == false) {
+      return null
+    }
     return (
         <div className="flex flex-col items-center bg-white px-4 py-3 border border-slate-200 rounded-md" key={key}>
           {/** Optional plugin logo */}

@@ -42,13 +42,13 @@ export default function ContextSettings ({context, setContext, callback, parentC
 
     /** Update if existing or create new context */
     if(context) {
-      // TODO: Finalize update
-      res = await orbis.updateContext(context.stream_id, content);
+      delete content.stream_id;
+      res = await orbisdb.update(context.stream_id).replace(content).run();
     } else {
       res = await orbisdb.insert("kjzl6hvfrbw6c7f831brdq6w5j7cd3d1rjsmqm23zpp9imsxpu859d59koykunx").value(content).run();
-      console.log("res:", res);
-      content.stream_id = res?.id;
     }
+    console.log("res:", res);
+    content.stream_id = res?.id;
     console.log("res:", res);
 
     /** If successful update in local settings */

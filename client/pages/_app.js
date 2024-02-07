@@ -7,7 +7,6 @@ import { GlobalProvider, useGlobal } from "../contexts/Global";
 import '../styles/globals.css'
 
 export default function App({ Component, pageProps }) {
-
   return(
     <GlobalProvider>
       <AppContent Component={Component} pageProps={pageProps} />

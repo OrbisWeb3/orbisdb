@@ -9,7 +9,7 @@ import ContextDetails from "../ContextDetails";
 
 /** Modal to start tracking a new model */
 export default function AddContextModal({hide, parentContext, callback}) {
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(2);
 
   return(
     <Modal hide={hide}>
@@ -27,7 +27,7 @@ export default function AddContextModal({hide, parentContext, callback}) {
 }
 
 const AddContextSteps = ({step, setStep, hide, parentContext, callback}) => {
-  const [selectedOption, setSelectedOption] = useState(null);
+  const [selectedOption, setSelectedOption] = useState('new');
   const [contextId, setContextId] = useState("");
   const [status, setStatus] = useState(STATUS.ACTIVE);
   const [contextDetails, setContextDetails] = useState();

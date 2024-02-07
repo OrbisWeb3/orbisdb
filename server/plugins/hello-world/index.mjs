@@ -49,21 +49,15 @@ export default class HelloWorldPlugin {
 
   async createStream() {
     console.log("Enter createStream in HelloWorld plugin.");
-    let metadata = {
-      model: StreamID.fromString("kjzl6hvfrbw6c646f9as8ecl9ni6l5qh06hxnx1gbectvymjwjiz48dtlkadyrp"),
-      context: StreamID.fromString(this.context)
-    };
+    this.model_id ="kjzl6hvfrbw6c646f9as8ecl9ni6l5qh06hxnx1gbectvymjwjiz48dtlkadyrp";
+
     /** We then create the stream in Ceramic with the updated content */
     try {
-        let stream = await ModelInstanceDocument.create(
-          global.indexingService.ceramic.client,
-          {
-            body: "hello world!",
-            mention: ""
-          },
-          metadata
-        );
-        console.log("Stream created in HelloWorld plugin.");
+      let stream = await global.indexingService.ceramic.orbisdb.insert(this.model_id).value({
+        body: "hello world!",
+        mention: ""
+      }).context(this.context).run();
+      console.log("Stream created in HelloWorld plugin.");
     } catch(e) {
         console.log("Error creating stream with model:" + this.model_id + ":", e);
     }

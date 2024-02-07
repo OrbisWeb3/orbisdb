@@ -1,14 +1,3 @@
-/** Import Ceramic SDK */
-import { CeramicClient } from '@ceramicnetwork/http-client';
-import { Model } from '@ceramicnetwork/stream-model';
-import { ModelInstanceDocument } from "@ceramicnetwork/stream-model-instance";
-import { StreamID } from "@ceramicnetwork/streamid";
-
-/** To generate dids from a Seed */
-import { DID } from 'dids'
-import { Ed25519Provider } from 'key-did-provider-ed25519'
-import { getResolver } from 'key-did-resolver'
-
 export default class DataSourcePlugin {
   /**
    * This will initialize all of the hooks used by this plugin.
@@ -77,14 +66,8 @@ export default class DataSourcePlugin {
             console.log("content:", __content);
 
             /** We then create the stream with the updated content */
-            let stream = await ModelInstanceDocument.create(
-              global.indexingService.ceramic.client,
-              __content,
-              {
-                model: StreamID.fromString(this.model_id),
-                controller: global.indexingService.ceramic.session.id
-              }
-            );
+            let stream = await global.indexingService.ceramic.orbisdb.insert(this.model_id).value(__content).context(this.context).run();
+
             console.log("Stream created:", stream);
 
           } catch (e) {

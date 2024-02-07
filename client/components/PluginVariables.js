@@ -3,6 +3,7 @@ import AceEditor from "react-ace";
 import "ace-builds/src-min-noconflict/mode-mysql";
 import "ace-builds/src-noconflict/theme-sqlserver";
 import "ace-builds/src-min-noconflict/ext-language_tools";
+import ModelPicker from "./ModelPicker";
 
 export default function LoopPluginVariables({variables, variableValues, handleVariableChange, per_context}) {
   return variables?.map((variable, key) => {
@@ -27,7 +28,6 @@ const PluginVariable = ({variable, per_context, allVariables, variableValues, ha
 
   /** If variable has conditions, let's check if they are met before displaying it */
   if (variable.conditions) {
-    console.log("The variable " + variable.name + " has conditions, let's check if they are met.");
     let conditionsMet = true;
     for (let condition of variable.conditions) {
       if(!variableValues) {
@@ -38,7 +38,6 @@ const PluginVariable = ({variable, per_context, allVariables, variableValues, ha
         break;
       }
     }
-    console.log("conditionsMet:", conditionsMet);
     if (!conditionsMet) {
       return null; // Do not render the input if conditions are not met
     }
@@ -57,7 +56,6 @@ const PluginVariable = ({variable, per_context, allVariables, variableValues, ha
 }
 
 const VariableInput = ({variable, val, handleVariableChange}) => {
-  console.log("handleVariableChange in VariableInput:", handleVariableChange);
   function setVal(value) {
     handleVariableChange(variable.id, value);
   }
@@ -66,6 +64,9 @@ const VariableInput = ({variable, val, handleVariableChange}) => {
 
 
   switch (variable.type) {
+    case "model":
+      input = <><ModelPicker value={val} setValue={setVal} /></>
+      break;
     case "textarea":
       input = <textarea placeholder={variable.name} name={variable.id} value={val} onChange={(e) => setVal(e.target.value)} className={`bg-white px-2 py-1 rounded-md border border-slate-300 text-base text-slate-900 mt-1 ${variable.private && "private-input"}`} />;
       break;

@@ -68,10 +68,6 @@ export default function PluginDetails() {
     }
   }, [plugin_id]);
 
-  useEffect(() => {
-    console.log("variableValues:", variableValues);
-  }, [variableValues])
-
   function getPluginIndex() {
     let _existingPluginIndex = -1;
     if(settings.plugins && settings.plugins.length > 0) {

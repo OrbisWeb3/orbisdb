@@ -1,10 +1,5 @@
-import { Model } from '@ceramicnetwork/stream-model';
-import { ModelInstanceDocument } from "@ceramicnetwork/stream-model-instance";
-import { StreamID } from "@ceramicnetwork/streamid";
-
 export default class ChatGPTPlugin {
     async init() {
-        this.model_id = "kjzl6hvfrbw6c5zkq3h2trfgeu681e6z2czfrte87oe06f6hvm9cw7vutn4295d";
         let HOOKS = {};
 
         switch(this.action) {
@@ -58,19 +53,9 @@ export default class ChatGPTPlugin {
             "content": parsedPrompt
         });
         if(result) {
-            let metadata = {
-                model: StreamID.fromString("kjzl6hvfrbw6c5zkq3h2trfgeu681e6z2czfrte87oe06f6hvm9cw7vutn4295d"),
-                context: StreamID.fromString("kjzl6kcym7w8y93nd7x5mzol982cpimszcebqaqvss31gwidlmhdmxa9ahwbuvt")
-            };
-            console.log("metadata:", metadata);
             /** We then create the stream in Ceramic with the updated content */
             try {
-                let stream = await ModelInstanceDocument.create(
-                    global.indexingService.ceramic.client,
-                    result,
-                    metadata
-                );
-                let stream_id = stream.id?.toString();
+                let stream = await global.indexingService.ceramic.orbisdb.insert(this.model_id).value(result).context(this.context).run();
             } catch(e) {
                 console.log("Error creating stream with model:" + this.model_id + ":", e);
             }
@@ -78,7 +63,6 @@ export default class ChatGPTPlugin {
         } else {
             console.log("Couldn't create stream as `result` is undefined.");
         }
-        
     }
 
     /** Will query ChatGPT based on the plugin settings */ 

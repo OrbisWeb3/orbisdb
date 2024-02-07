@@ -7,9 +7,11 @@
   "routes": ["upload"],
   "variables": [
     {
-      "name": "Model ID",
-      "description": "The model ID used by the streams created by the plugin. It must fit the columns names of your CSV file.",
-      "id": "model_id"
+      "name": "Model",
+      "type": "model",
+      "description": "The model used by the streams created by the plugin. It must fit the columns names of your CSV file.",
+      "id": "model_id",
+      "per_context": true
     }
   ]
 }

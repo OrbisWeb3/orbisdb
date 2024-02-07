@@ -4,6 +4,7 @@
   "logo": "/img/moderation-logo.png",
   "description": "Example of a plugin to moderate content with OpenAI.",
   "hooks": ["validate", "add_metadata"],
+  "visible": false,
   "variables": [
     {
       "name": "OpenAI Secret Key",

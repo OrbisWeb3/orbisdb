@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
-import { GlobalContext } from "../../contexts/Global";
+import { useGlobal } from "../../contexts/Global";
 import Modal from "../Modals";
 import Alert from "../Alert";
 import Button from "../Button";
@@ -9,7 +9,7 @@ import LoopPluginVariables from "../PluginVariables";
 import StepsProgress from "../StepsProgress";
 
 export default function AssignContextModal({hide, plugin_id, selectedContext}) {
-  const { setSettings } = useContext(GlobalContext);
+  const { setSettings, sessionJwt } = useGlobal();
   const [status, setStatus] = useState(STATUS.ACTIVE);
   const [pluginDetails, setPluginDetails] = useState();
   const [selectedContextIds, setSelectedContextIds] = useState([]);
@@ -23,7 +23,13 @@ export default function AssignContextModal({hide, plugin_id, selectedContext}) {
     async function loadPluginDetails() {
       /** Load plugin details */
       try {
-        let result = await fetch("/api/plugins/" + plugin_id);
+        let result = await fetch("/api/plugins/" + plugin_id, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${sessionJwt}`
+          }
+        });
         result = await result.json();
         console.log("plugin details:", result);
         if(result.status == 200) {
@@ -66,13 +72,12 @@ export default function AssignContextModal({hide, plugin_id, selectedContext}) {
 
     setStatus(STATUS.LOADING);
 
-    console.log("variableValues:", variableValues);
-
     // Determine if we are updating an existing context or saving a new one
     let requestBody = {
       plugin_id: plugin_id,
       variables: variableValues
     };
+    console.log("Submitting:", requestBody);
 
     if (selectedContext) {
       console.log("selectedContext:", selectedContext);
@@ -88,6 +93,7 @@ export default function AssignContextModal({hide, plugin_id, selectedContext}) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${sessionJwt}`
       },
       body: JSON.stringify(requestBody),
     });
@@ -106,7 +112,7 @@ export default function AssignContextModal({hide, plugin_id, selectedContext}) {
   }
 
   return(
-    <Modal hide={hide} title={selectedContext ? "Update the context settings" : "Assign to a new context"} description={selectedContext ? "Update the plugin settings for this context."  : "Assign this plugin to a new context." }>
+    <Modal hide={hide} title={selectedContext ? "Update the context settings" : "Assign to a new context"} description={selectedContext ? "Update the plugin settings for this context."  : "Assign this plugin to a new context." } style={{width: "50%"}}>
       {/** Show stepper only if user is assigning a plugin to a new context (not updating it) */}
       {!selectedContext &&
         <div className="w-full mt-6">
@@ -180,13 +186,12 @@ export default function AssignContextModal({hide, plugin_id, selectedContext}) {
           </div>
         </form>
       }
-
     </Modal>
   )
 }
 
 const ContextDropdown = ({ selectedContext, selectedContextIds, setSelectedContextIds, index, plugin_id }) => {
-  const { settings } = useContext(GlobalContext);
+  const { settings } = useGlobal();
   const [listVis, setListVis] = useState(false);
 
   // Get the current context based on the last ID in selectedContextIds
@@ -211,7 +216,6 @@ const ContextDropdown = ({ selectedContext, selectedContextIds, setSelectedConte
     }
 
     setSelectedContextIds(newContexts);
-    console.log("newContexts:", newContexts);
   }
 
   if(parentContext && (!parentContext || !parentContext.contexts || parentContext.contexts.length == 0)) {
@@ -276,7 +280,7 @@ const SmContextDetails = ({context}) => {
 
 
 function isContextUsed(plugin_id, targetContext) {
-  const { settings } = useContext(GlobalContext);
+  const { settings } = useGlobal();
   const pluginSettings = settings.plugins?.find(plugin => plugin.plugin_id === plugin_id);
   if (!pluginSettings) return false;
 
