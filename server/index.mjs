@@ -405,7 +405,6 @@ async function startServer() {
     console.log("Using production build.");
     server.use(
       "/_next",
-      authMiddleware,
       express.static(path.join(__dirname, "../client/.next"))
     );
     server.use(express.static(path.join(__dirname, "../client/public")));
