@@ -1,5 +1,4 @@
 import express from "express";
-import session from 'express-session';
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -77,12 +76,6 @@ const authMiddleware = async (req, res, next) => {
 // Use body parser to parse body field for POST and session
 server.use(bodyParser.json());
 server.use(cors());
-server.use(session({
-  secret: 'your_secret_key',
-  resave: false,
-  saveUninitialized: true,
-  cookie: { secure: !true } // Set true if using https
-}));
 
 async function startServer() {
   await app.prepare();
