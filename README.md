@@ -76,7 +76,7 @@ You can find multiple examples of plugins in the `server/plugins` directory.
 ### Plugin structure
 Here is a very simple example of how an `HelloWorld` plugin looks like:
 
-```
+```javascript
 export default class HelloWorldPlugin {
   /**
    * This will initialize all of the hooks used by this plugin.
@@ -183,7 +183,7 @@ The `hooks` and `routes` must be initiated in the `init()` function the same way
 
 Plugins must have settings located in a `settings.json` file within the plugin's directory, for our `HelloWorld` example the settings look like this.
 
-```
+```json
 {
   "id": "hello-world",
   "name": "Hello World",
