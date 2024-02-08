@@ -10,6 +10,9 @@ Orbis is based on the upcoming Firehose API developed by Ceramic which means tha
 
     npm i -g @ceramicnetwork/cli@4.1.0
 
+> [!WARNING]  
+> The Ceramic Firehose API is still in beta so we recommend using it only on testing nodes for now.
+
 ## Component Overview
 OrbisDB is divided in two main components - **core** and **plugins**.
 
