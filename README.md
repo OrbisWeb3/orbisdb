@@ -6,7 +6,7 @@ Driven by developer feedback and a new role as core developers in the Ceramic ec
 
 OrbisDB is providing a developer-friendly interface to explore data with the ease of SQL and a plugin store to save development time on crypto-specific features; from data migration and gating mechanisms to automated blockchain interactions.
 
-Orbis is based on the upcoming Firehose API developed by Ceramic which means that **your Ceramic node must be running at least** on `v4.1.0`. 
+OrbisDB is based on the upcoming Firehose API developed by Ceramic which means that **your Ceramic node must be running at least** on `v4.1.0`. 
 
     npm i -g @ceramicnetwork/cli@4.1.0
 
@@ -25,10 +25,10 @@ This allows us to focus on stability and performance of core functions, while ex
     - optional and designed to perform operations beyond the core’s scope.
     - Divided **into 4 categories** (additional types may be exposed):
         - **`Create new streams`** : Automatically create new streams based on external data sources (ie. blockchain event, a local CSV file or an API data source).
-        - **`Add meta data`**: Modifies or enhances the stream content before indexing (ie. classify the content using AI, fetch the ENS name of the stream’s controller)
-        - **`Generate action post stream`**: Performs actions after the content has been indexed (ie. email notifications, trigger a blockchain transaction).
-        - **`Gate a stream`:** Checks the stream details and decides whether it should be indexed or not (for moderation or token gating, ie. Gitcoin Passport)
-    - we will initially launch with built-in plugins “made by Orbis”, but our goal is to enable 3rd party developers to build their own plugins.
+        - **`Add metadata`**: Modifies or enhances the stream content before indexing (ie. classify the content using AI, fetch the ENS name of the stream’s controller)
+        - **`Generate action post stream`**: Performs actions after the content has been indexed (ie. send an email or a push notification, trigger a blockchain transaction...).
+        - **`Validation / Gating`:** Checks the stream details and decides whether it should be indexed or not (for moderation, token gating or sybil resistance such as using Gitcoin Passport scores)
+    - we will initially launch with built-in plugins “built by Orbis”, but our goal is to enable 3rd party developers to build their own plugins.
 
 ## Usage
 To get started with OrbisDB we recommend to download this repository locally and run it a simple NodeJS program.
