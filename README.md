@@ -1,5 +1,5 @@
 # OrbisDB
-Driven by developer feedback and a new role as core developers in the Ceramic ecosystem, [Orbis]("https://useorbis.com") is expanding its focus beyond social to offer a simple and efficient gateway for storing and managing open data on Ceramic.
+Driven by developer feedback and a new role as core developers in the Ceramic ecosystem, [Orbis](https://useorbis.com) is expanding its focus beyond social to offer a simple and efficient gateway for storing and managing open data on Ceramic.
 
 > [!WARNING]  
 > OrbisDB is a work-in-progress and is being developed in parallel with the OrbisDB SDK. It should be used only for test purposes for now.
@@ -32,6 +32,7 @@ To get started with OrbisDB we recommend to download this repository locally and
 
     npm install
 
+
     npm run dev
 
 ## Architecture Overview
@@ -57,7 +58,7 @@ An OrbisDB node is responsible for Ceramic <> Postgres interactions, as well as 
 
 ### OrbisDB SDK (@useorbis/db-sdk)
 
-[OrbisDB SDK]("https://github.com/OrbisWeb3/db-sdk") exposes a familiar user authentication interface, combined with an ORM-like approach to managing data.
+[OrbisDB SDK](https://github.com/OrbisWeb3/db-sdk) exposes a familiar user authentication interface, combined with an ORM-like approach to managing data.
 It features a custom-built query builder and an abstraction for Ceramic interactions.
 
 ## Data lifecycle
