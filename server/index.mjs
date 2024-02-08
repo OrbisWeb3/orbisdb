@@ -38,7 +38,7 @@ const app = next({
 
 const handle = app.getRequestHandler();
 const server = express();
-const PORT = 3000;
+const PORT = 7008;
 
 const packageJson = JSON.parse(
   fs.readFileSync(path.resolve(__dirname, "../package.json"))
@@ -391,7 +391,6 @@ async function startServer() {
   server.get("/api/local-ceramic-node", async (req, res) => {
     try {
       let healtcheck_url = 'http://localhost:7007/api/v0/node/healthcheck';
-      console.log("healtcheck_url:", healtcheck_url);
       let response = await fetch(healtcheck_url);
       let resNode = await response.text();
 
