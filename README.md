@@ -206,7 +206,10 @@ Plugins must have settings located in a `settings.json` file within the plugin's
 Settings are exposing some key details of the plugin which will be used in the OrbisDB UI as well as **variables**. Those variables will be applied when the user installs the plugin. Here are some types of variables that we started using in our own plugins:
 - API keys
 - The model ID to use by the plugin
+- Interval in seconds to wait before generating a new stream
 - API endpoint to call for a moderation plugin
 - And any other variables that could be required by the plugin
 
 If you want to explore more complex variables we recommend looking into the [`chat-gpt` plugin](https://github.com/OrbisWeb3/orbisdb/tree/master/server/plugins/chat-gpt).
+
+Plugins can access global variables from OrbisDB such as `global.indexingService.ceramic.orbisdb`. Which means that plugins can both query existing data from the OrbisDB instance using `const result = await global.indexingService.ceramic.orbisdb.select().from(<MODEL_ID>).context(<CONTEXT_ID>).limit(10).run();` as well as create new streams using `const document = await global.indexingService.ceramic.orbisdb.insert(<MODEL_ID>).value({body: "gm"}).context(<CONTEXT_ID>).run();` which can unlock a lot of cool new use cases for Ceramic.
