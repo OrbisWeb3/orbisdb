@@ -105,7 +105,6 @@ export async function loadAndInitPlugins() {
 export async function loadPlugin(plugin_uuid) {
   // Retrive all plugins installed
   let allPlugins = await loadAndInitPlugins();
-  console.log("allPlugins:", allPlugins);
 
   // Loads all plugins installed
   for (const plugin of allPlugins) {

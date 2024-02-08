@@ -113,7 +113,6 @@ export default class CSVUploaderPlugin {
   }
 
   async parseRoute(req, res) {
-    console.log("req.params:", req.params);
     let stream_ids = [];
     if(req.body) {
       const { data } = req.body;
@@ -125,15 +124,14 @@ export default class CSVUploaderPlugin {
         // Optionally, you can check if the content is not empty
         if (Object.keys(content).length > 0) {
           try {
-            console.log("this.context:", this.context);
 
             /** We call the update hook here in order to support hooks able to update data before it's created in Ceramic  */
 				    let __content = await global.indexingService.hookHandler.executeHook("update", content, this.context);
 
             /** We then create the stream in Ceramic with the updated content */
             let stream = await global.indexingService.ceramic.orbisdb.insert(this.model_id).value(__content).context(this.context).run();
-
             let stream_id = stream.id?.toString();
+            console.log("Inserted stream:", stream_id);
             stream_ids.push(stream_id);
             i++;
           } catch (error) {

@@ -61,7 +61,7 @@ export default class IndexingService {
 
 	// Will subscribe to the Ceramic node using server side events
 	async subscribe() {
-		console.log(cliColors.text.cyan, "👀 Subscribed to Ceramic node updates.", cliColors.reset) ; 
+		console.log(cliColors.text.cyan, "👀 Subscribed to Ceramic node updates: ", cliColors.reset, this.ceramic.node) ; 
 		this.eventSource = new EventSource(this.ceramic.node + 'api/v0/feed/aggregation/documents')
 		//const Codec = JsonAsString.pipe(AggregationDocument);
 
@@ -96,7 +96,7 @@ export default class IndexingService {
 		})
 		
 		this.eventSource.addEventListener('error', error => {
-			console.log('error', error)
+			console.log(cliColors.text.red, '🛑 Error received from Ceramic node (double check your settings and that your Ceramic node is alive): ', cliColors.reset, error.message);
 		})
 	}
 

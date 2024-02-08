@@ -38,7 +38,7 @@ const app = next({
 
 const handle = app.getRequestHandler();
 const server = express();
-const PORT = 7008;
+const PORT = 3000;
 
 const packageJson = JSON.parse(
   fs.readFileSync(path.resolve(__dirname, "../package.json"))
@@ -132,6 +132,11 @@ async function startServer() {
 
       // Rewrite the settings file
       updateOrbisDBSettings(settings);
+
+      // Close previous indexing service
+      if(global.indexingService) {
+        global.indexingService.stop();
+      }
 
       // Start indexing service
       startIndexing();

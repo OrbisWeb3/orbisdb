@@ -27,15 +27,15 @@ export const GlobalProvider = ({ children }) => {
 
     /** Load settings and check for admin account right after */
     useEffect(() => {
-        loadSettings();   
+        init();   
 
         /** Load settings from file */
-        async function loadSettings() {
+        async function init() {
             try {
-                let result = await fetch("/api/settings/get");
-                result = await result.json();
-                setSettings(result);
-                checkAdmin(result); 
+                console.log("Before await:", settings);
+                let _settings = await loadSettings();
+                console.log("After await:", _settings);
+                checkAdmin(_settings); 
             } catch(e) {
                 setSettings({});
                 setAdminLoading(false);
@@ -59,7 +59,6 @@ export const GlobalProvider = ({ children }) => {
                     if(didId && _isAdmin) {
                         setIsAdmin(true);
                         setSessionJwt(adminSession);
-                        router.push('/');
                     } else {
                         console.log("User is NOT an admin: ", didId);
                     }
@@ -86,8 +85,7 @@ export const GlobalProvider = ({ children }) => {
                 },
                 nodes: [
                     {
-                        gateway: "http://localhost:7008",
-                        key: "<YOUR_API_KEY>",
+                        gateway: "http://localhost:3000",
                     },
                 ],
             });
@@ -108,9 +106,16 @@ export const GlobalProvider = ({ children }) => {
         }
         
         }
-    }, [settings])
+    }, [settings]);
+
+    async function loadSettings() {
+        let result = await fetch("/api/settings/get");
+        let resultJson = await result.json();
+        setSettings(resultJson);
+        return resultJson;
+    }
   
-    return <GlobalContext.Provider value={{ settings, setSettings, isAdmin, setIsAdmin, user, setUser, orbisdb, setOrbisdb, sessionJwt, setSessionJwt, adminLoading, setAdminLoading }}>{children}</GlobalContext.Provider>;
+    return <GlobalContext.Provider value={{ settings, setSettings, loadSettings, isAdmin, setIsAdmin, user, setUser, orbisdb, setOrbisdb, sessionJwt, setSessionJwt, adminLoading, setAdminLoading }}>{children}</GlobalContext.Provider>;
   };
   
   export const useGlobal = () => useContext(GlobalContext);

@@ -46,6 +46,7 @@ export default class Ceramic {
     }
 }
 
+// TODO: Make sure Ceramic node's URL is valid
 function cleanNodeUrl(url) {
     return url;
 }

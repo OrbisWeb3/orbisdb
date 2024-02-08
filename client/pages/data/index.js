@@ -10,7 +10,7 @@ import "ace-builds/src-noconflict/theme-sqlserver";
 import "ace-builds/src-min-noconflict/ext-language_tools";
 
 export default function Data() {
-  const { settings, sessionJwt } = useGlobal();
+  const { settings, sessionJwt, loadSettings } = useGlobal();
   const [addModalVis, setAddModalVis] = useState(false);
   const [selectedTable, setSelectedTable] = useState({id: "kh4q0ozorrgaq2mezktnrmdwleo1d"});
   const [selectedTableName, setSelectedTableName] = useState("models_indexed");
@@ -26,6 +26,7 @@ export default function Data() {
 
   /** Will be called on start to load the db schema */
   useEffect(() => {
+    loadSettings(); // Will make sure we are using latest version of settings
     loadSchema();
   }, [])
 
@@ -268,6 +269,7 @@ const TableCTAs = ({ selectedTableName, refresh, loading, page, setPage, countRe
 
 /** SQL Editor */
 const SqlEditor = (props) => {
+  const { sessionJwt } = useGlobal();
   const [loading, setLoading] = useState(false);
   const [sqlResults, setSqlResults] = useState();
 
@@ -279,7 +281,8 @@ const SqlEditor = (props) => {
       let result = await fetch("/api/db/query", {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${sessionJwt}`
         },
         body: JSON.stringify({ query: props.sqlValue })
       });
