@@ -188,7 +188,7 @@ const Content = (props) => {
       return(
         <>
           <TableCTAs {...props} />
-          <TableData {...props} />
+          <TableData {...props} sqlResult={{data: props?.data}} />
         </>
       )
   }
@@ -271,7 +271,7 @@ const TableCTAs = ({ selectedTableName, refresh, loading, page, setPage, countRe
 const SqlEditor = (props) => {
   const { sessionJwt } = useGlobal();
   const [loading, setLoading] = useState(false);
-  const [sqlResults, setSqlResults] = useState();
+  const [sqlResult, setSqlResult] = useState();
 
   /** Will run custom query wrote by user */
   async function runQuery() {
@@ -290,14 +290,14 @@ const SqlEditor = (props) => {
       console.log("data from custom query:", result);
       if (result.status == 200) {
         setLoading(false);
-        setSqlResults(result.data);
+        setSqlResult(result);
       } else {
         setLoading(false);
-        setSqlResults([]);
+        setSqlResult(null);
       }
     } catch (e) {
       setLoading(false);
-      setSqlResults([]);
+      setSqlResult(null);
     }
   }
 
@@ -335,8 +335,8 @@ const SqlEditor = (props) => {
               <div className="px-3 py-2 text-slate-500 flex flex-row text-slate-600 space-x-2"><LoadingCircle /><span>Loading results</span></div>
             :
               <>
-                {sqlResults ?
-                  <TableData data={sqlResults} showSuccessIfEmpty={true} />
+                {sqlResult ?
+                  <TableData sqlResult={sqlResult} showSuccessIfEmpty={true} />
                 :
                   <div className="px-3 py-2 text-slate-500">Results will be visible here...</div>
                 }
@@ -348,15 +348,16 @@ const SqlEditor = (props) => {
   )
 }
 
-const TableData = ({ data, showSuccessIfEmpty }) => {
+const TableData = ({ sqlResult, showSuccessIfEmpty }) => {
+  console.log("sqlResult:", sqlResult);
   // Function to extract headers (keys) from the first item in the data array
   const getHeaders = (data) => {
-    if (data.length === 0) return [];
+    if (!data || data.length === 0) return [];
     return Object.keys(data[0]);
   };
 
   // Generate table headers
-  const headers = getHeaders(data);
+  const headers = getHeaders(sqlResult?.data);
 
   // Will copy the cell data to the clipboard
   const copyToClipboard = async (text) => {
@@ -374,15 +375,23 @@ const TableData = ({ data, showSuccessIfEmpty }) => {
   };
 
   // Display empty state if no results available
-  if(data && data.length == 0) {
+  if(sqlResult?.data && sqlResult?.data.length == 0) {
 
     // Show success state if no results are returned (useful after an SQL editor query)
     if(showSuccessIfEmpty) {
-      return(
-        <div className="pt-4 w-full justify-center items-start flex border-t border-slate-200">
-          <Alert color="green" title={"The query was successful but returned no results."} className="font-mono text-[12px]" />
-        </div>
-      )
+      if(sqlResult.error) {
+        return(
+          <div className="pt-4 w-full justify-center items-start flex border-t border-slate-200">
+            <Alert color="red" title={"Error performing the query: " + sqlResult.error} className="font-mono text-[12px]" />
+          </div>
+        )
+      } else {
+        return(
+          <div className="pt-4 w-full justify-center items-start flex border-t border-slate-200">
+            <Alert color="green" title={"The query was successful but returned no results."} className="font-mono text-[12px]" />
+          </div>
+        )
+      }
     }
 
     // Show empty state if no success are returned
@@ -407,7 +416,7 @@ const TableData = ({ data, showSuccessIfEmpty }) => {
           </tr>
         </thead>
         <tbody>
-          {data.map((item, rowIndex) => (
+          {sqlResult?.data.map((item, rowIndex) => (
             <tr key={rowIndex}>
               {headers.map((header, columnIndex) => {
                 const cellValue = item[header];

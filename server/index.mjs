@@ -366,7 +366,8 @@ async function startServer() {
       if (response) {
         res.json({
           status: "200",
-          data: response.data?.rows,
+          data: response.data?.rows ? response.data.rows : [],
+          error: response.error,
           totalCount: response.totalCount,
           title: response.title,
         });

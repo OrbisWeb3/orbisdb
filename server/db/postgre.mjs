@@ -378,7 +378,7 @@ export default class Postgre {
       return { data: res };
     } catch (e) {
       console.error(cliColors.text.red, `❌ Error executing query:`, cliColors.reset, e.message);
-      return false;
+      return { error: e.message };
     }
   }
 
