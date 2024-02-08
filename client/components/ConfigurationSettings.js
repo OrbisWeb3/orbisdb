@@ -25,7 +25,7 @@ export function ConfigurationSetup() {
   const [dbPassword, setDbPassword] = useState(settings?.configuration?.db?.password);
   const [dbHost, setDbHost] = useState(settings?.configuration?.db?.host);
   const [dbPort, setDbPort] = useState(settings?.configuration?.db?.port);
-  const [adminAccount, setAdminAccount] = useState(settings?.configuration?.admins[0]);
+  const [adminAccount, setAdminAccount] = useState(settings?.configuration?.admins?.[0] || null);
   const [step, setStep] = useState(1);
 
   useEffect(() => {

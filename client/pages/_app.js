@@ -16,11 +16,12 @@ export default function App({ Component, pageProps }) {
 
 function AppContent({Component, pageProps}) {
   const { settings, adminLoading } = useGlobal();
+
   return(
     <div className="h-full w-full flex flex-col">
       {(settings && !adminLoading) ?
         <>
-          {!settings.configuration ?
+          {!(settings.configuration?.admins?.length > 0) ?
             <>
               <Header showItems={false} />
               <ConfigurationSetup />
