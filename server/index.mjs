@@ -37,7 +37,7 @@ const app = next({
 
 const handle = app.getRequestHandler();
 const server = express();
-const PORT = 7008;
+const PORT = process.env.PORT || 7008;
 
 const packageJson = JSON.parse(
   fs.readFileSync(path.resolve(__dirname, "../package.json"))
@@ -79,6 +79,9 @@ server.use(cors());
 
 async function startServer() {
   await app.prepare();
+
+  // Healthcheck endpoint
+  server.get('/health', (req, res) => res.status(200).send('OK'));
 
   // Expose some OrbisDB settings through a metadata endpoint
   server.get("/api/metadata", async (req, res) => {
