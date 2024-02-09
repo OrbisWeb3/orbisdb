@@ -33,6 +33,8 @@ To get started with OrbisDB we recommend downloading this repository locally and
 
     npm run dev
 
+Your OrbisDB instance will then be running on port `7008`, allowing you to access it through your browser by navigating to `http://localhost:7008/`. If this is your first time using it, you will be prompted to enter the details of your Ceramic node as well as your database credentials, which are necessary for indexing.
+
 ## Architecture Overview
 
 OrbisDB is built on top of Ceramic protocol and PostgreSQL (both of which are a requirement in order to run OrbisDB).
