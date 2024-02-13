@@ -1,6 +1,3 @@
-import { ModelInstanceDocument } from "@ceramicnetwork/stream-model-instance";
-import { StreamID } from "@ceramicnetwork/streamid";
-
 export default class HelloWorldPlugin {
   /**
    * This will initialize all of the hooks used by this plugin.
@@ -14,9 +11,11 @@ export default class HelloWorldPlugin {
         "add_metadata": (stream) => this.hello(stream),
       },
       ROUTES: {
-        "hello": this.helloApi,
-        "hello-html": this.helloHtmlApi,
-      },
+        GET: {
+          "hello": this.helloApi,
+          "hello-html": this.helloHtmlApi,
+        }
+      }
     };
   }
 

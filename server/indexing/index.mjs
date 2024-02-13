@@ -175,23 +175,25 @@ export default class IndexingService {
 				// Will execute all of the validator hooks and terminate if one of them reject the stream
 				const { isValid } = await this.hookHandler.executeHook("validate", processedData, context);
 				if(isValid == false) {
-					return console.log(cliColors.text.gray, "Stream is not valid, don't index:", cliColors.reset, streamId);
+					return console.log(cliColors.text.red, "❌ Stream is not valid, don't index:", cliColors.reset, streamId);
+				} else {
+					// Will execute all of the "metadata" plugins and return a pluginsData object which will contain all of the metadata added by the different plugins
+					const { pluginsData } = await this.hookHandler.executeHook("add_metadata", processedData, context);
+
+					// Add additional fields to the content which will be saved in the database
+					let insertedContent = {
+						stream_id: streamId,
+						controller: controller,
+						...content,
+						_metadata_context: context
+					}
+
+					// Perform insert or update based on event type
+					// Save the stream content and indexing data in the specified database
+					await this.database.upsert(model, insertedContent, pluginsData);
 				}
 
-				// Will execute all of the "metadata" plugins and return a pluginsData object which will contain all of the metadata added by the different plugins
-				const { pluginsData } = await this.hookHandler.executeHook("add_metadata", processedData, context);
-
-				// Add additional fields to the content which will be saved in the database
-				let insertedContent = {
-					stream_id: streamId,
-					controller: controller,
-					...content,
-					_metadata_context: context
-				}
-
-				// Perform insert or update based on event type
-				// Save the stream content and indexing data in the specified database
-				await this.database.upsert(model, insertedContent, pluginsData);
+				
 
 				// Will execute all of the post-processor plugins.
 				this.hookHandler.executeHook("post_process", processedData, context);

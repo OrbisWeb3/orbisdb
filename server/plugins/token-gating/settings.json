@@ -1,0 +1,48 @@
+{
+  "id": "token-gating",
+  "name": "Token Gating",
+  "logo": "/img/token-gating-logo.png",
+  "description": "Add token gating to your application using any EVM chain you want.",
+  "hooks": ["validate"],
+  "routes": ["check"],
+  "variables": [
+    {
+      "name": "RPC URL",
+      "description": "Enter the full RPC URL for the chain you want to use.",
+      "id": "rpc_url",
+      "type": "string",
+      "per_context": true
+    },
+    {
+      "name": "Contract Address",
+      "description": "What's the address of the contract you want to use?",
+      "id": "contract_address",
+      "type": "string",
+      "per_context": true
+    },
+    {
+      "name": "Contract Type",
+      "description": "Which type of contract is this?",
+      "id": "contract_type",
+      "type": "select",
+      "options": [{"value": "erc_20", "label": "ERC20"}, {"value": "erc721", "label": "ERC721"},{"value": "erc1155", "label": "ERC1155"}],
+      "per_context": true
+    },
+    {
+      "name": "Minimum balance",
+      "description": "The minimum balance required to pass your token gating.",
+      "id": "min_balance",
+      "type": "integer",
+      "per_context": true
+    },
+
+    {
+      "name": "Token ID",
+      "description": "The ID of the token you want to use if contract type is ERC1155.",
+      "id": "token_id",
+      "type": "string",
+      "conditions": [{"id": "contract_type", "value": "erc1155"}],
+      "per_context": true
+    }
+  ]
+}

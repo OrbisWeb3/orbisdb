@@ -71,27 +71,24 @@ export default class HookHandler {
     for (const [pluginId, handler] of handlers) {
       // Safely execute the hook.
       const result = await this.safeExecute(handler, JSON.parse(JSON.stringify(data)));
-
       // Handle hook executed based on its type
-      if (result) {
-        if (result.error) {
-          console.error(`[hook:${hookName}/${pluginId}] Handler error.`, result.error);
-          continue;
-        }
+      if (result?.error) {
+        console.error(`[hook:${hookName}/${pluginId}] Handler error.`, result.error);
+        continue;
+      }
 
-        // Will handle the result of the executed hook based on the hook type
-        switch(hookName) {
-          case "add_metadata":
-            hookData.pluginsData[pluginId] = result;
-            break;
-          case "validator":
-            if (result === false) {
-              hookData.isValid = false;
-            }
-            break;
-          case "update":
-            return result;
-        }
+      // Will handle the result of the executed hook based on the hook type
+      switch(hookName) {
+        case "add_metadata":
+          hookData.pluginsData[pluginId] = result;
+          break;
+        case "validate":
+          if (result == false) {
+            hookData.isValid = false;
+          }
+          break;
+        case "update":
+          return result;
       }
     }
 

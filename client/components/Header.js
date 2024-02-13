@@ -39,7 +39,7 @@ export default function Header({showItems}) {
             ))}
           </div>
           <div className='pr-4'>
-            <Link href="/models" className='bg-blue-50 border border-dashed hover:border-solid cursor-pointer border-blue-200 text-blue-600 px-3 py-1.5 rounded-md text-sm'>Create model</Link>
+            <Link href="/playground" className='bg-blue-50 border border-dashed hover:border-solid cursor-pointer border-blue-200 text-blue-600 px-3 py-1.5 rounded-md text-sm'>Playground</Link>
           </div>
           <div className='pr-4'>
             <button onClick={() => restart()} className='bg-red-50 border border-dashed hover:border-solid cursor-pointer border-red-200 text-red-600 px-3 py-1 rounded-md text-sm'>Restart</button>

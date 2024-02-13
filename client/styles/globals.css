@@ -90,6 +90,9 @@ code {
   color: #15803d !important;
 }
 
+.playground .ace_line {
+  color: #fff;
+}
 /* Custom class for the textarea */
 .private-input {
   color: transparent;
