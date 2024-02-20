@@ -517,7 +517,7 @@ const QueryModel = ({modelId, tableName, setStep}) => {
             <input
             type="text"
             placeholder="Table name"
-            value={tableName}
+            value={_tableName}
             onChange={(e) => setTableName(e.target.value)}
             className="flex-1 bg-white border border-slate-200 rounded-md shadow-sm px-3 py-1.5 text-sm font-medium text-slate-900 mb-2 w-full" />
           </div>
