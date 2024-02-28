@@ -6,9 +6,9 @@ Driven by developer feedback and a new role as core developers in the Ceramic ec
 
 OrbisDB is providing a developer-friendly interface to explore data with the ease of SQL and a plugin store to save development time on crypto-specific features; from data migration and gating mechanisms to automated blockchain interactions.
 
-OrbisDB is based on the upcoming Firehose API developed by Ceramic which means that **your Ceramic node must be running at least** on `v4.1.0`. 
+OrbisDB is based on the upcoming Firehose API developed by Ceramic which means that **your Ceramic node must be running at least** on `v5.0.1`. 
 
-    npm i -g @ceramicnetwork/cli@5.0.1-rc.0
+    npm i -g @ceramicnetwork/cli@5.0.1
 
 > [!WARNING]  
 > The Ceramic Firehose API is still in beta so we recommend using it only on testing nodes for now.

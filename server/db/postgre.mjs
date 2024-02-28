@@ -12,7 +12,7 @@ export default class Postgre {
     try {
       this.connection = null;
 
-      // Instantiate new pool for postgresql database
+      // Instantiate new pool for postgresql database (we skip ssl for local)
       this.adminPool = new Pool({
         user,
         database,
