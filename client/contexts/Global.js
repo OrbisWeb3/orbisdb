@@ -40,6 +40,7 @@ export const GlobalProvider = ({ children }) => {
             console.log("Enter init()");
             try {
                 let admins = await getAdmin();
+                console.log("admins:", admins);
                 if(admins) {
                     checkAdmin(admins); 
                 } else {
@@ -122,6 +123,7 @@ export const GlobalProvider = ({ children }) => {
     async function getAdmin() {
         let result = await fetch("/api/settings/get-admin");
         let resultJson = await result.json();
+        console.log("In getAdmin:", resultJson);
         return resultJson.admins;
     }
 

@@ -135,6 +135,7 @@ async function startServer() {
   server.get("/api/settings/get-admin", async (req, res) => {
     try {
       const settings = getOrbisDBSettings();
+      console.log("In /api/settings/get-admin settings: ", settings);
       res.json({
         status: "200",
         admins: settings?.configuration?.admins,

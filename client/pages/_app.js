@@ -47,7 +47,7 @@ function AppContent({Component, pageProps}) {
     )
   }
 
-  /** User hasn't setup configuration yet */
+  /** User has finalized configuration, render app */
   else if(settings?.configuration?.admins) {
     console.log("settings?.configuration?.admins:", settings?.configuration?.admins);
     return(
@@ -64,28 +64,6 @@ function AppContent({Component, pageProps}) {
       </div>
     )
   }
-
-  return(
-    <div className="h-full w-full flex flex-col">
-      {(settings && !adminLoading) ?
-        <>
-          {!(settings.configuration?.admins?.length > 0) ?
-            <>
-              <Header showItems={false} />
-              <ConfigurationSetup />
-            </>
-          :
-            <>
-              <Header showItems={true} />
-              <Component {...pageProps} />
-            </>
-          }
-        </>
-      :
-        <p className="text-base w-full text-center pt-12">Loading settings...</p>
-      }
-    </div>
-  )
 }
 
 

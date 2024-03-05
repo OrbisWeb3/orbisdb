@@ -21,6 +21,7 @@ export function getOrbisDBSettings() {
     const settingsData = fs.readFileSync(_path);
     console.log("settingsData:", settingsData);
     orbisdbSettings = settingsData.length ? JSON.parse(settingsData) : {};
+    console.log("orbisdbSettings:", orbisdbSettings)
   } catch (error) {
     console.error("Error reading or parsing orbisdb-settings.json, returning empty settings:", error);
     orbisdbSettings = {}; // Set a default value or handle the error as per your requirement
