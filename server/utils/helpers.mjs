@@ -29,7 +29,9 @@ export function getOrbisDBSettings() {
 export function updateOrbisDBSettings(updatedSettings) {
   console.log("Trying to update settings in updateOrbisDBSettings()");
   try {
-    fs.writeFileSync(path.resolve(__dirname, "../../orbisdb-settings.json"), JSON.stringify(updatedSettings, null, 2));
+    let _path = path.resolve(__dirname, "../../orbisdb-settings.json");
+    console.log("Saving settings in _path:", _path);
+    fs.writeFileSync(_path, JSON.stringify(updatedSettings, null, 2));
   } catch(e) {
     console.log("Error updating orbisdb settings:", e);
   }
