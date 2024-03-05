@@ -114,6 +114,41 @@ async function startServer() {
     }
   });
 
+  // Returns API settings
+  server.get("/api/settings/get", authMiddleware, async (req, res) => {
+    try {
+      const settings = getOrbisDBSettings();
+      res.json({
+        status: "200",
+        settings: settings,
+      });
+    } catch (err) {
+      console.error(err);
+      res.json({
+        status: "500",
+        error: 'Failed to read settings.'
+      });
+    }
+  });
+
+  // Returns instance admin
+  server.get("/api/settings/get-admin", async (req, res) => {
+    try {
+      const settings = getOrbisDBSettings();
+      res.json({
+        status: "200",
+        admins: settings?.configuration?.admins,
+      });
+    } catch (err) {
+      console.error(err);
+      res.json({
+        status: "500",
+        error: 'Failed to read settings.'
+      });
+    }
+  });
+
+
   // Custom handling of some specific URLs may also go here. For example:
   server.post("/api/settings/update-configuration", async (req, res) => {
     const { configuration } = req.body;

@@ -17,6 +17,10 @@ export const GlobalProvider = ({ children }) => {
     const [user, setUser] = useState();
     const [orbisdb, setOrbisdb] = useState();
 
+    useEffect(() => {
+        loadSettings();
+    }, [sessionJwt])
+
     /** If user isn't connected after check we redirect to the auth page */
     useEffect(() => {
         if(!adminLoading && !isAdmin && router.pathname != '/auth') {
@@ -32,19 +36,19 @@ export const GlobalProvider = ({ children }) => {
         /** Load settings from file */
         async function init() {
             try {
-                console.log("Before await:", settings);
-                let _settings = await loadSettings();
-                console.log("After await:", _settings);
-                checkAdmin(_settings); 
+                let admins = await getAdmin();
+                if(admins) {
+                    checkAdmin(admins); 
+                }
+                
             } catch(e) {
-                setSettings({});
                 setAdminLoading(false);
                 console.log("Error retrieving local settings, loading default one instead.");
             }
         }
 
         /** Check if there is an existing user connected */
-        async function checkAdmin(_settings) {
+        async function checkAdmin(admins) {
             // Retrieve admin session from local storage
             let adminSession = localStorage.getItem("orbisdb-admin-session");
 
@@ -55,7 +59,7 @@ export const GlobalProvider = ({ children }) => {
                     let didId = resAdminSession.did.parent;
 
                     // If user connected is included in the admins array in configuration we give admin access and save the session token to be used in API calls
-                    let _isAdmin = _settings?.configuration?.admins?.includes(didId.toLowerCase());
+                    let _isAdmin = admins?.includes(didId.toLowerCase());
                     if(didId && _isAdmin) {
                         setIsAdmin(true);
                         setSessionJwt(adminSession);
@@ -108,10 +112,23 @@ export const GlobalProvider = ({ children }) => {
         }
     }, [settings]);
 
-    async function loadSettings() {
-        let result = await fetch("/api/settings/get");
+    async function getAdmin() {
+        let result = await fetch("/api/settings/get-admin");
         let resultJson = await result.json();
-        setSettings(resultJson);
+        return resultJson.admins;
+    }
+
+    async function loadSettings() {
+        let result = await fetch("/api/settings/get", {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${sessionJwt}`
+            }
+        });
+
+        let resultJson = await result.json();
+        setSettings(resultJson?.settings);
         return resultJson;
     }
   

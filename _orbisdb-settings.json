@@ -1,0 +1,191 @@
+{
+  "configuration": {
+    "admins": [
+      "did:pkh:eip155:1:0x075286d1a22b083ebcaf6b7fb4cf970cfc4a18f0"
+    ],
+    "ceramic": {
+      "node": "https://ceramic-cerscan-testnet.hirenodes.io/",
+      "seed": "[240,5,167,186,61,59,108,141,125,40,176,63,61,17,63,209,113,254,142,196,183,7,210,229,124,194,230,255,145,142,251,21]"
+    },
+    "db": {
+      "user": "doadmin",
+      "database": "orbisdb_social_pool",
+      "password": "AVNS_puV0xIOIp_tdmU1kNEy",
+      "host": "test-orbisdb-do-user-10388596-0.c.db.ondigitalocean.com",
+      "port": 25061
+    }
+  },
+  "models_mapping": {
+    "kjzl6hvfrbw6c7f831brdq6w5j7cd3d1rjsmqm23zpp9imsxpu859d59koykunx": "orbis_db_context",
+    "kjzl6hvfrbw6c643jhjfwa58rtre6x9zp3dl7bez7nvvocgwgua779euqovvidk": "book_model_1",
+    "kjzl6hvfrbw6c7b8ra8tnczjeciplhsifq1cvg65etkk2th4sz4ex7rx6frrsx4": "user_profiles",
+    "kjzl6hvfrbw6c5mwib23a4a4ep8k110wktbyv10mis5pzdwnfkalrvp6nf5vto6": "newuserprofile",
+    "kjzl6hvfrbw6c646f9as8ecl9ni6l5qh06hxnx1gbectvymjwjiz48dtlkadyrp": "social_post_test",
+    "kjzl6hvfrbw6ca0f0aqklg4efw55438zq22uq6q3utcafjf0v1eyb93mqp17uca": "light_profiles",
+    "kjzl6hvfrbw6c6clb4fxjip70mvo18ydj0o0927ixh9niolesb51rajwgrhvew6": "lights_posts",
+    "kjzl6hvfrbw6c9x0b2jmkiuhwejywo1oi5ngz1jxzi61ydsoqq1hic6k382smsu": "gitcoin_passport_stamp",
+    "kjzl6hvfrbw6ca5ea8vya01k59zeeyetyqbl5ke2xwj83ztl1h0smyq5jkjzb7j": "gitcoin_passport_stamp_wrapper",
+    "kjzl6hvfrbw6c5k700w9ff9o7y243g2wifpx9bdmdrvnjteu3annxfd3kljtp6w": "link",
+    "kjzl6hvfrbw6c8qtyyuxfdqzn2p4qkqhwnw1szr8m5alwyebj2wsinhv7t4tp1m": "personal_information",
+    "kjzl6hvfrbw6c95dq5wbg095i40ylzxkrxcrzhepdfv72vfwzalt311z4lfuyml": "akasha_profile_interests",
+    "kjzl6hvfrbw6c7jw53h3rzh92moh6n1cq5yvdurygg79lr6ghkzl3zz5u86xzru": "address_1",
+    "kjzl6hvfrbw6c5ngupbx13ojeqsqn1mhuwfk9y4963cyamyds15ycw7zin0yqk9": "profile",
+    "kjzl6hvfrbw6c88ahcuisbzb98vtaufdg2ig58w1wgzecphu2sajdk871py5lqc": "attestation",
+    "kjzl6hvfrbw6c8fmgo9fry8wdkzp44lelabo28bw7ee35si71m0wtmfdrdrz2hh": "confirm",
+    "kjzl6hvfrbw6cbbbyrcgje3z2hnwcmsvjujym5z3wvhx4vli9uqzl10l1kotbzb": "light_profile",
+    "kjzl6hvfrbw6c53vuy2ks5dkhvl70h60vazbtukdw5315wmox3x5sbmfgyr18sh": "question_form",
+    "kjzl6hvfrbw6c8g3qm4nwr2ifl43mfy6ik2e44ikw27ryoos7i1ttde24tcm4s8": "light_credentials",
+    "kjzl6hvfrbw6c8qj2r0l59n7zu6g1i7bdw6nswexyy3gbpybn6pllxhqfn9dud3": "profile_1",
+    "kjzl6hvfrbw6cb5nzwe5a822xndvpfyuuqr4t8bwwapi4cysjyxwue7g9peb3xd": "light_xp_score",
+    "kjzl6hvfrbw6c88zjg5ep2zjj09vag9e3xtp48bo4jce2mvkef9117e0wbwxqp3": "light_xp_score_2"
+  },
+  "contexts": [
+    {
+      "name": "Orbis Demo",
+      "description": "Test demo description",
+      "stream_id": "kjzl6kcym7w8y8qf6q9hi58b7zbqa0v9jud38frelwe3zbmqd328igx9ara65z7",
+      "contexts": [
+        {
+          "name": "New sub context",
+          "description": "test description",
+          "context": "kjzl6kcym7w8y8qf6q9hi58b7zbqa0v9jud38frelwe3zbmqd328igx9ara65z7",
+          "stream_id": "kjzl6kcym7w8y6b4e8kiycb0aziykcw4sf6epfxpvzjqvqet7hy78njzeigvd96"
+        }
+      ]
+    },
+    {
+      "name": "Orbis New Context v3",
+      "description": "",
+      "stream_id": "kjzl6kcym7w8y961wz3ucnbod8duv5ep1pbl9xvyugmhep62ir5v1lwbl7tag62"
+    },
+    {
+      "name": "Test csv uploader",
+      "description": "",
+      "stream_id": "kjzl6kcym7w8y83x9gl9apsrubrku59g8slfcrhd0kvi6jsv8roon2gbo85kfic"
+    },
+    {
+      "name": "testing",
+      "description": "",
+      "stream_id": "kjzl6kcym7w8yayw2t1x6dcqymgkoubc402tisehwybvb3wxw9hrck3ndaj2du6"
+    },
+    {
+      "name": "test",
+      "description": "",
+      "stream_id": "kjzl6kcym7w8yah5dej3gya81lv23q1f81qroj10d0xanydv2cjkbbqf8onnogv"
+    },
+    {
+      "name": "testing",
+      "description": "",
+      "stream_id": "kjzl6kcym7w8y7txabr8zct97893q5rfj768919qyd0gk1rey8hxdel3d5ede5p"
+    },
+    {
+      "name": "test",
+      "description": "",
+      "stream_id": "kjzl6kcym7w8y6bgotdyreibsqbei6kooaw1kqwcq64qickmxlndzxjjp5kbyz9"
+    },
+    {
+      "name": "sol.party",
+      "description": "",
+      "stream_id": "kjzl6kcym7w8yb0sz59gg6u5pxuaph1ek0hdrisws28xhqawezdj06bcfxuy3qw"
+    }
+  ],
+  "plugins": [
+    {
+      "plugin_id": "csv-uploader",
+      "contexts": [
+        {
+          "path": [
+            "kjzl6kcym7w8y8qf6q9hi58b7zbqa0v9jud38frelwe3zbmqd328igx9ara65z7"
+          ],
+          "context": "kjzl6kcym7w8y8qf6q9hi58b7zbqa0v9jud38frelwe3zbmqd328igx9ara65z7",
+          "uuid": "332c7ceb-abfa-470e-9312-0c65709bba54",
+          "variables": {
+            "model_id": "kjzl6hvfrbw6c643jhjfwa58rtre6x9zp3dl7bez7nvvocgwgua779euqovvidk"
+          }
+        },
+        {
+          "path": [
+            "kjzl6kcym7w8y83x9gl9apsrubrku59g8slfcrhd0kvi6jsv8roon2gbo85kfic"
+          ],
+          "context": "kjzl6kcym7w8y83x9gl9apsrubrku59g8slfcrhd0kvi6jsv8roon2gbo85kfic",
+          "uuid": "060a848d-2819-4303-b025-32a21af71d5b",
+          "variables": {
+            "model_id": "kjzl6hvfrbw6c7b8ra8tnczjeciplhsifq1cvg65etkk2th4sz4ex7rx6frrsx4"
+          }
+        },
+        {
+          "path": [
+            "kjzl6kcym7w8y83x9gl9apsrubrku59g8slfcrhd0kvi6jsv8roon2gbo85kfic"
+          ],
+          "context": "kjzl6kcym7w8y83x9gl9apsrubrku59g8slfcrhd0kvi6jsv8roon2gbo85kfic",
+          "uuid": "a6b5f60a-7085-4acd-abe8-b3d5f629512e",
+          "variables": {
+            "model_id": " kjzl6hvfrbw6c5mwib23a4a4ep8k110wktbyv10mis5pzdwnfkalrvp6nf5vto6"
+          }
+        }
+      ]
+    },
+    {
+      "plugin_id": "chat-gpt",
+      "variables": {
+        "organization_id": "org-WbmUqbZDRruhWmTtqo3ToWPO",
+        "secret_key": "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"
+      },
+      "contexts": [
+        {
+          "path": [
+            "kjzl6kcym7w8y961wz3ucnbod8duv5ep1pbl9xvyugmhep62ir5v1lwbl7tag62"
+          ],
+          "context": "kjzl6kcym7w8y961wz3ucnbod8duv5ep1pbl9xvyugmhep62ir5v1lwbl7tag62",
+          "uuid": "a7377cfb-579e-4ed1-95cd-d3abee2269e5",
+          "variables": {
+            "action": "generate",
+            "secs_interval": "60",
+            "prompt": "Invent a science fiction book and return a json object with only those three fields title: string, description: string, author: string",
+            "is_json": "yes",
+            "model_id": " kjzl6hvfrbw6c643jhjfwa58rtre6x9zp3dl7bez7nvvocgwgua779euqovvidk"
+          }
+        }
+      ]
+    },
+    {
+      "plugin_id": "data-source",
+      "variables": null
+    },
+    {
+      "plugin_id": "token-gating",
+      "variables": null,
+      "contexts": [
+        {
+          "path": [
+            "kjzl6kcym7w8y8qf6q9hi58b7zbqa0v9jud38frelwe3zbmqd328igx9ara65z7"
+          ],
+          "context": "kjzl6kcym7w8y8qf6q9hi58b7zbqa0v9jud38frelwe3zbmqd328igx9ara65z7",
+          "uuid": "be034a54-3537-46dc-b5b9-b4a6533abbb2",
+          "variables": {
+            "rpc_url": "https://eth-mainnet.g.alchemy.com/v2/0IID6ojtL5wnRy45VYqrKC61jnq7iweY",
+            "contract": "0xB6a37b5d14D502c3Ab0Ae6f3a0E058BC9517786e",
+            "min_balance": "1",
+            "contract_address": "0xB6a37b5d14D502c3Ab0Ae6f3a0E058BC9517786e",
+            "contract_type": "erc721"
+          }
+        }
+      ]
+    },
+    {
+      "plugin_id": "solana-credentials",
+      "variables": {
+        "rpc_url": "https://mainnet.helius-rpc.com/?api-key=89c0578c-1c7f-4a2d-b3a7-b54b42edeba1"
+      },
+      "contexts": [
+        {
+          "path": [
+            "kjzl6kcym7w8yb0sz59gg6u5pxuaph1ek0hdrisws28xhqawezdj06bcfxuy3qw"
+          ],
+          "context": "kjzl6kcym7w8yb0sz59gg6u5pxuaph1ek0hdrisws28xhqawezdj06bcfxuy3qw",
+          "uuid": "3b041054-47ee-44b0-adbb-0b80a99cea3d"
+        }
+      ]
+    }
+  ]
+}
