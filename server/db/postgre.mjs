@@ -375,7 +375,7 @@ export default class Postgre {
     }*/
 
     try {
-      const client = await this.readOnlyPool.connect();
+      const client = await this.adminPool.connect();
       const res = await client.query(modifiedQuery, params);
       client.release();
       return { data: res };
