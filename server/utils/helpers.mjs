@@ -27,7 +27,12 @@ export function getOrbisDBSettings() {
 
 /** Update the settings file */
 export function updateOrbisDBSettings(updatedSettings) {
-  fs.writeFileSync(path.resolve(__dirname, "../../orbisdb-settings.json"), JSON.stringify(updatedSettings, null, 2));
+  console.log("Trying to update settings in updateOrbisDBSettings()");
+  try {
+    fs.writeFileSync(path.resolve(__dirname, "../../orbisdb-settings.json"), JSON.stringify(updatedSettings, null, 2));
+  } catch(e) {
+    console.log("Error updating orbisdb settings:", e);
+  }
 }
 
 /** Retrieve readable table name from model using mapping */

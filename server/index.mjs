@@ -122,6 +122,7 @@ async function startServer() {
     try {
       // Retrieve current settings
       let settings = getOrbisDBSettings();
+      console.log("settings:", settings);
 
       // Assign new configuration values
       settings.configuration = configuration;
