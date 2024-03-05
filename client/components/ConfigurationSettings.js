@@ -91,6 +91,7 @@ export function ConfigurationSetup() {
   }
 
   async function saveSettings() {
+    console.log("Enter saveSettings()");
     if((!adminAccount || adminAccount == "")) {
       alert("Having at least one admin is required.");
       return;
@@ -125,6 +126,7 @@ export function ConfigurationSetup() {
       console.log("Configuration saved:", response);
 
       if(response.status == 200) {
+        console.log("Success updating configutation with:", response.updatedSettings);
         setStatus(STATUS.SUCCESS);
         setSettings(response.updatedSettings);
       } else {

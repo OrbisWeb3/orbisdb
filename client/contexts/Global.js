@@ -21,7 +21,7 @@ export const GlobalProvider = ({ children }) => {
     useEffect(() => {
         setSettingsLoading(true);
         loadSettings();
-    }, [sessionJwt])
+    }, [])
 
     /** If user isn't connected after check we redirect to the auth page */
     useEffect(() => {
