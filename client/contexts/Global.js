@@ -126,11 +126,12 @@ export const GlobalProvider = ({ children }) => {
     }
 
     async function loadSettings(_jwt) {
+        let adminSession = localStorage.getItem("orbisdb-admin-session");
         let result = await fetch("/api/settings/get", {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': `Bearer ${_jwt ? _jwt : sessionJwt}`
+              'Authorization': `Bearer ${_jwt ? _jwt : adminSession}`
             }
         });
 
