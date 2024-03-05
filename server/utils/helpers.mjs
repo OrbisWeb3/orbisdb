@@ -16,10 +16,13 @@ export const sleep = (milliseconds) => {
 export function getOrbisDBSettings() {
   let orbisdbSettings;
   try {
-    const settingsData = fs.readFileSync(path.resolve(__dirname, "../../orbisdb-settings.json"));
+    let _path = path.resolve(__dirname, "../../orbisdb-settings.json");
+    console.log("Trying to read settings in getOrbisDBSettings() with path:", _path);
+    const settingsData = fs.readFileSync(_path);
+    console.log("settingsData:", settingsData);
     orbisdbSettings = settingsData.length ? JSON.parse(settingsData) : {};
   } catch (error) {
-    console.error("Error reading or parsing orbisdb-settings.json, returning empty settings.");
+    console.error("Error reading or parsing orbisdb-settings.json, returning empty settings:", error);
     orbisdbSettings = {}; // Set a default value or handle the error as per your requirement
   }
   return orbisdbSettings;
