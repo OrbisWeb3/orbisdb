@@ -1,10 +1,11 @@
-import React from "react";
+import React, { useEffect } from "react";
 import Header from "../components/Header";
 import ConfigurationSettings from "../components/ConfigurationSettings";
 
 /** Import Context */
 import { GlobalProvider, useGlobal } from "../contexts/Global";
 import '../styles/globals.css'
+import Auth from "./auth";
 
 export default function App({ Component, pageProps }) {
   return(
@@ -15,7 +16,54 @@ export default function App({ Component, pageProps }) {
 }
 
 function AppContent({Component, pageProps}) {
-  const { settings, adminLoading } = useGlobal();
+  const { settings, settingsLoading, adminLoading, isAdmin } = useGlobal();
+
+  useEffect(() => {
+    console.log("settings:", settings);
+  }, [settings])
+
+  useEffect(() => {
+    console.log("adminLoading:", adminLoading);
+  }, [adminLoading])
+
+  /** If admin details are loading */
+  if(adminLoading || settingsLoading) {
+    return(
+      <div className="h-full w-full flex flex-col">
+        <p className="text-base w-full text-center pt-12">Loading settings...</p>
+      </div>
+    )
+  }
+
+  /** User is connected but not admin */
+  else if(!adminLoading && !isAdmin && settings.configuration) {
+    console.log("settings in <Auth />:", settings);
+    console.log("adminLoading in <Auth />:", adminLoading);
+    console.log("isAdmin in <Auth />:", isAdmin);
+    return(
+      <div className="h-full w-full flex flex-col">
+        <Auth />
+      </div>
+    )
+  }
+
+  /** User hasn't setup configuration yet */
+  else if(settings?.configuration?.admins) {
+    console.log("settings?.configuration?.admins:", settings?.configuration?.admins);
+    return(
+      <div className="h-full w-full flex flex-col">
+        <Header showItems={true} />
+        <Component {...pageProps} />
+      </div>
+    )
+  } else {
+    return(
+      <div className="h-full w-full flex flex-col">
+        <Header showItems={false} />
+        <ConfigurationSetup />
+      </div>
+    )
+  }
 
   return(
     <div className="h-full w-full flex flex-col">
@@ -39,6 +87,8 @@ function AppContent({Component, pageProps}) {
     </div>
   )
 }
+
+
 
 function ConfigurationSetup() {
   return(

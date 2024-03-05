@@ -11,6 +11,7 @@ export const GlobalContext = React.createContext();
 export const GlobalProvider = ({ children }) => {
     const router = useRouter();
     const [settings, setSettings] = useState();
+    const [settingsLoading, setSettingsLoading] = useState();
     const [adminLoading, setAdminLoading] = useState(true);
     const [isAdmin, setIsAdmin] = useState(false);
     const [sessionJwt, setSessionJwt] = useState();
@@ -18,6 +19,7 @@ export const GlobalProvider = ({ children }) => {
     const [orbisdb, setOrbisdb] = useState();
 
     useEffect(() => {
+        setSettingsLoading(true);
         loadSettings();
     }, [sessionJwt])
 
@@ -35,12 +37,14 @@ export const GlobalProvider = ({ children }) => {
 
         /** Load settings from file */
         async function init() {
+            console.log("Enter init()");
             try {
                 let admins = await getAdmin();
                 if(admins) {
                     checkAdmin(admins); 
+                } else {
+                    setAdminLoading(false);
                 }
-                
             } catch(e) {
                 setAdminLoading(false);
                 console.log("Error retrieving local settings, loading default one instead.");
@@ -49,6 +53,7 @@ export const GlobalProvider = ({ children }) => {
 
         /** Check if there is an existing user connected */
         async function checkAdmin(admins) {
+            console.log("Enter checkAdmin");
             // Retrieve admin session from local storage
             let adminSession = localStorage.getItem("orbisdb-admin-session");
 
@@ -66,6 +71,7 @@ export const GlobalProvider = ({ children }) => {
                     } else {
                         console.log("User is NOT an admin: ", didId);
                     }
+                    
                 } catch(e) {
                     console.log("Error checking admin account:", e);
                 }
@@ -128,11 +134,19 @@ export const GlobalProvider = ({ children }) => {
         });
 
         let resultJson = await result.json();
-        setSettings(resultJson?.settings);
+        console.log("In load settings:", resultJson);
+        if(resultJson?.status == 200) {
+            setSettings(resultJson?.settings);
+        } else {
+            setSettings({});
+        }
+        setSettingsLoading(false);
+        
+        
         return resultJson;
     }
   
-    return <GlobalContext.Provider value={{ settings, setSettings, loadSettings, isAdmin, setIsAdmin, user, setUser, orbisdb, setOrbisdb, sessionJwt, setSessionJwt, adminLoading, setAdminLoading }}>{children}</GlobalContext.Provider>;
+    return <GlobalContext.Provider value={{ settings, setSettings, settingsLoading, loadSettings, isAdmin, setIsAdmin, user, setUser, orbisdb, setOrbisdb, sessionJwt, setSessionJwt, adminLoading, setAdminLoading }}>{children}</GlobalContext.Provider>;
   };
   
   export const useGlobal = () => useContext(GlobalContext);
