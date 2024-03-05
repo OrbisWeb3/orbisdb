@@ -68,6 +68,7 @@ export const GlobalProvider = ({ children }) => {
                     if(didId && _isAdmin) {
                         setIsAdmin(true);
                         setSessionJwt(adminSession);
+                        loadSettings(adminSession);
                     } else {
                         console.log("User is NOT an admin: ", didId);
                     }
@@ -124,12 +125,12 @@ export const GlobalProvider = ({ children }) => {
         return resultJson.admins;
     }
 
-    async function loadSettings() {
+    async function loadSettings(_jwt) {
         let result = await fetch("/api/settings/get", {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': `Bearer ${sessionJwt}`
+              'Authorization': `Bearer ${_jwt ? _jwt : sessionJwt}`
             }
         });
 
