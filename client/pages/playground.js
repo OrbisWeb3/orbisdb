@@ -219,6 +219,7 @@ const SetModel = ({setStep}) => {
 /** Step 3.1: Getting users to create their own model */
 const CreateModel = ({setModelId, setModelDefinition, setStep}) => {
   const [status, setStatus] = useState(0);
+  const [accountRelation, setAccountRelation] = useState("list");
   const [modelTitle, setModelTitle] = useState("MyCustomModel");
   const [inputGroups, setInputGroups] = useState([
     { id: 1, textValue: '', selectValue: '' }
@@ -234,7 +235,7 @@ const CreateModel = ({setModelId, setModelDefinition, setStep}) => {
 
   useEffect(() => {
     updateModelDefintion(modelTitle, inputGroups)
-  }, [modelTitle, inputGroups])
+  }, [modelTitle, inputGroups, accountRelation])
 
   function updateModelDefintion(title, fields) {
     // Dynamically build the properties object from inputGroups
@@ -250,7 +251,7 @@ const CreateModel = ({setModelId, setModelDefinition, setStep}) => {
         name: title,
         version: "1.0",
         accountRelation: {
-          type: "list"
+          type: accountRelation
         },
         schema: {
           type: "object",
@@ -318,6 +319,19 @@ const CreateModel = ({setModelId, setModelDefinition, setStep}) => {
               className="bg-white border border-slate-200 rounded-md shadow-sm px-3 py-1.5 text-sm font-medium text-slate-900 mr-2 w-full" />
           </div>
 
+          {/** Model account relation */}
+          <div className="flex flex-col items-start mb-2">
+            <div className="text-slate-600 text-sm mb-1">Account relation:</div>
+            <select
+              placeholder="Account relation"
+              value={accountRelation}
+              onChange={(e) => setAccountRelation(e.target.value)}
+              className="bg-white border border-slate-200 rounded-md shadow-sm px-3 py-1.5 text-sm font-medium text-slate-900">
+              <option value="list">List</option>
+              <option value="single">Single</option>
+            </select>
+          </div>
+
           {/** Dynamic fields added by the user */}
           <div className="text-slate-600 text-sm mb-1">Model properties:</div>
           <ModelFieldsInputGroups inputGroups={inputGroups} setInputGroups={setInputGroups} />
@@ -352,8 +366,6 @@ const UseExistingModel = ({modelId, setModelId, setModelDefinition, setStep}) =>
     } else {
       console.log("Error loading model content.");
     }
-    
-    //setStep(4.2);
   }
 
   return(
@@ -661,11 +673,12 @@ function ModelFieldsInputGroups({inputGroups, setInputGroups}) {
             placeholder="Field type"
             value={group.selectValue}
             onChange={(e) => handleSelectChange(index, e.target.value)}
-            className="bg-white border border-slate-200 rounded-md shadow-sm px-3 py-1.5 text-sm font-medium text-slate-900">
+            className="bg-white border border-slate-200 rounded-md shadow-sm px-3 py-1.5 text-sm font-medium text-slate-900 w-full">
             <option value="">Field type</option>
             <option value="string">String</option>
             <option value="number">Number</option>
             <option value="boolean">Boolean</option>
+            <option value="object">Object</option>
           </select>
         </div>
       ))}

@@ -73,8 +73,24 @@ export default function Data() {
 
   async function loadData() {
     setLoading(true);
+    const isView = views.some(view => view.id === selectedTable.id);
+    console.log("Is "+selectedTable.id+" a view?", isView);
+
+    const requestBody = {
+        table: selectedTable.id,
+        page: page,
+        order_by_indexed_at: !isView.toString(),
+    };
+
     try {
-      let result = await fetch("/api/db/query-all/" + selectedTable.id + "/" + page);
+      let result = await fetch("/api/db/query-all", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${sessionJwt}`, // Assuming sessionJwt is available
+        },
+        body: JSON.stringify(requestBody),
+      });
       result = await result.json();
       console.log("data:", result);
       if (result.status == 200) {
@@ -83,12 +99,13 @@ export default function Data() {
         setCountTotalResults(result.totalCount); // Assuming you have a state to hold the total count
         setTitle(result.title);
       } else {
-        resetResults(null);
+        resetResults(null); // Assuming resetResults handles unsuccessful fetches
       }
     } catch (e) {
-      resetResults(e);
+      resetResults(e); // Assuming resetResults handles exceptions
     }
-  }
+}
+
 
   function resetResults(e) {
     console.log("Error retrieving data:", e);

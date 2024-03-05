@@ -263,13 +263,15 @@ async function startServer() {
   server.get("/api/ping", async (req, res) => res.send("pong"));
 
   // API endpoint to query a table
-  server.get("/api/db/query-all/:table/:page", async (req, res) => {
-    const { table, page } = req.params;
+  server.post("/api/db/query-all", async (req, res) => {
+    const { table, page, order_by_indexed_at } = req.body;
+    console.log("order_by_indexed_at:", order_by_indexed_at);
 
     try {
       let response = await global.indexingService.database.queryGlobal(
         table,
-        page
+        parseInt(page, 10),
+        order_by_indexed_at === 'true'
       );
       if (response && response.data) {
         res.json({
@@ -282,21 +284,21 @@ async function startServer() {
         res.status(404).json({
           status: "404",
           data: [],
-          error: `There wasn't any results returned from table.`,
+          error: `There wasn't any results returned from table ${table}.`,
         });
       }
     } catch (error) {
       console.error(error);
       res.status(500).json({
         status: "500",
-        result: "Internal server error while querying table.",
+        error: "Internal server error while querying table.",
       });
     }
   });
 
+
   /** Will build a query from JSON and run it */
   server.post("/api/db/query/json", async (req, res) => {
-    console.log("Using the JSON query", req.body);
     const { jsonQuery } = req.body;
 
     const { query, params } = SelectStatement.buildQueryFromJson(jsonQuery);

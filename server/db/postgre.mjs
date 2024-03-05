@@ -165,8 +165,10 @@ export default class Postgre {
 
     /** Try to insert stream in the corresponding table */
     try {
-      const res = await this.adminPool.query(queryText, values);
+      const client = await this.adminPool.connect();      
+      const res = await client.query(queryText, values);
       console.log(cliColors.text.green,  `✅ Upserted stream `, cliColors.reset, variables.stream_id, cliColors.text.cyan, " in ", cliColors.reset, tableName);
+      client.release();
       return true;
     } catch (e) {
       if (e.code === '42P01') {
@@ -255,8 +257,9 @@ export default class Postgre {
 
     try {
       // Execute the table creation query
-      await this.adminPool.query(createTableQuery);
-
+      const client = await this.adminPool.connect();      
+      await client.query(createTableQuery);
+      client.release();
       // Keep track of new table name
       this.mapTableName(model, uniqueFormattedTitle);
 
@@ -400,15 +403,23 @@ export default class Postgre {
     }
 
     return resultSql;
-}
+  }
+  
 
   /** Will try to insert variable in the model table */
-  async queryGlobal(table, page) {
+  async queryGlobal(table, page, orderByIndexedAt = true) {
     const records = 100;
     const offset = (page - 1) * records;
 
     // Query for paginated data
-    const queryText = `SELECT * FROM ${table} ORDER BY indexed_at DESC LIMIT ${records} OFFSET ${offset}`;
+    let queryText;
+    if(orderByIndexedAt) {
+      queryText = `SELECT * FROM ${table} ORDER BY indexed_at DESC LIMIT ${records} OFFSET ${offset}`;
+    } else {
+      queryText = `SELECT * FROM ${table} LIMIT ${records} OFFSET ${offset}`;
+    }
+    console.log("In queryGlobal", queryText);
+    
 
     // Query for total count
     const countQuery = `SELECT COUNT(*) FROM ${table}`;

@@ -1,6 +1,6 @@
 {
   "id": "token-gating",
-  "name": "Token Gating",
+  "name": "EVM Token Gating",
   "logo": "/img/token-gating-logo.png",
   "description": "Add token gating to your application using any EVM chain you want.",
   "hooks": ["validate"],

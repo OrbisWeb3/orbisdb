@@ -65,5 +65,4 @@ const LoopContexts = () => {
         <ContextDetails context={context} key={key} />
     );
   });
-  
 }

@@ -1,0 +1,16 @@
+{
+  "id": "solana-credentials",
+  "name": "Solana Credentials",
+  "logo": "/img/solana-credentials.png",
+  "description": "Mint badges for your Solana users based on the protocols they used.",
+  "hooks": ["generate", "validate"],
+  "routes": ["mint"],
+  "variables": [
+    {
+      "name": "RPC URL",
+      "description": "Your Solana RPC URL. You can use helius.dev to get one if you don't have any.",
+      "id": "rpc_url",
+      "type": "string"
+    }
+  ]
+}
