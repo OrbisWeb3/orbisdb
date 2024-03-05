@@ -115,7 +115,7 @@ async function startServer() {
   });
 
   // Custom handling of some specific URLs may also go here. For example:
-  server.post("/api/settings/update-configuration", authMiddleware, async (req, res) => {
+  server.post("/api/settings/update-configuration", async (req, res) => {
     const { configuration } = req.body;
     console.log("Trying to save:", configuration);
 
