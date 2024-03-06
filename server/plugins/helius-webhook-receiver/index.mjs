@@ -74,15 +74,16 @@ export default class HeliusWebhookReceiver {
                   stream = {
                     program: program.name,
                     program_slug: program.slug,
-                    programId: programUsed,
+                    program_id: programUsed,
                     method: ix.name,
-                    stringifiedData: JSON.stringify(cleanedIx),
-                    signer: signer
+                    stringified_data: JSON.stringify(cleanedIx),
+                    signer: signer,
+                    signature: transaction.transaction.signatures[0]
                   };
                   console.log("stream:", stream);
 
                   // Push stream to Ceramic 
-                  let streamPushed = await global.indexingService.ceramic.orbisdb.insert("kjzl6hvfrbw6c5chyjk3tvpak2pnzs2u5387dtltr137z1wcoe8b9jc2it7ofds").value(stream).context(this.context).run();
+                  let streamPushed = await global.indexingService.ceramic.orbisdb.insert("kjzl6hvfrbw6c8r024bfgihyx15jf4yj56ebb1n7tl7yflycyeoaw0ug9ay4vpl").value(stream).context(this.context).run();
                   streams.push(stream);
                 }
               } catch (e) {
