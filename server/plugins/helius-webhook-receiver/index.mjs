@@ -28,7 +28,8 @@ export default class HeliusWebhookReceiver {
     let transaction = transactions[0]
 
     // Retrieve transaction signer
-    let signer = transaction.transaction?.signatures ? transaction.transaction.signatures[0] : "";
+    let signer = transaction.transaction?.message.accountKeys ? transaction.transaction.message.accountKeys[0] : "";
+   ;
 
     // Loop each instruction to retrieve and interpret the corresponding data
     for (const [index, instruction] of transaction.transaction.message.instructions.entries()) {
