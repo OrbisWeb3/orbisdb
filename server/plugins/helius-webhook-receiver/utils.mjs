@@ -1,20 +1,4 @@
 import { DriftInterface } from "./interfaces/drift.mjs";
-
-export function convertAndFormatBigNumber(value, precision) {
-    // Convert BigNumber to string
-    const stringValue = value.toString();
-    // Convert string to a decimal number with the specified precision
-    const length = stringValue.length;
-    const decimalPosition = length > precision ? length - precision : 0;
-    let formattedValue = stringValue.slice(0, decimalPosition) + "." + stringValue.slice(decimalPosition).padStart(precision, '0');
-    // Remove trailing zeros after the decimal point and the decimal point if not needed
-    formattedValue = formattedValue.replace(/\.?0+$/, '');
-    // Handle cases where the string is something like ".5"
-    if (formattedValue.startsWith('.')) {
-        formattedValue = '0' + formattedValue;
-    }
-    return formattedValue;
-}
   
 export const solPrograms = {
     "dRiftyHA39MWEi3m9aunc5MzRF1JYuBsbn6VPcn33UH": {

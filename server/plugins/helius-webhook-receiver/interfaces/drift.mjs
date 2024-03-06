@@ -1,4 +1,3 @@
-import { convertAndFormatBigNumber } from "../utils.mjs";
 
 export class DriftInterface {
     idl = idl;
@@ -9,8 +8,6 @@ export class DriftInterface {
         for (let key in obj) {
             if (obj.hasOwnProperty(key)) {
                 const value = obj[key];
-                let market_decimals = MarketsDecimals[obj['marketIndex']];
-                console.log("market_decimals for " + obj['marketIndex'] + " is ", market_decimals);
                 switch(key) {
                     case "marketIndex":
                         newObj[key] = value;
@@ -23,17 +20,17 @@ export class DriftInterface {
                         }
                         break;
                     case "marketType":
-                    if(value.perp) {
-                        newObj[key] = "perp";
-                    } else {
-                        newObj[key] = "spot";
-                    }
+                        if(value.perp) {
+                            newObj[key] = "perp";
+                        } else {
+                            newObj[key] = "spot";
+                        }
                         break;
                     case "baseAssetAmount":
-                        newObj[key] = convertAndFormatBigNumber(value, market_decimals);
+                        newObj[key] = value.toString();
                         break;
                     case "price":
-                        newObj[key] = convertAndFormatBigNumber(value, 6);
+                        newObj[key] = value.toString();
                         break;
 
                     default: 
@@ -45,19 +42,6 @@ export class DriftInterface {
         return newObj;
     }
 }
-
-const BalanceType = {
-    0: 'deposit',
-    1: 'withdraw'
-  };
-  const Markets = {
-    0: 'solana',
-    1: 'bitcoin'
-  };
-  const MarketsDecimals = {
-    0: 9,
-    1: 9
-  };
 
 export const idl = {
     "version": "2.66.0",

@@ -24,15 +24,11 @@ export default class HeliusWebhookReceiver {
 
   /** Will interpret the data received from the webhook to convert it to readable data */
   async interpretWebhookTransaction(transactions) {
-    console.log("transactions:", transactions);
     let streams = [];
     let transaction = transactions[0]
-    console.log("Enter interpretWebhookTransaction with:", transaction);
-    console.log("transaction.transaction:", transaction.transaction);
 
     // Retrieve transaction signer
     let signer = transaction.transaction?.signatures ? transaction.transaction.signatures[0] : "";
-    console.log("signer is:", signer);
 
     // Loop each instruction to retrieve and interpret the corresponding data
     for (const [index, instruction] of transaction.transaction.message.instructions.entries()) {
@@ -42,7 +38,6 @@ export default class HeliusWebhookReceiver {
           // Retrieve program used (for test purposes we will use drift idl)
           let programUsed = transaction.transaction.message.accountKeys[instruction.programIdIndex];
           let program = solPrograms[programUsed];
-          console.log("program:", program);
 
           // Only interpret transaction if it's linked to one of the supported protocol
           if (program && program.interface?.idl) {
@@ -50,7 +45,6 @@ export default class HeliusWebhookReceiver {
             const coder = new BorshCoder(program.interface.idl);
 
             // Decode instruction data
-            console.log("Decoding:", instruction.data);
             let data = bs58.default.decode(instruction.data);
             const dataBuffer = Buffer.from(data.buffer, data.byteOffset, data.byteLength);
 
@@ -58,7 +52,6 @@ export default class HeliusWebhookReceiver {
             if (dataBuffer) {
               try {
                 const ix = coder.instruction.decode(dataBuffer, "base58");
-                console.log("ix:", ix);
 
                 if (ix && ix.data && ix.data.params) {
                   let cleanedIx;
@@ -80,7 +73,6 @@ export default class HeliusWebhookReceiver {
                     signer: signer,
                     signature: transaction.transaction.signatures[0]
                   };
-                  console.log("stream:", stream);
 
                   // Push stream to Ceramic 
                   let streamPushed = await global.indexingService.ceramic.orbisdb.insert("kjzl6hvfrbw6c8r024bfgihyx15jf4yj56ebb1n7tl7yflycyeoaw0ug9ay4vpl").value(stream).context(this.context).run();
