@@ -4,13 +4,5 @@
   "logo": "/img/solana-credentials.png",
   "description": "Parse webhooks received by Helius.",
   "hooks": ["generate"],
-  "routes": ["receive"],
-  "variables": [
-    {
-      "name": "API KEY",
-      "description": "Your Helius API key.",
-      "id": "api_key",
-      "type": "string"
-    }
-  ]
+  "routes": ["receive"]
 }
