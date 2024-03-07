@@ -84,7 +84,7 @@ export default class HeliusWebhookReceiver {
               }
             }
           } else {
-            console.log("This program is not yet supported by our plugin:", programUsed);
+            //console.log("This program is not yet supported by our plugin:", programUsed);
           }
       } else {
         console.log("There wasn't any instruction data to decode.");
@@ -101,9 +101,6 @@ export default class HeliusWebhookReceiver {
   /** Will retrieve the credentials for a Solana address and mint all of those */
   async receiveWebhook(req, res) {
     if(req.body) {
-      //const { did } = req.body;
-      console.log("Received webhook with body:", req.body);  
-
       // Try to interpret the transaction
       await this.interpretWebhookTransaction(req.body);
       res.json({ status: 200, result: "Received webhook" });
