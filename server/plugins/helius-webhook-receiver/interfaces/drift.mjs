@@ -1,9 +1,9 @@
-
 export class DriftInterface {
     idl = idl;
     
     /** Will clean drift transaction */
-    clean(obj) {
+    clean(data) {
+        let obj = data.params[0];
         const newObj = {};
         for (let key in obj) {
             if (obj.hasOwnProperty(key)) {

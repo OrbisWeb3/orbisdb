@@ -1,8 +1,9 @@
 import * as bs58 from 'bs58'
 import { BorshCoder } from '@project-serum/anchor';
-import { solPrograms } from './utils.mjs';
+import { extractTokenTransfers, solPrograms } from './utils.mjs';
 import { driftRawTx } from './interfaces/drift.mjs';
-console.log("bs58:", bs58);
+import { jupiterRawTx } from './interfaces/jupiter.mjs';
+import { orcaRawTx } from './interfaces/orca.mjs';
 export default class HeliusWebhookReceiver {
 
   /**
@@ -12,7 +13,7 @@ export default class HeliusWebhookReceiver {
   async init() {
     return {
       HOOKS: {
-        "generate": () => this.interpretWebhookTransaction(driftRawTx) // For test purposes
+        "generate": () => this.interpretWebhookTransaction(jupiterRawTx, true) // For test purposes
       },
       ROUTES: {
         POST: {
@@ -23,13 +24,23 @@ export default class HeliusWebhookReceiver {
   }
 
   /** Will interpret the data received from the webhook to convert it to readable data */
-  async interpretWebhookTransaction(transactions) {
+  async interpretWebhookTransaction(transactions, debug = false) {
     let streams = [];
     let transaction = transactions[0]
 
+    if(debug) {
+      console.log("Enter interpretWebhookTransaction with:", transactions);
+    }
+
     // Retrieve transaction signer
     let signer = transaction.transaction?.message.accountKeys ? transaction.transaction.message.accountKeys[0] : "";
-   ;
+    if(debug) {
+      console.log("signer:", signer);
+    }
+
+    // Retrieve token transfers for this transactions
+    let token_transfers = extractTokenTransfers(transaction);
+    console.log("token_transfers:", token_transfers);
 
     // Loop each instruction to retrieve and interpret the corresponding data
     for (const [index, instruction] of transaction.transaction.message.instructions.entries()) {
@@ -40,6 +51,11 @@ export default class HeliusWebhookReceiver {
           let programUsed = transaction.transaction.message.accountKeys[instruction.programIdIndex];
           let program = solPrograms[programUsed];
 
+          if(debug) {
+            console.log("programUsed:", programUsed);
+            console.log("program:", program);
+          }
+
           // Only interpret transaction if it's linked to one of the supported protocol
           if (program && program.interface?.idl) {
             // Use the right IDL for the identified program
@@ -48,18 +64,22 @@ export default class HeliusWebhookReceiver {
             // Decode instruction data
             let data = bs58.default.decode(instruction.data);
             const dataBuffer = Buffer.from(data.buffer, data.byteOffset, data.byteLength);
-
+            
             // Decode instruction using the idl
             if (dataBuffer) {
               try {
                 const ix = coder.instruction.decode(dataBuffer, "base58");
-
-                if (ix && ix.data && ix.data.params) {
+                if(debug) {
+                  console.log("ix:", ix);
+                }
+                if (ix && ix.data) {
                   let cleanedIx;
+                  console.log("ix.data:", ix.data);
+
 
                   // If program has a custom cleaning function we use it otherwise we default to the original ix
                   if (program.interface.clean) {
-                      cleanedIx = program.interface.clean(ix.data.params[0]);
+                      cleanedIx = program.interface.clean(ix.data);
                   } else {
                       cleanedIx = ix;
                   }
@@ -74,9 +94,10 @@ export default class HeliusWebhookReceiver {
                     signer: signer,
                     signature: transaction.transaction.signatures[0]
                   };
+                  console.log("Trying to insert:", stream);
 
                   // Push stream to Ceramic 
-                  let streamPushed = await global.indexingService.ceramic.orbisdb.insert("kjzl6hvfrbw6c8r024bfgihyx15jf4yj56ebb1n7tl7yflycyeoaw0ug9ay4vpl").value(stream).context(this.context).run();
+                  //let streamPushed = await global.indexingService.ceramic.orbisdb.insert("kjzl6hvfrbw6c8r024bfgihyx15jf4yj56ebb1n7tl7yflycyeoaw0ug9ay4vpl").value(stream).context(this.context).run();
                   streams.push(stream);
                 }
               } catch (e) {

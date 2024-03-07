@@ -1,5 +1,7 @@
 import { DriftInterface } from "./interfaces/drift.mjs";
-  
+import { JupiterInterface } from "./interfaces/jupiter.mjs";
+import { OrcaInterface } from "./interfaces/orca.mjs";
+
 export const solPrograms = {
     "dRiftyHA39MWEi3m9aunc5MzRF1JYuBsbn6VPcn33UH": {
         name: "Drift Protocol V2",
@@ -15,7 +17,13 @@ export const solPrograms = {
     "whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc": {
         name: "Orca",
         slug: "orca",
-        protocol: "orca"
+        protocol: "orca",
+        interface: new OrcaInterface()
+    },
+    "jupoNjAxXgZ4rjzxzPMP4oxduvQsQtZzyknqvzYNrNu": {
+        name: "Jupiter Limit Order",
+        slug: "jupiter-limit-order",
+        protocol: "jupiter"
     },
     "JUP6i4ozu5ydDCnLiMogSckDPpbtr7BJ4FtzYWkb5Rk": {
         name: "Jupiter v1",
@@ -40,7 +48,8 @@ export const solPrograms = {
     "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4": {
         name: "Jupiter v6",
         slug: "jupiter-v6",
-        protocol: "jupiter"
+        protocol: "jupiter",
+        interface: new JupiterInterface()
     },
     "PhoeNiXZ8ByJGLkxNfZRnkUfjvmuYqLR89jjFHGqdXY": {
         name: "Phoenix",
@@ -126,4 +135,48 @@ export function getAddress(did) {
 
     // Return the last element of the array
     return parts[parts.length - 1];
-}
+}  
+
+export function extractTokenTransfers(transaction) {
+    const { preTokenBalances, postTokenBalances } = transaction.meta;
+  
+    // Filter and map preTokenBalances for easy lookup by mint and owner
+    const preBalancesMap = preTokenBalances.reduce((acc, balance) => {
+      const key = `${balance.mint}-${balance.owner}`;
+      acc[key] = balance;
+      return acc;
+    }, {});
+  
+    // Initialize an array to hold the transfers
+    const transfers = [];
+  
+    // Iterate over postTokenBalances to find decreases in balance (indicating a transfer)
+    postTokenBalances.forEach(postBalance => {
+      const key = `${postBalance.mint}-${postBalance.owner}`;
+      const preBalance = preBalancesMap[key];
+  
+      // Calculate the difference in balance
+      if (preBalance) {
+        const amountDifference = BigInt(preBalance.uiTokenAmount.amount) - BigInt(postBalance.uiTokenAmount.amount);
+  
+        // If the amount decreased, it indicates a transfer out of the account
+        if (amountDifference > 0) {
+          transfers.push({
+            mint: postBalance.mint,
+            mintClean: programToToken[postBalance.mint],
+            owner: preBalance.owner,
+            amountTransferred: Number(amountDifference) / Math.pow(10, postBalance.uiTokenAmount.decimals),
+          });
+        }
+      }
+    });
+  
+    return transfers;
+  }
+  
+  let programToToken = {
+    "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v": "USDC",
+    "So11111111111111111111111111111111111111112": "WSOL",
+    "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB": "USDT",
+    "mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So": "mSOL"
+  }
