@@ -142,7 +142,9 @@ export default class Postgre {
 
     // Extracting field names and values from data
     const fields = Object.keys(variables);
-    const values = Object.values(variables);
+    const values = Object.values(variables).map(value => 
+      (typeof value === 'object' && value !== null) ? JSON.stringify(value) : value
+    );
 
     // Define which fields to update in case of conflict
     const updateFields = fields.filter(field => field !== 'stream_id');
@@ -406,7 +408,7 @@ export default class Postgre {
   }
   
 
-  /** Will try to insert variable in the model table */
+  /** Query a whole table */
   async queryGlobal(table, page, orderByIndexedAt = true) {
     const records = 100;
     const offset = (page - 1) * records;
@@ -431,7 +433,7 @@ export default class Postgre {
       WHERE relname = '${table}';`;
 
     try {
-      const client = await this.readOnlyPool.connect();
+      const client = await this.adminPool.connect();
       const res = await client.query(queryText);
       const countResult = await client.query(countQuery);
       const commentResult = await client.query(commentQuery);
@@ -460,7 +462,7 @@ export default class Postgre {
       // Determine PostgreSQL data type based on JSON schema
       let postgresType;
       if (Array.isArray(value.type)) {
-        if (value.type.includes('object')) {
+        if (value.type.includes('object') || value.type.includes('array')) {
           postgresType = 'JSONB';
         } else {
           // Handles basic types (string, number) with possible nulls
