@@ -170,7 +170,6 @@ export default class Postgre {
       const client = await this.adminPool.connect();      
       const res = await client.query(queryText, values);
       console.log(cliColors.text.green,  `✅ Upserted stream `, cliColors.reset, variables.stream_id, cliColors.text.cyan, " in ", cliColors.reset, tableName);
-      client.release();
       return true;
     } catch (e) {
       if (e.code === '42P01') {
@@ -180,6 +179,9 @@ export default class Postgre {
         console.error(cliColors.text.red, `Error inserting stream ${variables.stream_id}:`, cliColors.reset, e.message);
       }
       return false;
+    } finally {
+      // Release the client back to the pool
+      client.release();
     }
   }
 
@@ -261,7 +263,6 @@ export default class Postgre {
       // Execute the table creation query
       const client = await this.adminPool.connect();      
       await client.query(createTableQuery);
-      client.release();
       // Keep track of new table name
       this.mapTableName(model, uniqueFormattedTitle);
 
@@ -273,6 +274,9 @@ export default class Postgre {
       }
     } catch (err) {
       console.error(cliColors.text.red, "Error creating new table.", cliColors.reset, err.stack);
+    } finally {
+      // Release the client back to the pool
+      client.release();
     }
   }
 
@@ -358,11 +362,13 @@ export default class Postgre {
     try {
       const client = await this.adminPool.connect();
       const res = await client.query(query);
-      client.release();
       return { data: res };
     } catch (e) {
       console.error(cliColors.text.red, `❌ Error executing schema query:`, cliColors.reset, e.message);
       return false;
+    } finally {
+      // Release the client back to the pool
+      client.release();
     }
   }
 
@@ -375,15 +381,26 @@ export default class Postgre {
     /*if (!/LIMIT \d+/i.test(userQuery)) {
       modifiedQuery += ` LIMIT ${defaultLimit}`;
     }*/
-
+    let res;
+    let error;
     try {
       const client = await this.adminPool.connect();
-      const res = await client.query(modifiedQuery, params);
-      client.release();
-      return { data: res };
+      res = await client.query(modifiedQuery, params);
+      
     } catch (e) {
       console.error(cliColors.text.red, `❌ Error executing query:`, cliColors.reset, e.message);
-      return { error: e.message };
+      error = e.message;
+      
+    } finally {
+      // Release the client back to the pool
+      client.release();
+    }
+
+    /** Return result */
+    if(res) {
+      return { data: res };
+    } else {
+      return { error: error };
     }
   }
 
@@ -437,7 +454,6 @@ export default class Postgre {
       const res = await client.query(queryText);
       const countResult = await client.query(countQuery);
       const commentResult = await client.query(commentQuery);
-      client.release();
 
       // Extracting total count from countResult
       const totalCount = countResult.rows[0].count;
@@ -449,6 +465,9 @@ export default class Postgre {
     } catch (e) {
       console.error(`Error querying data from ${table}:`, e.message);
       return false;
+    } finally {
+      // Release the client back to the pool
+      client.release();
     }
   }
 
