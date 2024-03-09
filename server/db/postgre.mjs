@@ -19,6 +19,9 @@ export default class Postgre {
         password,
         host,
         port,
+        max: 20, // Set pool max size to 20
+        idleTimeoutMillis: 30000, // Set idle timeout to 30 seconds
+        connectionTimeoutMillis: 2000, // Set connection timeout to 2 seconds
         ssl: {
           rejectUnauthorized: false // Or configure a proper SSL certificate if available
         }
@@ -84,9 +87,8 @@ export default class Postgre {
         console.log(cliColors.text.cyan, '👁️  Applying privileges to read-only user:', cliColors.reset, readOnlyUsername);
     } catch (e) {
         console.error(cliColors.text.red, '👁️  Error applying privileges to read-only user:', cliColors.reset, e.stack);
-    }
+    } 
 
-    // Release client
     client.release();
 
     // Instantiate new pool for postgresql database
@@ -166,11 +168,11 @@ export default class Postgre {
     }
 
     /** Try to insert stream in the corresponding table */
+    let res;
+    const client = await this.adminPool.connect();  
     try {
-      const client = await this.adminPool.connect();      
-      const res = await client.query(queryText, values);
+      res = await client.query(queryText, values);
       console.log(cliColors.text.green,  `✅ Upserted stream `, cliColors.reset, variables.stream_id, cliColors.text.cyan, " in ", cliColors.reset, tableName);
-      return true;
     } catch (e) {
       if (e.code === '42P01') {
         // Trigger indexing of new model with a callback to retry indexing this stream
@@ -178,10 +180,15 @@ export default class Postgre {
       } else {
         console.error(cliColors.text.red, `Error inserting stream ${variables.stream_id}:`, cliColors.reset, e.message);
       }
-      return false;
     } finally {
       // Release the client back to the pool
       client.release();
+    }
+
+    if(res) {
+      return true;
+    } else {
+      return false;
     }
   }
 
@@ -259,9 +266,9 @@ export default class Postgre {
       CREATE INDEX IF NOT EXISTS "${model}_controller_idx" ON "${model}" ("controller");
       CREATE INDEX IF NOT EXISTS "${model}_indexed_at_idx" ON "${model}" ("indexed_at");`;
 
+    const client = await this.adminPool.connect();  
     try {
       // Execute the table creation query
-      const client = await this.adminPool.connect();      
       await client.query(createTableQuery);
       // Keep track of new table name
       this.mapTableName(model, uniqueFormattedTitle);
@@ -359,8 +366,8 @@ export default class Postgre {
         v.table_schema = 'public';`;
 
     // Perform query and return results
+    const client = await this.adminPool.connect();
     try {
-      const client = await this.adminPool.connect();
       const res = await client.query(query);
       return { data: res };
     } catch (e) {
@@ -383,8 +390,8 @@ export default class Postgre {
     }*/
     let res;
     let error;
+    const client = await this.adminPool.connect();
     try {
-      const client = await this.adminPool.connect();
       res = await client.query(modifiedQuery, params);
       
     } catch (e) {
@@ -449,8 +456,8 @@ export default class Postgre {
       FROM pg_class
       WHERE relname = '${table}';`;
 
+    const client = await this.adminPool.connect();
     try {
-      const client = await this.adminPool.connect();
       const res = await client.query(queryText);
       const countResult = await client.query(countQuery);
       const commentResult = await client.query(commentQuery);
