@@ -6,7 +6,7 @@ import { OrbisEVMAuth } from "@useorbis/db-sdk/auth";
 import { useRouter } from 'next/router';
 
 export default function Auth() {
-    const { settings, setIsAdmin, setSessionJwt, isAdmin } = useGlobal();
+    const { settings, setIsAdmin, setSessionJwt, isAdmin, getAdmin, init } = useGlobal();
     const router = useRouter();
     const [status, setStatus] = useState(0)
 
@@ -33,14 +33,17 @@ export default function Auth() {
 
         // Connect with wallet using OrbisDB / Ceramic to retrieve address / DID
         const result = await adminOrbisDB.connectUser({ auth, saveSession: false });
-        if(result?.user && settings?.configuration?.admins?.includes(result.user.did)) {
-            setStatus(2);
-            setIsAdmin(true);
-            setSessionJwt(result.session.session);
+        console.log("user:", result);
 
+        // retrieve admins
+        let resultAdmins = await getAdmin();
+        console.log("resultAdmins:", resultAdmins);
+         console.log("resultAdmins.admins?.includes(result.user.did)", resultAdmins?.includes(result.user.did));
+        if(result?.user && resultAdmins?.includes(result.user.did)) {
             // Save admin session in localstorage
             localStorage.setItem("orbisdb-admin-session", result.session.session);
-            router.push('/');
+            init();
+            //router.push('/');
         } else {
             setStatus(3);
             if(!result.user) {

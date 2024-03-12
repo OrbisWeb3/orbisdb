@@ -329,6 +329,7 @@ const CreateModel = ({setModelId, setModelDefinition, setStep}) => {
               className="bg-white border border-slate-200 rounded-md shadow-sm px-3 py-1.5 text-sm font-medium text-slate-900">
               <option value="list">List</option>
               <option value="single">Single</option>
+              <option value="set">Set</option>
             </select>
           </div>
 

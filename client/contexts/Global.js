@@ -14,6 +14,7 @@ export const GlobalProvider = ({ children }) => {
     const [settingsLoading, setSettingsLoading] = useState();
     const [adminLoading, setAdminLoading] = useState(true);
     const [isAdmin, setIsAdmin] = useState(false);
+    const [isConnected, setIsConnected] = useState(false);
     const [sessionJwt, setSessionJwt] = useState();
     const [user, setUser] = useState();
     const [orbisdb, setOrbisdb] = useState();
@@ -34,53 +35,56 @@ export const GlobalProvider = ({ children }) => {
     /** Load settings and check for admin account right after */
     useEffect(() => {
         init();   
+    }, []);
 
-        /** Load settings from file */
-        async function init() {
-            console.log("Enter init()");
-            try {
-                let admins = await getAdmin();
-                console.log("admins:", admins);
-                if(admins) {
-                    checkAdmin(admins); 
-                } else {
-                    setAdminLoading(false);
-                }
-            } catch(e) {
+     /** Load settings from file */
+     async function init() {
+        console.log("Enter init()");
+        try {
+            let admins = await getAdmin();
+            console.log("admins:", admins);
+            if(admins) {
+                checkAdmin(admins); 
+            } else {
                 setAdminLoading(false);
-                console.log("Error retrieving local settings, loading default one instead.");
             }
-        }
-
-        /** Check if there is an existing user connected */
-        async function checkAdmin(admins) {
-            console.log("Enter checkAdmin");
-            // Retrieve admin session from local storage
-            let adminSession = localStorage.getItem("orbisdb-admin-session");
-
-            // Convert session string to the parent DID using Ceramic library
-            if(adminSession) {
-                try {
-                    let resAdminSession = await DIDSession.fromSession(adminSession, null);
-                    let didId = resAdminSession.did.parent;
-
-                    // If user connected is included in the admins array in configuration we give admin access and save the session token to be used in API calls
-                    let _isAdmin = admins?.includes(didId.toLowerCase());
-                    if(didId && _isAdmin) {
-                        setIsAdmin(true);
-                        setSessionJwt(adminSession);
-                        loadSettings(adminSession);
-                    } else {
-                        console.log("User is NOT an admin: ", didId);
-                    }
-                    
-                } catch(e) {
-                    console.log("Error checking admin account:", e);
-                }
-            }
+        } catch(e) {
             setAdminLoading(false);
+            console.log("Error retrieving local settings, loading default one instead.");
         }
-    }, [])
+    }
+
+    /** Check if there is an existing user connected */
+    async function checkAdmin(admins) {
+        console.log("Enter checkAdmin");
+        // Retrieve admin session from local storage
+        let adminSession = localStorage.getItem("orbisdb-admin-session");
+
+        // Convert session string to the parent DID using Ceramic library
+        if(adminSession) {
+            setIsConnected(true);
+            try {
+                let resAdminSession = await DIDSession.fromSession(adminSession, null);
+                let didId = resAdminSession.did.parent;
+
+                // If user connected is included in the admins array in configuration we give admin access and save the session token to be used in API calls
+                let _isAdmin = admins?.includes(didId.toLowerCase());
+                if(didId && _isAdmin) {
+                    setIsAdmin(true);
+                    setSessionJwt(adminSession);
+                    loadSettings(adminSession);
+                } else {
+                    console.log("User is NOT an admin: ", didId);
+                }
+                
+            } catch(e) {
+                console.log("Error checking admin account:", e);
+            }
+        } else {
+            setIsConnected(false);
+        }
+        setAdminLoading(false);
+    }
     
     useEffect(() => {
         if(settings?.configuration?.ceramic?.seed) {
@@ -150,7 +154,7 @@ export const GlobalProvider = ({ children }) => {
         return resultJson;
     }
   
-    return <GlobalContext.Provider value={{ settings, setSettings, settingsLoading, loadSettings, isAdmin, setIsAdmin, user, setUser, orbisdb, setOrbisdb, sessionJwt, setSessionJwt, adminLoading, setAdminLoading }}>{children}</GlobalContext.Provider>;
+    return <GlobalContext.Provider value={{ settings, setSettings, settingsLoading, loadSettings, isAdmin, setIsAdmin, user, setUser, orbisdb, setOrbisdb, sessionJwt, setSessionJwt, adminLoading, setAdminLoading, isConnected, init, getAdmin }}>{children}</GlobalContext.Provider>;
   };
   
   export const useGlobal = () => useContext(GlobalContext);

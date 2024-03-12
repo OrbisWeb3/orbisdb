@@ -4,5 +4,6 @@
   "logo": "/img/solana-credentials.png",
   "description": "Parse webhooks received by Helius.",
   "hooks": ["generate"],
-  "routes": ["receive"]
+  "routes": ["receive"],
+  "visible": false
 }

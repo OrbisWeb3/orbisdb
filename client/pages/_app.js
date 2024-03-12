@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import Header from "../components/Header";
+import Alert from "../components/Alert";
 import ConfigurationSettings from "../components/ConfigurationSettings";
 
 /** Import Context */
@@ -16,7 +17,7 @@ export default function App({ Component, pageProps }) {
 }
 
 function AppContent({Component, pageProps}) {
-  const { settings, settingsLoading, adminLoading, isAdmin } = useGlobal();
+  const { settings, settingsLoading, adminLoading, isAdmin, isConnected } = useGlobal();
 
   useEffect(() => {
     console.log("settings:", settings);
@@ -31,6 +32,23 @@ function AppContent({Component, pageProps}) {
     return(
       <div className="h-full w-full flex flex-col">
         <p className="text-base w-full text-center pt-12">Loading settings...</p>
+      </div>
+    )
+  }
+
+  else if(!isConnected) {
+    return(
+      <div className="h-full w-full flex flex-col">
+        <Auth />
+      </div>
+    )
+  }
+
+  else if(!isConnected && !isAdmin) {
+    return(
+      <div className="h-full w-full flex flex-col">
+        <Alert title={"You are connected but not the admin, please login with a different account."} />
+        <Auth />
       </div>
     )
   }

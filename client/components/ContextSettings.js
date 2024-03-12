@@ -45,7 +45,7 @@ export default function ContextSettings ({context, setContext, callback, parentC
       delete content.stream_id;
       res = await orbisdb.update(context.stream_id).replace(content).run();
     } else {
-      res = await orbisdb.insert("kjzl6hvfrbw6c7f831brdq6w5j7cd3d1rjsmqm23zpp9imsxpu859d59koykunx").value(content).run();
+      res = await orbisdb.insert("kjzl6hvfrbw6c52v85swdm53yzahr8k9zojf0w7krz18f3gzk9ppyz11bx0plar").value(content).run();
     }
     console.log("res:", res);
     content.stream_id = res?.id;

@@ -135,7 +135,6 @@ async function startServer() {
   server.get("/api/settings/get-admin", async (req, res) => {
     try {
       const settings = getOrbisDBSettings();
-      console.log("In /api/settings/get-admin settings: ", settings);
       res.json({
         status: "200",
         admins: settings?.configuration?.admins,
@@ -188,7 +187,7 @@ async function startServer() {
 
   /** Dynamic route to handle GET routes exposed by installed plugins */
   server.get(
-    "/api/plugin-routes/:plugin_uuid/:plugin_route",
+    "/api/plugin-routes/:plugin_uuid/:plugin_route/:plugin_params?",
     async (req, res) => {
       const { plugin_uuid, plugin_route } = req.params;
       let method;
