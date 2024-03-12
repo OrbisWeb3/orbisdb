@@ -36,7 +36,7 @@ function AppContent({Component, pageProps}) {
     )
   }
 
-  else if(!isConnected) {
+  else if(!isConnected && settings.configuration) {
     return(
       <div className="h-full w-full flex flex-col">
         <Auth />
@@ -44,7 +44,7 @@ function AppContent({Component, pageProps}) {
     )
   }
 
-  else if(!isConnected && !isAdmin) {
+  else if(!isConnected && !isAdmin && settings.configuration) {
     return(
       <div className="h-full w-full flex flex-col">
         <Alert title={"You are connected but not the admin, please login with a different account."} />

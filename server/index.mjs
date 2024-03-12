@@ -185,6 +185,43 @@ async function startServer() {
     }
   });
 
+    // Custom handling of some specific URLs may also go here. For example:
+    server.post("/api/settings/update-full-settings", async (req, res) => {
+      const settings = req.body;
+      console.log("Trying to save:", settings);
+  
+      try {
+        // Retrieve current settings
+        /*let settings = getOrbisDBSettings();
+        console.log("settings:", settings);
+  
+        // Assign new configuration values
+        settings = settings;
+        */
+  
+        // Rewrite the settings file
+        updateOrbisDBSettings(settings);
+  
+        // Close previous indexing service
+        if(global.indexingService) {
+          global.indexingService.stop();
+        }
+  
+        // Start indexing service
+        startIndexing();
+  
+        // Send the response
+        res.status(200).json({
+          status: 200,
+          updatedSettings: settings,
+          result: "New configuration saved.",
+        });
+      } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Failed to update settings." });
+      }
+    });
+
   /** Dynamic route to handle GET routes exposed by installed plugins */
   server.get(
     "/api/plugin-routes/:plugin_uuid/:plugin_route/:plugin_params?",
