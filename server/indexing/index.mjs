@@ -96,8 +96,8 @@ export default class IndexingService {
 		})
 		
 		this.eventSource.addEventListener('error', error => {
-			console.log(cliColors.text.red, '🛑 Error received from Ceramic node (double check your settings and that your Ceramic node is alive): ', cliColors.reset, error.message);
-		})
+			console.log(cliColors.text.red, '🛑 Error received from Ceramic node (double check your settings and that your Ceramic node is alive): ', cliColors.reset, error);
+		});
 	}
 
 	// Triggered after a new plugin install
