@@ -14,7 +14,7 @@ export default function ConfigurationSettings() {
 }
 
 export function ConfigurationSetup() {
-  const { settings, setSettings, sessionJwt, setSessionJwt, setIsAdmin } = useGlobal();
+  const { settings, setSettings, sessionJwt, setSessionJwt, setIsAdmin, setIsConfigured } = useGlobal();
   const [status, setStatus] = useState(STATUS.ACTIVE);
   const [statusConnect, setStatusConnect] = useState(STATUS.ACTIVE);
   const [hasLocalNode, setHasLocalNode] = useState(false);
@@ -129,6 +129,7 @@ export function ConfigurationSetup() {
         console.log("Success updating configutation with:", response.updatedSettings);
         setStatus(STATUS.SUCCESS);
         setSettings(response.updatedSettings);
+        setIsConfigured(true);
       } else {
         alert("Error updating configuration.");
         console.log("response:", response);

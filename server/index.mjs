@@ -148,6 +148,34 @@ async function startServer() {
     }
   });
 
+  /** Will check if the node has already been configred or not */
+  server.get("/api/settings/is-configured", async (req, res) => {
+    try {
+      const settings = getOrbisDBSettings();
+
+      if(settings && settings.configuration) {
+        res.json({
+          status: "200",
+          result: true
+        });
+      } else {
+        res.json({
+          status: "200",
+          result: false
+        });
+      }
+      
+    } catch (err) {
+      console.error(err);
+      res.json({
+        status: "200",
+        result: false
+      });
+    }
+  });
+
+  
+
 
   // Custom handling of some specific URLs may also go here. For example:
   server.post("/api/settings/update-configuration", async (req, res) => {

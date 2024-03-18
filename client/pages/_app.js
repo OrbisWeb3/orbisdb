@@ -17,7 +17,7 @@ export default function App({ Component, pageProps }) {
 }
 
 function AppContent({Component, pageProps}) {
-  const { settings, settingsLoading, adminLoading, isAdmin, isConnected } = useGlobal();
+  const { settings, settingsLoading, adminLoading, isAdmin, isConnected, isConfigured } = useGlobal();
 
   useEffect(() => {
     console.log("settings:", settings);
@@ -36,7 +36,7 @@ function AppContent({Component, pageProps}) {
     )
   }
 
-  else if(!isConnected && settings.configuration) {
+  else if(!isConnected && isConfigured) {
     return(
       <div className="h-full w-full flex flex-col">
         <Auth />
@@ -44,7 +44,7 @@ function AppContent({Component, pageProps}) {
     )
   }
 
-  else if(!isConnected && !isAdmin && settings.configuration) {
+  else if(!isConnected && !isAdmin && isConfigured) {
     return(
       <div className="h-full w-full flex flex-col">
         <Alert title={"You are connected but not the admin, please login with a different account."} />
@@ -54,7 +54,7 @@ function AppContent({Component, pageProps}) {
   }
 
   /** User is connected but not admin */
-  else if(!adminLoading && !isAdmin && settings.configuration) {
+  else if(!adminLoading && !isAdmin && isConfigured) {
     console.log("settings in <Auth />:", settings);
     console.log("adminLoading in <Auth />:", adminLoading);
     console.log("isAdmin in <Auth />:", isAdmin);

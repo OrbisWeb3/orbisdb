@@ -10,6 +10,7 @@ export const GlobalContext = React.createContext();
 
 export const GlobalProvider = ({ children }) => {
     const router = useRouter();
+    const [isConfigured, setIsConfigured] = useState(null);
     const [settings, setSettings] = useState();
     const [settingsLoading, setSettingsLoading] = useState();
     const [adminLoading, setAdminLoading] = useState(true);
@@ -21,6 +22,7 @@ export const GlobalProvider = ({ children }) => {
 
     useEffect(() => {
         setSettingsLoading(true);
+        getIsConfigured();
         loadSettings();
     }, [])
 
@@ -153,8 +155,23 @@ export const GlobalProvider = ({ children }) => {
         
         return resultJson;
     }
+
+    /** Will check if node has been configured or not */
+    async function getIsConfigured(_jwt) {
+        let result = await fetch("/api/settings/is-configured", {
+            method: 'GET'
+        });
+
+        let resultJson = await result.json();
+        console.log("In isConfigured:", resultJson);
+        if(resultJson && resultJson.result == true) {
+            setIsConfigured(true);
+        } else {
+            setIsConfigured(false);
+        }
+    }
   
-    return <GlobalContext.Provider value={{ settings, setSettings, settingsLoading, loadSettings, isAdmin, setIsAdmin, user, setUser, orbisdb, setOrbisdb, sessionJwt, setSessionJwt, adminLoading, setAdminLoading, isConnected, init, getAdmin }}>{children}</GlobalContext.Provider>;
+    return <GlobalContext.Provider value={{ settings, setSettings, settingsLoading, loadSettings, isAdmin, setIsAdmin, user, setUser, orbisdb, setOrbisdb, sessionJwt, setSessionJwt, adminLoading, setAdminLoading, isConnected, init, getAdmin, isConfigured, setIsConfigured }}>{children}</GlobalContext.Provider>;
   };
   
   export const useGlobal = () => useContext(GlobalContext);
