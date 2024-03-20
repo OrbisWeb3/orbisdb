@@ -1,38 +1,123 @@
 import postgresql from 'pg';
 import { snakeCase } from 'change-case';
 import { cliColors } from "../utils/cliColors.mjs"
-const { Pool } = postgresql;
+const { Pool, Client } = postgresql;
 import { getOrbisDBSettings, updateOrbisDBSettings, getTableName, getTableModelId } from '../utils/helpers.mjs';
+
+const pgErrorToCode = (_message) => {
+  const message_to_code = {
+    econnrefused: "CONN_REFUSED",
+    "does not support ssl": "NO_SSL",
+    "already been connected": "NO_REUSE",
+    "connection terminated": "CONN_TERMINATED",
+    "timeout expired": "TIMEOUT",
+  };
+
+  const message = _message.toLowerCase();
+
+  for (const [key, code] of Object.entries(message_to_code)) {
+    if (message.includes(key)) {
+      return code;
+    }
+  }
+
+  return "UNKNOWN";
+};
+
+const checkSSLSupport = async ({ user, database, password, host, port }) => {
+  const connection = new Client({
+    user,
+    database,
+    password,
+    host,
+    port,
+    connectionTimeoutMillis: 2000,
+    ssl: true,
+  });
+
+  try {
+    await connection.connect();
+
+    return true;
+  } catch (err) {
+    const code = pgErrorToCode(err.message)
+
+    if (code === "NO_SSL") {
+      return false;
+    }
+
+    throw `${code}: ${err}`;
+  } finally {
+    await connection.end();
+  }
+};
 
 /**
  * DB implementation to index streams with Postgre
  */
 export default class Postgre {
-  constructor(user, database, password, host, port) {
-    try {
-      this.connection = null;
+  constructor(user, database, password, host, port, supportsSSL) {
+    this.connection = null;
+    this.supportsSSL = supportsSSL;
 
-      // Instantiate new pool for postgresql database (we skip ssl for local)
-      this.adminPool = new Pool({
+    // Instantiate new pool for postgresql database (we skip ssl for local)
+    this.adminPool = new Pool({
+      user,
+      database,
+      password,
+      host,
+      port,
+      max: 20, // Set pool max size to 20
+      idleTimeoutMillis: 30000, // Set idle timeout to 30 seconds
+      connectionTimeoutMillis: 2000, // Set connection timeout to 2 seconds
+      ssl: this.supportsSSL
+        ? {
+            rejectUnauthorized: false, // Or configure a proper SSL certificate if available
+          }
+        : false,
+    });
+  }
+
+  static async initialize(user, database, password, host, port) {
+    try {
+      const supportsSSL = await checkSSLSupport({
         user,
         database,
         password,
         host,
         port,
-        max: 20, // Set pool max size to 20
-        idleTimeoutMillis: 30000, // Set idle timeout to 30 seconds
-        connectionTimeoutMillis: 2000, // Set connection timeout to 2 seconds
-        ssl: {
-          rejectUnauthorized: false // Or configure a proper SSL certificate if available
-        }
       });
 
-      // Create read only user if needed
-      this.checkReadOnlyUser(database, host, port);
-  
-      console.log(cliColors.text.cyan, "🗄️  Initialized PostgreSQL DB with admin user:", cliColors.reset, user) ; 
-    } catch(e) {
-      console.log(cliColors.text.red, "🗄️  Error initializing PostgreSQL DB with admin user:", cliColors.reset, user, ":", e) ; 
+      const postgre = new Postgre(
+        user,
+        database,
+        password,
+        host,
+        port,
+        supportsSSL
+      );
+
+      await postgre.checkReadOnlyUser(database, host, port);
+
+      console.log(
+        cliColors.text.cyan,
+        "🗄️  Initialized PostgreSQL DB with admin user:",
+        cliColors.reset,
+        user
+      );
+
+      return postgre
+    } catch (err) {
+      console.log(
+        cliColors.text.red,
+        "🗄️  Error initializing PostgreSQL DB with admin user:",
+        cliColors.reset,
+        user,
+        ":",
+        err
+      );
+
+      throw err
     }
   }
 
@@ -98,9 +183,9 @@ export default class Postgre {
       password: readOnlyPassword,
       host,
       port,
-      ssl: {
+      ssl: this.supportsSSL ? {
         rejectUnauthorized: false // Or configure a proper SSL certificate if available
-      }
+      } : false
     });
 
     console.log(cliColors.text.cyan, '🗄️  Initialized read-only db pool with: ', cliColors.reset, readOnlyUsername);

@@ -541,7 +541,7 @@ export async function startIndexing() {
   if (settings?.configuration) {
     /** Instantiate the database to use which should be saved in the "orbisdb-settings.json" file */
     let dbConfig = settings.configuration.db;
-    let database = new Postgre(
+    let database = await Postgre.initialize(
       dbConfig.user,
       dbConfig.database,
       dbConfig.password,
