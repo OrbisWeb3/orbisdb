@@ -32,7 +32,9 @@ const checkSSLSupport = async ({ user, database, password, host, port }) => {
     host,
     port,
     connectionTimeoutMillis: 2000,
-    ssl: true,
+    ssl: {
+      rejectUnauthorized: false
+    },
   });
 
   try {
