@@ -2,9 +2,10 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { DashIcon } from "./Icons";
 import { useGlobal } from '../contexts/Global';
+import { getAddress, shortAddress } from '../utils';
 
 export default function Header({showItems}) {
-  const { sessionJwt } = useGlobal();
+  const { sessionJwt, adminSession } = useGlobal();
 
   // Define navigation items and their paths
   const navItems = [
@@ -39,10 +40,14 @@ export default function Header({showItems}) {
             ))}
           </div>
           <div className='pr-4'>
-            <Link href="/playground" className='bg-blue-50 border border-dashed hover:border-solid cursor-pointer border-blue-200 text-blue-600 px-3 py-1.5 rounded-md text-sm'>Playground</Link>
+            <Link href="/playground" className='bg-blue-50 border border-dashed hover:border-solid cursor-pointer border-blue-200 text-blue-600 px-3 py-1.5 rounded-md text-xs'>Playground</Link>
           </div>
           <div className='pr-4'>
-            <button onClick={() => restart()} className='bg-red-50 border border-dashed hover:border-solid cursor-pointer border-red-200 text-red-600 px-3 py-1 rounded-md text-sm'>Restart</button>
+            <button onClick={() => restart()} className='bg-red-50 border border-dashed hover:border-solid cursor-pointer border-red-200 text-red-600 px-3 py-1 rounded-md text-xs'>Restart</button>
+          </div>
+
+          <div className='pr-4'>
+            <button className='bg-slate-50 border border-dashed hover:border-solid cursor-pointer border-slate-200 text-slate-600 px-4 py-1 rounded-full text-xxs font-medium'>{shortAddress(getAddress(adminSession))}</button>
           </div>
         </>
       :

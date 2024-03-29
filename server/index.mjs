@@ -20,7 +20,7 @@ import {
   loadPlugins,
   loadPlugin,
 } from "./utils/plugins.mjs";
-import { findContextById, findSlotsWithContext, getAdminDid, getOrbisDBSettings, updateContext, updateOrAddPlugin, updateOrbisDBSettings } from "./utils/helpers.mjs";
+import { findContextById, findSlotsWithContext, getAdminDid, getOrbisDBSettings, toValidDbName, updateContext, updateOrAddPlugin, updateOrbisDBSettings } from "./utils/helpers.mjs";
 import { SelectStatement } from "@useorbis/db-sdk/query";
 
 /** Initialize dirname */
@@ -43,17 +43,28 @@ const packageJson = JSON.parse(
 );
 
 const authMiddleware = async (req, res, next) => {
-  let settings = getOrbisDBSettings();
+  let globalSettings = getOrbisDBSettings();
   const authHeader = req.headers['authorization'];
 
   if(authHeader) {
     const token = authHeader.split(' ')[1]; // Split 'Bearer <token>'
     if(token) {
       try {
+        let _isAdmin;
+        let _isAdminsEmpty;
         let resAdminSession = await DIDSession.fromSession(token, null);
         let didId = resAdminSession.did.parent;
-        const _isAdmin = settings?.configuration?.admins?.includes(didId);
-        const _isAdminsEmpty = !settings?.configuration?.admins || settings.configuration.admins.length === 0;
+        console.log("didId extracted from header middleware is:", didId);
+
+        /** Perform different verification logic for shared instances and non-shared ones */
+        if(globalSettings.is_shared) {
+          // The auth middleware should not be applied for shared instances because users can only modify the slot of the authentication they are using
+          _isAdminsEmpty = false;
+          _isAdmin = true;
+        } else {
+          _isAdmin = settings?.configuration?.admins?.includes(didId);
+          _isAdminsEmpty = !settings?.configuration?.admins || settings.configuration.admins.length === 0;
+        }
   
         if(didId && (_isAdmin || _isAdminsEmpty)) {
             return next();
@@ -144,7 +155,7 @@ async function startServer() {
       let settings = getOrbisDBSettings();
           
       // Step 2: Create a new database for this admin did
-      let databaseName = "test--orbisdb--shared--3";
+      let databaseName = toValidDbName(adminDid);
       await global.indexingService.database.createDatabase(databaseName);
 
       // Step 3/ Generate a new seed
@@ -171,6 +182,9 @@ async function startServer() {
 
       // Step 5: Update global settings
       updateOrbisDBSettings(slotSettings, adminDid);
+
+      // Step 6: Restart indexing service
+      restartIndexingService();
 
       // Return results
       res.json({
@@ -280,7 +294,6 @@ async function startServer() {
     let adminDid = await getAdminDid(authHeader);
 
     try {
-
       // Retrieve settings for this slot
       let settings = getOrbisDBSettings(adminDid);
 
@@ -468,13 +481,8 @@ async function startServer() {
       // Rewrite the settings file
       updateOrbisDBSettings(settings, slot);
 
-      // Close previous indexing service
-      if(global.indexingService) {
-        global.indexingService.stop();
-      }
-
-      // Start indexing service
-      startIndexing();
+      // Restart indexing service
+      restartIndexingService();
 
       // Send the response
       res.status(200).json({
@@ -855,6 +863,17 @@ async function startServer() {
   });
 }
 
+/** Will stop the previous indexing service and restart a new one */
+function restartIndexingService() {
+  // Close previous indexing service
+  if(global.indexingService) {
+    global.indexingService.stop();
+  }
+
+  // Start indexing service
+  startIndexing();
+}
+
 /** Initialize the app by loading all of the required plugins while initializng those and start the indexing service */
 export async function startIndexing() {
   // Retrieve OrbisDB current settings
@@ -865,7 +884,7 @@ export async function startIndexing() {
 
   // Initialize some objects
   let ceramics = {};
-  let databases = {}
+  let databases = {};
 
   // Initiate global Ceramic
   let globalSeed = JSON.parse(globalCeramicConfig.seed);
@@ -874,6 +893,15 @@ export async function startIndexing() {
     "http://localhost:" + PORT,
     globalSeed
   );
+
+  /** Instantiate the global database to use which should be saved in the "orbisdb-settings.json" file */
+  let globalDatabase = new Postgre(
+    globalDbConfig.user,
+    globalDbConfig.database,
+    globalDbConfig.password,
+    globalDbConfig.host,
+    globalDbConfig.port,
+    null);
 
   if(settings.is_shared) {
     /** Create one postgre and ceramic object per slot */
@@ -909,15 +937,6 @@ export async function startIndexing() {
   } else {
     // If configuration settings are valid we start the indexing service
     if (settings?.configuration) {
-      /** Instantiate the database to use which should be saved in the "orbisdb-settings.json" file */
-      let database = new Postgre(
-        globalDbConfig.user,
-        globalDbConfig.database,
-        globalDbConfig.password,
-        globalDbConfig.host,
-        globalDbConfig.port,
-        null);
-
       databases["global"] = database;
       ceramics["global"] = globalCeramic;
     } else {
@@ -931,6 +950,7 @@ export async function startIndexing() {
   /** Initialize the mainnet indexing service while specifying the plugins to use and database type */
   global.indexingService = new IndexingService(
     globalCeramic, // The global ceramic object will be used to subscribe to SSE
+    globalDatabase, // The global database (used for example to create other slot's db)
     ceramics, // The slots individual Ceramic object will be used by plugins installed on the corresponding slot and in the UI
     databases, // Database instance to use
     hookHandler, // Hookhandler

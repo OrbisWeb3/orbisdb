@@ -6,7 +6,7 @@ import { OrbisEVMAuth } from "@useorbis/db-sdk/auth";
 import { useRouter } from 'next/router';
 
 export default function Auth() {
-    const { settings, setIsAdmin, setSessionJwt, isAdmin, getAdmin, init } = useGlobal();
+    const { settings, setIsAdmin, setSessionJwt, isAdmin, getAdmin, init, isShared } = useGlobal();
     const router = useRouter();
     const [status, setStatus] = useState(0)
 
@@ -39,7 +39,7 @@ export default function Auth() {
         let resultAdmins = await getAdmin();
         console.log("resultAdmins:", resultAdmins);
          console.log("resultAdmins.admins?.includes(result.user.did)", resultAdmins?.includes(result.user.did));
-        if(result?.user && resultAdmins?.includes(result.user.did)) {
+        if(isShared || (result?.user && resultAdmins?.includes(result.user.did))) {
             // Save admin session in localstorage
             localStorage.setItem("orbisdb-admin-session", result.session.session);
             init();

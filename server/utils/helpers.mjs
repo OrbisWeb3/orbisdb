@@ -100,6 +100,21 @@ export function findSlotsWithContext(contextId) {
   return foundSlots;
 }
 
+/** Will convert a did in a valid db name */
+export function toValidDbName(input) {
+  // Replace invalid characters with underscores
+  let validName = input.replace(/[^a-zA-Z0-9]/g, '_');
+
+  // Ensure the name starts with a letter or underscore
+  if (!validName.match(/^[a-zA-Z_]/)) {
+      validName = '_' + validName;
+  }
+
+  // Trim the name to 63 characters to meet PostgreSQL's default limit
+  validName = validName.substring(0, 63);
+
+  return validName;
+}
 
 /** Retrieve readable table name from model using mapping */
 export function getTableName(model) {

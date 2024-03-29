@@ -11,9 +11,10 @@ import { commitIdAsString } from '@ceramicnetwork/codecs';
  * on the OrbisDB instance.
  */
 export default class IndexingService {
-	constructor(globalCeramic, ceramics, databases, hookHandler, server, is_shared) {
+	constructor(globalCeramic, globalDatabase, ceramics, databases, hookHandler, server, is_shared) {
 		console.log(cliColors.text.cyan, "🔗 Initialized indexing service.", cliColors.reset) ; 
 		this.ceramic = globalCeramic;
+		this.database = globalDatabase;
 		this.ceramics = ceramics;
 		this.databases = databases;
 		this.hookHandler = hookHandler;
