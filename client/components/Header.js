@@ -8,10 +8,10 @@ export default function Header({showItems}) {
 
   // Define navigation items and their paths
   const navItems = [
-    { title: 'Contexts', path: '/', type: "equal" },
-    { title: 'Plugins', path: '/plugins', type: "includes" },
-    { title: 'Data', path: '/data', type: "includes" },
-    { title: 'Settings', path: '/settings', type: "equal" }
+    { title: 'Contexts', path: "/", type: "equal" },
+    { title: 'Plugins', path:  "/plugins", type: "includes" },
+    { title: 'Data', path:  "/data", type: "includes" },
+    { title: 'Settings', path:  "/settings", type: "equal" }
   ];
 
   async function restart() {
@@ -56,13 +56,14 @@ export default function Header({showItems}) {
 
 const NavItem = ({ item, href }) => {
   const router = useRouter();
+  console.log("router.asPath:", router.asPath);
 
   // Determine whether the current route matches the item's link
   let selected = false;
   if(item.type == "equal") {
-    selected = router.pathname === item.path;
+    selected = router.asPath === item.path;
   } else if(item.type == "includes") {
-    selected = router.pathname.includes(item.path);
+    selected = router.asPath.includes(item.path);
   }
 
   if (selected) {

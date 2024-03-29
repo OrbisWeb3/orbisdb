@@ -1,9 +1,8 @@
-import { sleep } from "../utils/helpers.mjs"
+import { sleep, findSlotsWithContext } from "../utils/helpers.mjs"
 import { cliColors } from "../utils/cliColors.mjs"
 import { loadAndInitPlugins } from "../utils/plugins.mjs";
 import { EventSource  } from "cross-eventsource";
 import { StreamID } from "@ceramicnetwork/streamid";
-//import { JsonAsString, AggregationDocument } from '@ceramicnetwork/codecs';
 import { Type, type, decode } from 'codeco';
 import { commitIdAsString } from '@ceramicnetwork/codecs';
 
@@ -12,13 +11,15 @@ import { commitIdAsString } from '@ceramicnetwork/codecs';
  * on the OrbisDB instance.
  */
 export default class IndexingService {
-	constructor(ceramic, database, hookHandler, server) {
+	constructor(globalCeramic, ceramics, databases, hookHandler, server, is_shared) {
 		console.log(cliColors.text.cyan, "🔗 Initialized indexing service.", cliColors.reset) ; 
-		this.ceramic = ceramic;
-		this.database = database;
+		this.ceramic = globalCeramic;
+		this.ceramics = ceramics;
+		this.databases = databases;
 		this.hookHandler = hookHandler;
 		this.server = server;
 		this.eventSource = null;
+		this.is_shared = is_shared;
 
 		// Go through the list of all plugins used and enable them
 		this.initializePlugins();
@@ -63,12 +64,8 @@ export default class IndexingService {
 	async subscribe() {
 		console.log(cliColors.text.cyan, "👀 Subscribed to Ceramic node updates: ", cliColors.reset, this.ceramic.node) ; 
 		this.eventSource = new EventSource(this.ceramic.node + 'api/v0/feed/aggregation/documents')
-		//const Codec = JsonAsString.pipe(AggregationDocument);
 
 		this.eventSource.addEventListener('message', (event) => {
-			//use JsonAsString, and AggregationDocument to decode and use event.data
-			//const parsedData = decode(Codec, event.data);
-			//console.log('parsed', parsedData);
 			try {
 				const parsedData = decode(Codec, event.data);
 
@@ -135,7 +132,7 @@ export default class IndexingService {
         console.log(cliColors.text.green, "Indexing service stopped successfully.", cliColors.reset);
     }
 
-	/** Will load the stream details using Ceramic, process the plugins and save the stream in DB */
+	/** Will parse the stream details, process the plugins and save the stream in DB */
   	async indexStream({ stream }) {
 		if(!stream) {
 			console.log(cliColors.text.red, "Error indexing a new stream:", cliColors.reset, " stream details are needed to index a stream.");
@@ -190,10 +187,23 @@ export default class IndexingService {
 
 					// Perform insert or update based on event type
 					// Save the stream content and indexing data in the specified database
-					await this.database.upsert(model, insertedContent, pluginsData);
-				}
+					if(this.is_shared) {
+						let slots = findSlotsWithContext(context);
+						console.log("slots:", slots);
 
-				
+						// Insert in each slot using this context
+						for (const slot of slots) {
+							if (this.databases[slot]) {
+								await this.databases[slot].upsert(model, insertedContent, pluginsData);
+							} else {
+								console.error(`Upsert method not found for slot: ${slot}`);
+							}
+						}
+					} else {
+						await this.database.upsert(model, insertedContent, pluginsData);
+					}
+					
+				}
 
 				// Will execute all of the post-processor plugins.
 				this.hookHandler.executeHook("post_process", processedData, context);
@@ -212,8 +222,9 @@ export const JsonAsString = new Type('JSON-as-string', (_input) => true, (input,
         return context.failure();
     }
 }, (commitID) => JSON.stringify(commitID));
+
 export const AggregationDocument = type({
     commitId: commitIdAsString,
 });
 //# sourceMappingURL=feed.js.map
-const Codec = JsonAsString.pipe(AggregationDocument)
+const Codec = JsonAsString.pipe(AggregationDocument);

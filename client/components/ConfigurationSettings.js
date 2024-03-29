@@ -14,7 +14,7 @@ export default function ConfigurationSettings() {
 }
 
 export function ConfigurationSetup() {
-  const { settings, setSettings, sessionJwt, setSessionJwt, setIsAdmin, setIsConfigured } = useGlobal();
+  const { settings, setSettings, sessionJwt, setSessionJwt, setIsAdmin, setIsConfigured, adminSession } = useGlobal();
   const [status, setStatus] = useState(STATUS.ACTIVE);
   const [statusConnect, setStatusConnect] = useState(STATUS.ACTIVE);
   const [hasLocalNode, setHasLocalNode] = useState(false);
@@ -105,6 +105,7 @@ export function ConfigurationSetup() {
           'Authorization': `Bearer ${sessionJwt}`
         },
         body: JSON.stringify({
+          slot: adminSession,
           configuration: {
             admins: [adminAccount.toLowerCase()],
             ceramic: {

@@ -57,7 +57,7 @@ const LoopPlugins = ({plugins}) => {
             </Link>
           }
 
-          <Link className="text-[#4483FD] text-center font-medium text-base hover:underline" href={"/plugins/" + plugin.id}>{plugin.name}</Link>
+          <Link className="text-[#4483FD] text-center font-medium text-base hover:underline" href={"/plugins/" + plugin.id} >{plugin.name}</Link>
           <div className="text-slate-500 text-base text-center">{plugin.description}</div>
           <div className="mt-2 flex flex-row flex-wrap justify-center space-x-2">
             {/** Display hooks used by this plugin */}

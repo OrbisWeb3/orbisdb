@@ -54,6 +54,7 @@ export default function Data() {
       });
       
       result = await result.json();
+      console.log("result:", result);
       if (result.status == 200) {
         const fetchedTables = result.data.filter(item => item.type === 'TABLE').map(item => ({ id: item.table_name }));;
         const fetchedViews = result.data.filter(item => item.type === 'VIEW').map(item => ({ id: item.table_name, ...item }));;
@@ -67,7 +68,7 @@ export default function Data() {
         setViews([]);
       }
     } catch (e) {
-
+      console.log("Error querying db:", e);
     }
   }
 

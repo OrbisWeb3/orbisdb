@@ -6,9 +6,6 @@ export default class SolanaTokenGating {
    * A plugin can register multiple hooks, each hook being linked to a function that will be executed when the hook is triggered
    */
   async init() {
-    // Initialize connection to the Solana cluster using the custom RPC endpoint
-    this.connection = new Connection(this.rpc_url);
-    this.getSolBalance("did:pkh:solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp:6cVosYA8teAzZ7bhK3Uc3Gen6WgMfdsHTssKZ3iCSxhy");
 
     return {
       HOOKS: {
