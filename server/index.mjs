@@ -84,7 +84,8 @@ const authMiddleware = async (req, res, next) => {
 };
 
 // Use body parser to parse body field for POST and session
-server.use(bodyParser.json());
+server.use(bodyParser.json({limit: '50mb'}));
+server.use(bodyParser.urlencoded({limit: '50mb'}));
 server.use(cors());
 
 async function startServer() {

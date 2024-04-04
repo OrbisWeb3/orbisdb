@@ -341,15 +341,17 @@ export default class CSVUploaderPlugin {
             /** We call the update hook here in order to support hooks able to update data before it's created in Ceramic  */
 				    let __content = await global.indexingService.hookHandler.executeHook("update", content, this.context);
 
-            /** Will filter all items with a key not in the model properties */
+            // Filter __content and convert numbers to their respective typed objects
             let filteredContent = Object.keys(__content)
-              .filter(key => key in modelProperties)
-              .reduce((obj, key) => {
-                obj[key] = __content[key];
-                return obj;
-              }, {});
+            .filter(key => key in modelProperties) // Filter keys based on properties
+            .reduce((obj, key) => {
+              const value = __content[key];
+              obj[key] = this.convertToTypedObject(key, value, modelProperties); // Convert and assign the value
+              console.log("obj[key]:", obj[key]);
+              return obj;
+            }, {});
             console.log("filteredContent:", filteredContent);
-
+            
             /** We then create the stream in Ceramic with the updated content */
             let stream = await this.orbisdb.insert(this.model_id).value(filteredContent).context(this.context).run();
             let stream_id = stream.id?.toString();
@@ -371,6 +373,22 @@ export default class CSVUploaderPlugin {
 
       res.send({ message: 'CSV data uploaded to Ceramic successfully.', count: i, streams: stream_ids });
     }
+  }
+
+  // Function to determine if a number should be treated as 'int' or 'float' based on properties
+  convertToTypedObject(key, value, properties) {
+    const type = properties[key]?.type;
+    console.log("type in convertToTypedObject for:" + key, type);
+
+    if(type.includes("integer")) {
+      return parseInt(value, 10);
+    }
+
+    if(type.includes("float") || type.includes("numeric")) {
+      return parseFloat(value, 10);
+    }
+
+    return value;
   }
 
   // Function to handle progress requests
