@@ -938,7 +938,7 @@ export async function startIndexing() {
   } else {
     // If configuration settings are valid we start the indexing service
     if (settings?.configuration) {
-      databases["global"] = database;
+      databases["global"] = globalDatabase;
       ceramics["global"] = globalCeramic;
     } else {
       console.log("Couldn't init OrbisDB because configuration isn't setup yet.");
