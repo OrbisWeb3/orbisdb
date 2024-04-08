@@ -181,8 +181,14 @@ async function startServer() {
         }
       }
 
+      // Apply to global settings
+      if (!Array.isArray(settings.slots)) {
+        settings.slots = []; // Initialize slots as an array if it's not an array already
+      }
+      settings.slots[adminDid] = slotSettings;
+
       // Step 5: Update global settings
-      updateOrbisDBSettings(slotSettings);
+      updateOrbisDBSettings(settings);
 
       // Step 6: Restart indexing service
       restartIndexingService();
