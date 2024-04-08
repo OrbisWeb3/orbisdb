@@ -56,6 +56,9 @@ export function updateOrbisDBSettings(updatedSettings, slot) {
 
   /** Build new settings object according to slot */
   if(slot && slot != undefined && slot != "global" && oldSettings.is_shared) { 
+    if (!Array.isArray(oldSettings.slots)) {
+      oldSettings.slots = []; // Initialize slots as an array if it's not an array already
+    }
     oldSettings.slots[slot] = updatedSettings;
     settingsToSave = oldSettings;
   } else {

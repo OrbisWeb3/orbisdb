@@ -178,8 +178,8 @@ const ConfigurationSharedSetup = () => {
   return(
     <div className="flex justify-center">
       <div className="w-1/3 flex flex-col mt-12 bg-white border border-slate-200 p-6 rounded-md">
-        <p className="font-medium text-center">"You are new here!"</p>
-        <p className="text-base text-slate-600 mb-1 text-center">To get started, let's configure your OrbisDB instance.</p>
+        <p className="font-medium text-center">You are new here!</p>
+        <p className="text-base text-slate-600 mb-1 text-center">To get started, let's configure your personal OrbisDB instance.</p>
 
         {/** If shared instance we display the user's did */}
         {isShared &&
