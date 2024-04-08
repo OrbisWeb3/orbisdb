@@ -20,7 +20,7 @@ export default function App({ Component, pageProps }) {
 }
 
 function AppContent({Component, pageProps}) {
-  const { settings, settingsLoading, adminLoading, isAdmin, isConnected, isConfigured, isShared, slot } = useGlobal();
+  const { settings, settingsLoading, adminLoading, isAdmin, isConnected, isConfigured, isShared } = useGlobal();
 
   useEffect(() => {
     console.log("settings:", settings);

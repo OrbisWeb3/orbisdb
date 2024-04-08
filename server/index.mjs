@@ -182,7 +182,7 @@ async function startServer() {
       }
 
       // Apply to global settings
-      if (!Array.isArray(settings.slots)) {
+      if (!settings.slots) {
         settings.slots = {}; // Initialize slots as an array if it's not an array already
       }
       settings.slots[adminDid] = slotSettings;
