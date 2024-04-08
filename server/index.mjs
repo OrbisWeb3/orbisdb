@@ -696,12 +696,15 @@ async function startServer() {
 
   /** Will build a query from JSON and run it */
   server.post("/api/db/query/json", async (req, res) => {
-    const { jsonQuery, slot } = req.body;
+    const { jsonQuery, env } = req.body;
+    let slot = env;
 
     const { query, params } = SelectStatement.buildQueryFromJson(jsonQuery);
     
     // Retrieve global settings
     let settings = getOrbisDBSettings();
+    console.log("slot:", slot);
+    console.log("env:", env);
 
     // If this is a shared instance we select the right db to query or use the global one
     let database = global.indexingService.databases["global"];
