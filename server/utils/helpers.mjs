@@ -51,22 +51,24 @@ export function getOrbisDBSettings(slot) {
 /** Update the settings file */
 export function updateOrbisDBSettings(updatedSettings, slot) {
   let settingsToSave;
-     // Retrieve global settings in order to update the correct slot
-     let oldSettings = getOrbisDBSettings();
+  
+  // Retrieve global settings in order to update the correct slot
+  let oldSettings = getOrbisDBSettings();
 
   /** Build new settings object according to slot */
   if(slot && slot != undefined && slot != "global" && oldSettings.is_shared) { 
-    if (!Array.isArray(oldSettings.slots)) {
-      oldSettings.slots = []; // Initialize slots as an array if it's not an array already
+    if (!oldSettings.slots) {
+      oldSettings.slots = {}; // Initialize slots as an array if it's not an array already
     }
     oldSettings.slots[slot] = updatedSettings;
     settingsToSave = oldSettings;
+    console.log("Trying to update settings for " + slot + " with:", settingsToSave);
   } else {
     settingsToSave = updatedSettings;
+    console.log("Trying to update global settings with:", settingsToSave);
   }
 
   /** Save updated settings */
-  console.log("Trying to update settings for " + slot + " with:", settingsToSave);
   try {
     let _path = path.resolve(__dirname, "../../orbisdb-settings.json");
     fs.writeFileSync(_path, JSON.stringify(settingsToSave, null, 2));

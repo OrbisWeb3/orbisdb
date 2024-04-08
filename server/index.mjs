@@ -183,15 +183,16 @@ async function startServer() {
 
       // Apply to global settings
       if (!Array.isArray(settings.slots)) {
-        settings.slots = []; // Initialize slots as an array if it's not an array already
+        settings.slots = {}; // Initialize slots as an array if it's not an array already
       }
       settings.slots[adminDid] = slotSettings;
+      console.log("Trying to save settings:", settings);
 
       // Step 5: Update global settings
       updateOrbisDBSettings(settings);
 
       // Step 6: Restart indexing service
-      restartIndexingService();
+      restartIndexingService(settings);
 
       // Return results
       res.json({
@@ -206,29 +207,6 @@ async function startServer() {
         result: "Error creating database.",
       });
     }
-
-    
-
-    /*try {
-      const globalSettings = getOrbisDBSettings();
-      if(globalSettings.is_shared) {
-        res.json({
-          status: "200",
-          admins: [req.params.admin_did],
-        });
-      } else {
-        res.json({
-          status: "200",
-          admins: globalSettings?.configuration?.admins,
-        });
-      }
-    } catch (err) {
-      console.error(err);
-      res.json({
-        status: "500",
-        error: 'Failed to read settings.'
-      });
-    }*/
   });
 
   // Returns instance admin
@@ -310,7 +288,7 @@ async function startServer() {
       console.log("New settings:", updatedSettings);
 
       // Rewrite the settings file
-      updateOrbisDBSettings(updatedSettings, adminDid);
+      await updateOrbisDBSettings(updatedSettings, adminDid);
 
       // Send the response
       res.status(200).json({
@@ -399,7 +377,7 @@ async function startServer() {
       console.log("settings:", settings)
 
       // Write the updated settings back to the file
-      updateOrbisDBSettings(settings, adminDid);
+      await updateOrbisDBSettings(settings, adminDid);
 
       // Reset plugins
       global.indexingService.resetPlugins();
@@ -456,7 +434,7 @@ async function startServer() {
       console.log("Updated settings:", settings);
 
       // Rewrite the settings file
-      updateOrbisDBSettings(settings, adminDid);
+      await updateOrbisDBSettings(settings, adminDid);
 
       // Send the response
       res.status(200).json({
@@ -486,7 +464,7 @@ async function startServer() {
       settings.configuration = configuration;
 
       // Rewrite the settings file
-      updateOrbisDBSettings(settings, slot);
+      await updateOrbisDBSettings(settings, slot);
 
       // Restart indexing service
       restartIndexingService();
@@ -518,7 +496,7 @@ async function startServer() {
       */
 
       // Rewrite the settings file
-      updateOrbisDBSettings(settings);
+      await updateOrbisDBSettings(settings);
 
       // Close previous indexing service
       if(global.indexingService) {

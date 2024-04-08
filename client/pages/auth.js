@@ -58,7 +58,7 @@ export default function Auth() {
         <div className="flex justify-center">
             <div className="w-1/3 flex flex-col mt-12 bg-white border border-slate-200 p-6 rounded-md">
                 <p className="font-medium text-center">Connect</p>
-                <p className="text-base text-slate-600 mb-4 text-center">Please connect wit your admin DID in order to use this OrbisDB instance.</p>
+                <p className="text-base text-slate-600 mb-4 text-center">Please connect with your admin DID in order to use this OrbisDB instance.</p>
                 <Button title="Connect with Metamask" status={status} onClick={() => login()} />
             </div>
         </div>
