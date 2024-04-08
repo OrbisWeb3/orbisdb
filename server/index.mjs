@@ -182,7 +182,7 @@ async function startServer() {
       }
 
       // Step 5: Update global settings
-      updateOrbisDBSettings(slotSettings, adminDid);
+      updateOrbisDBSettings(slotSettings);
 
       // Step 6: Restart indexing service
       restartIndexingService();
