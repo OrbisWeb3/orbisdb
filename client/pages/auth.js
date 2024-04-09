@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from "react";
 import Button from "../components/Button";
 import { useGlobal } from "../contexts/Global";
 import { OrbisDB } from "@useorbis/db-sdk";
-import { OrbisEVMAuth } from "@useorbis/db-sdk/auth";
+import { OrbisEVMAuth, OrbisSolanaAuth } from "@useorbis/db-sdk/auth";
 import { useRouter } from 'next/router';
 import Alert from "../components/Alert";
 import Link from "next/link";
@@ -20,7 +20,7 @@ export default function Auth() {
         }
     }, [isAdmin])
 
-    async function login() {
+    async function login(type) {
         setStatus(1);
         let adminOrbisDB = new OrbisDB({
             ceramic: {
@@ -32,29 +32,45 @@ export default function Auth() {
               },
             ],
         });
-        const auth = new OrbisEVMAuth(window.ethereum);
+        let auth;
+
+        /** Use correct type according to provider */
+        switch(type) {
+            case "metamask":
+                auth = new OrbisEVMAuth(window.ethereum);
+                break;
+            case "phantom":
+                auth = new OrbisSolanaAuth(window.phantom?.solana);
+                break;
+        }
 
         // Connect with wallet using OrbisDB / Ceramic to retrieve address / DID
-        const result = await adminOrbisDB.connectUser({ auth, saveSession: false });
-        console.log("user:", result);
-
-        // retrieve admins
-        let resultAdmins = await getAdmin();
-        console.log("resultAdmins:", resultAdmins);
-         console.log("resultAdmins.admins?.includes(result.user.did)", resultAdmins?.includes(result.user.did));
-        if(isShared || (result?.user && resultAdmins?.includes(result.user.did))) {
-            // Save admin session in localstorage
-            localStorage.setItem("orbisdb-admin-session", result.session.session);
-            init();
-            //router.push('/');
-        } else {
-            setStatus(3);
-            if(!result.user) {
-                alert("Error connecting to the wallet.");
+        try {
+            const result = await adminOrbisDB.connectUser({ auth, saveSession: false });
+            console.log("user:", result);
+    
+            // retrieve admins
+            let resultAdmins = await getAdmin();
+            console.log("resultAdmins:", resultAdmins);
+             console.log("resultAdmins.admins?.includes(result.user.did)", resultAdmins?.includes(result.user.did));
+            if(isShared || (result?.user && resultAdmins?.includes(result.user.did))) {
+                // Save admin session in localstorage
+                localStorage.setItem("orbisdb-admin-session", result.session.session);
+                init();
+                //router.push('/');
             } else {
-                alert("User isn't one of the admins of the OrbisDB instance. Please connect with a different wallet.");
-            }            
+                setStatus(3);
+                if(!result.user) {
+                    alert("Error connecting to the wallet.");
+                } else {
+                    alert("User isn't one of the admins of the OrbisDB instance. Please connect with a different wallet.");
+                }            
+            }
+        } catch(e) {
+            console.log("Error connecting:", e);
+            setStatus(3);
         }
+        
     }
 
     return(
@@ -69,7 +85,10 @@ export default function Auth() {
                 {isShared &&
                     <Alert className="text-xs mb-4" title={<><b>Note:</b> This is a shared OrbisDB instance, if you want to use a dedicated one we recommend visiting our <Link className="underline" href="https://github.com/OrbisWeb3/orbisdb">GitHub repository</Link>.</>}/>
                 }
-                <Button title="Connect with Metamask" status={status} onClick={() => login()} />
+                <div className="flex flex-col space-y-1">
+                    <Button title="Connect with Metamask" type="metamask" status={status} onClick={() => login("metamask")} />
+                    <Button title="Connect with Phantom" type="phantom" status={status} onClick={() => login("phantom")} className="mt-2" />
+                </div>
             </div>
             
         </div>

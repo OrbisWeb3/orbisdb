@@ -154,6 +154,10 @@ const LoopSlots = ({slots}) => {
 const ConfigurationSharedSetup = () => {
   const { isShared, adminSession, sessionJwt, setSettings } = useGlobal();
   const [status, setStatus] = useState(STATUS.ACTIVE);
+
+  useEffect(() => {
+    console.log("sessionJwt:", sessionJwt);
+  }, [sessionJwt])
   
   async function configure() {
     setStatus(STATUS.LOADING);

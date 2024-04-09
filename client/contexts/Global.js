@@ -112,7 +112,7 @@ export const GlobalProvider = ({ children }) => {
                 setAdminSession(didId);
 
                 // If user connected is included in the admins array in configuration we give admin access and save the session token to be used in API calls
-                let _isAdmin = admins?.includes(didId.toLowerCase());
+                let _isAdmin = admins?.includes(didId);
                 if(didId && _isAdmin) {
                     console.log("User is admin.");
                     setIsAdmin(true);
