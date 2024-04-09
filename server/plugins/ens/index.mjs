@@ -10,14 +10,7 @@ export default class ENSPlugin {
 
     return {
       HOOKS: {
-        "validate": (stream) => this.isValid(stream),
         "add_metadata": (stream) => this.add_metadata(stream),
-      },
-      ROUTES: {
-        GET: {
-          "hello": this.helloApi,
-          "hello-html": this.helloHtmlApi,
-        }
       }
     };
   }
@@ -25,7 +18,16 @@ export default class ENSPlugin {
   async add_metadata(stream) {
     console.log("In add_metadata stream:", stream);
     console.log("In add_metadata field:", this.field);
-    let field = this.getValueByPath(stream, this.field);
+    let field;
+
+    /** Will convert the field to the actual value and make an exception for controller to use the address instead of the full did */
+    if(this.field == "controller") {
+      let { address } = getAddressFromDid(stream.controller);
+      field = address;
+    } else {
+      field = this.getValueByPath(stream, this.field);
+    }
+    
     console.log("field:", field)
     if(field) {
       switch(this.action) {
@@ -93,5 +95,56 @@ export default class ENSPlugin {
         return undefined;
     }, obj);
     return result;
+  }
+  
+}
+
+/** Returns a JSON object with the address and network based on the did */
+function getAddressFromDid(did) {
+  if(did) {
+    let didParts = did.split(":");
+    if(did.substring(0, 7) == "did:pkh") {
+      /** Explode address to retrieve did */
+      if(didParts.length >= 4) {
+        let address = didParts[4];
+        let network = didParts[2];
+        let chain = didParts[2] + ":" + didParts[3];
+
+        /** Return result */
+        return {
+          address: address,
+          network: network,
+          chain: chain
+        }
+      } else {
+        /** Return null object */
+        return {
+          address: null,
+          network: null,
+          chain: null
+        }
+      }
+    } else if(did.substring(0, 7) == "did:key") {
+      /** Return did object */
+      return {
+        address: didParts[3],
+        network: 'key',
+        chain: 'key'
+      }
+    } else {
+      /** Return null object */
+      return {
+        address: null,
+        network: null,
+        chain: null
+      }
+    }
+  } else {
+    /** Return null object */
+    return {
+      address: null,
+      network: null,
+      chain: null
+    }
   }
 }
