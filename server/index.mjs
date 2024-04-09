@@ -48,6 +48,7 @@ const authMiddleware = async (req, res, next) => {
 
   if(authHeader) {
     const token = authHeader.split(' ')[1]; // Split 'Bearer <token>'
+    console.log("token:", token);
     if(token) {
       try {
         let _isAdmin;
@@ -62,8 +63,8 @@ const authMiddleware = async (req, res, next) => {
           _isAdminsEmpty = false;
           _isAdmin = true;
         } else {
-          _isAdmin = settings?.configuration?.admins?.includes(didId);
-          _isAdminsEmpty = !settings?.configuration?.admins || settings.configuration.admins.length === 0;
+          _isAdmin = globalSettings?.configuration?.admins?.includes(didId);
+          _isAdminsEmpty = !globalSettings?.configuration?.admins || globalSettings.configuration.admins.length === 0;
         }
   
         if(didId && (_isAdmin || _isAdminsEmpty)) {
@@ -72,6 +73,7 @@ const authMiddleware = async (req, res, next) => {
             return res.json({status: 401, result: "This account isn't an admin."});
         }
       } catch(e) {
+        console.log("Error checking session JWT:", e);
         return res.json({status: 401, result: "Error checking session JWT with " + token});
       }
       

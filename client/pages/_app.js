@@ -100,7 +100,7 @@ function AppContent({Component, pageProps}) {
         <Component {...pageProps} />
       </div>
     )
-  } else if(!settings?.configuration) {
+  } else if(!settings?.configuration && isShared) {
     return(
       <div className="h-full w-full flex flex-col">
         <Header showItems={false} />
