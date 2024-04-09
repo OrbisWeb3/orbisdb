@@ -242,7 +242,9 @@ const ContextDropdown = ({ selectedContext, selectedContextIds, setSelectedConte
 
       {/* Dropdown list content */}
       {listVis &&
-        <ul className="absolute z-10 mt-1 max-h-56 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm"
+        <>
+        {(_contexts && _contexts.length > 0) ?
+          <ul className="absolute z-10 mt-1 max-h-56 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm"
             tabIndex="-1"
             role="listbox"
             aria-labelledby="listbox-label">
@@ -256,6 +258,11 @@ const ContextDropdown = ({ selectedContext, selectedContextIds, setSelectedConte
             </li>
           ))}
         </ul>
+        :
+            <Alert title="You haven't created any context yet." className="text-xs mt-2" />
+        }
+          
+        </>
       }
     </div>
   );

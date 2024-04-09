@@ -1,8 +1,8 @@
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { DashIcon } from "./Icons";
+import { CopyIcon, DashIcon, ExternalLinkIcon } from "./Icons";
 import { useGlobal } from '../contexts/Global';
-import { getAddress, shortAddress } from '../utils';
+import { copyToClipboard, getAddress, shortAddress } from '../utils';
 
 export default function Header({showItems}) {
   const { sessionJwt, adminSession } = useGlobal();
@@ -12,7 +12,9 @@ export default function Header({showItems}) {
     { title: 'Contexts', path: "/", type: "equal" },
     { title: 'Plugins', path:  "/plugins", type: "includes" },
     { title: 'Data', path:  "/data", type: "includes" },
-    { title: 'Settings', path:  "/settings", type: "equal" }
+    { title: 'Playground', path:  "/playground", type: "equal" },
+    { title: 'Settings', path:  "/settings", type: "equal" },
+    { title: <><span>Documentation</span><ExternalLinkIcon /></>, path:  "https://github.com/OrbisWeb3/db-sdk", type: "equal", target:"_blank" },
   ];
 
   async function restart() {
@@ -39,15 +41,14 @@ export default function Header({showItems}) {
               <NavItem key={item.title} item={item} />
             ))}
           </div>
-          <div className='pr-4'>
-            <Link href="/playground" className='bg-blue-50 border border-dashed hover:border-solid cursor-pointer border-blue-200 text-blue-600 px-3 py-1.5 rounded-md text-xs'>Playground</Link>
-          </div>
+          {/** 
           <div className='pr-4'>
             <button onClick={() => restart()} className='bg-red-50 border border-dashed hover:border-solid cursor-pointer border-red-200 text-red-600 px-3 py-1 rounded-md text-xs'>Restart</button>
           </div>
+          */}
 
           <div className='pr-4'>
-            <button className='bg-slate-50 border border-dashed hover:border-solid cursor-pointer border-slate-200 text-slate-600 px-4 py-1 rounded-full text-xxs font-medium'>{shortAddress(getAddress(adminSession))}</button>
+            <button className='bg-slate-50 border border-dashed hover:border-solid cursor-pointer border-slate-200 text-slate-600 px-4 py-1 rounded-full text-xxs font-medium items-center flex flex-row space-x-1.5' onClick={() => copyToClipboard(adminSession)}><span>Env: {adminSession}</span><CopyIcon /></button>
           </div>
         </>
       :
@@ -74,13 +75,13 @@ const NavItem = ({ item, href }) => {
   if (selected) {
     return (
       <Link href={item.path} passHref>
-        <div className="text-slate-900 text-base border-b border-slate-900 h-full py-4">{item.title}</div>
+        <div className="text-slate-900 text-base border-b border-slate-900 h-full py-4 flex flex-row items-center space-x-1">{item.title}</div>
       </Link>
     );
   } else {
     return (
-      <Link href={item.path} passHref>
-        <div className="cursor-pointer hover:text-slate-800 h-full py-4">{item.title}</div>
+      <Link href={item.path} passHref target={item.target}>
+        <div className="cursor-pointer hover:text-slate-800 h-full py-4 flex flex-row items-center space-x-1">{item.title}</div>
       </Link>
     );
   }

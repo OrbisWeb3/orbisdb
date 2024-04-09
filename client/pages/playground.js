@@ -69,7 +69,8 @@ const orbisdb = new OrbisDB({
   nodes: [
     {
       gateway: "<ORBIS_DB_INSTANCE_URL>",
-      key: "<YOUR_API_KEY>",
+      // If using a shared node instead of a dedicated.
+      env:  "<ENVIRONMENT_ID>" 
     },
   ],
 });`;

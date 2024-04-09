@@ -30,7 +30,7 @@
     "cors": "^2.8.5",
     "cross-eventsource": "^1.0.0",
     "dids": "^4.0.4",
-    "ethers": "^6.11.0",
+    "ethers": "^6.11.1",
     "express": "^4.18.2",
     "formidable": "^3.5.1",
     "fs": "^0.0.1-security",

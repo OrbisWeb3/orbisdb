@@ -23,6 +23,17 @@ export function getAddress(did) {
   return parts[parts.length - 1];
 }
 
+// Will copy the cell data to the clipboard
+export const copyToClipboard = async (text) => {
+  try {
+    await navigator.clipboard.writeText(text);
+    console.log('Text copied to clipboard');
+    alert("Copied to clipboard!");
+  } catch (err) {
+    console.error('Failed to copy: ', err);
+  }
+};
+
 
 /** Will fint the context using the stream id in the contexts and sub-contexts */
 export function findContextById(contexts, streamId) {

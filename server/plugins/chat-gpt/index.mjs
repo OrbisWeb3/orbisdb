@@ -252,5 +252,5 @@ export default class ChatGPTPlugin {
             return data.choices[0].message.content;
         }
         
-      }
+    }
 }

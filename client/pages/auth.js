@@ -4,6 +4,9 @@ import { useGlobal } from "../contexts/Global";
 import { OrbisDB } from "@useorbis/db-sdk";
 import { OrbisEVMAuth } from "@useorbis/db-sdk/auth";
 import { useRouter } from 'next/router';
+import Alert from "../components/Alert";
+import Link from "next/link";
+import { OrbisDBLogo } from "../components/Icons";
 
 export default function Auth() {
     const { settings, setIsAdmin, setSessionJwt, isAdmin, getAdmin, init, isShared } = useGlobal();
@@ -55,12 +58,20 @@ export default function Auth() {
     }
 
     return(
-        <div className="flex justify-center">
-            <div className="w-1/3 flex flex-col mt-12 bg-white border border-slate-200 p-6 rounded-md">
-                <p className="font-medium text-center">Connect</p>
+        <div className="flex justify-center flex-col items-center pt-24">
+            <div>
+                <OrbisDBLogo />
+            </div>
+            <div className="w-1/3 flex flex-col mt-6 bg-white border border-slate-200 p-6 rounded-md">
+                <p className="font-medium text-center">Connect to OrbisDB</p>
                 <p className="text-base text-slate-600 mb-4 text-center">Please connect with your admin DID in order to use this OrbisDB instance.</p>
+
+                {isShared &&
+                    <Alert className="text-xs mb-4" title={<><b>Note:</b> This is a shared OrbisDB instance, if you want to use a dedicated one we recommend visiting our <Link className="underline" href="https://github.com/OrbisWeb3/orbisdb">GitHub repository</Link>.</>}/>
+                }
                 <Button title="Connect with Metamask" status={status} onClick={() => login()} />
             </div>
+            
         </div>
     )
 }
