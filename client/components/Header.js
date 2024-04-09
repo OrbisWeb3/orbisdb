@@ -5,16 +5,14 @@ import { useGlobal } from '../contexts/Global';
 import { copyToClipboard, getAddress, shortAddress } from '../utils';
 
 export default function Header({showItems}) {
-  const { sessionJwt, adminSession } = useGlobal();
+  const { sessionJwt, adminSession, isShared } = useGlobal();
 
   // Define navigation items and their paths
   const navItems = [
     { title: 'Contexts', path: "/", type: "equal" },
     { title: 'Plugins', path:  "/plugins", type: "includes" },
     { title: 'Data', path:  "/data", type: "includes" },
-    { title: 'Playground', path:  "/playground", type: "equal" },
-    { title: 'Settings', path:  "/settings", type: "equal" },
-    { title: <><span>Documentation</span><ExternalLinkIcon /></>, path:  "https://github.com/OrbisWeb3/db-sdk", type: "equal", target:"_blank" },
+    { title: 'Playground', path:  "/playground", type: "equal" }
   ];
 
   async function restart() {
@@ -40,6 +38,10 @@ export default function Header({showItems}) {
             {navItems.map((item) => (
               <NavItem key={item.title} item={item} />
             ))}
+            {!isShared &&
+              <NavItem key="Settings" item={{ title: 'Settings', path:  "/settings", type: "equal" }} />
+            }
+            
           </div>
           {/** 
           <div className='pr-4'>
@@ -49,6 +51,9 @@ export default function Header({showItems}) {
 
           <div className='pr-4'>
             <button className='bg-slate-50 border border-dashed hover:border-solid cursor-pointer border-slate-200 text-slate-600 px-4 py-1 rounded-full text-xxs font-medium items-center flex flex-row space-x-1.5' onClick={() => copyToClipboard(adminSession)}><span>Env: {adminSession}</span><CopyIcon /></button>
+          </div>
+          <div className='text-sm text-slate-500 '>
+            <NavItem key="Documentation" item={{ title: <><span>Documentation</span><ExternalLinkIcon /></>, path:  "https://github.com/OrbisWeb3/db-sdk", type: "equal", target:"_blank" }} />
           </div>
         </>
       :
