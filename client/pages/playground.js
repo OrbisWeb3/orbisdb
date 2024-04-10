@@ -11,11 +11,24 @@ import { useGlobal } from "../contexts/Global";
 let orbisdb;
 
 export default function Playground() {
-    const { settings } = useGlobal();
+    const { settings, isShared, adminSession } = useGlobal();
 
     useEffect(() => {
         console.log("settings.configuration.ceramic.node:", settings.configuration.ceramic.node);
-        if(settings.configuration.ceramic.node) {
+        if(isShared) {
+          orbisdb = new OrbisDB({
+            ceramic: {
+                gateway: settings.configuration.ceramic.node,
+            },
+            nodes: [
+                {
+                    gateway: "http://localhost:7008/",
+                    env: adminSession,
+                },
+            ],
+        });
+        } else {
+          if(settings.configuration.ceramic.node) {
             orbisdb = new OrbisDB({
                 ceramic: {
                     gateway: settings.configuration.ceramic.node,
@@ -27,7 +40,9 @@ export default function Playground() {
                     },
                 ],
             });
+          }
         }
+        
     }, [settings?.configuration]);
 
   return (
@@ -54,7 +69,8 @@ const orbisdb = new OrbisDB({
   nodes: [
     {
       gateway: "<ORBIS_DB_INSTANCE_URL>",
-      key: "<YOUR_API_KEY>",
+      // If using a shared node instead of a dedicated.
+      env:  "<ENVIRONMENT_ID>" 
     },
   ],
 });`;
@@ -506,12 +522,19 @@ const QueryModel = ({modelId, tableName, setStep}) => {
 
   const query = async () => {
     setStatus(1);
-    const result = await orbisdb.select().from(_tableName).orderBy(["indexed_at", "desc"]).limit(10).run();
-    console.log("result:", result);
-    if(result.rows) {
-      setData(result.rows);
+    let result;
+    try {
+      result = await orbisdb.select().from(_tableName).orderBy(["indexed_at", "desc"]).limit(10).run();
+      console.log("result:", result);
+      if(result.rows) {
+        setData(result.rows);
+      }
+      setStatus(2);
+    } catch(e) {
+      console.log("error querying stream:", e);
+      alert("Error querying table.");
     }
-    setStatus(2);
+    
   };
 
   return(
@@ -542,8 +565,9 @@ const QueryModel = ({modelId, tableName, setStep}) => {
             {data.map((item, key) => {
               item.stream_id = shortAddress(item.stream_id);
               item.controller = shortAddress(item.controller);
+              item._metadata_context = item._metadata_context ? shortAddress(item._metadata_context) : "";
               return (
-                  <div key={key} className="bg-white border border-slate-200 w-full rounded-md px-3 py-1.5 text-sm text-slate-900 mr-2 whitespace-pre-wrap font-mono">
+                  <div key={key} className="bg-white border border-slate-200 w-full rounded-md px-3 py-1.5 text-xxs text-slate-900 mr-2 whitespace-pre-wrap font-mono">
                       {JSON.stringify(item, null, 3)}:
                   </div>
               );

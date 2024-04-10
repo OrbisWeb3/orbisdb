@@ -11,6 +11,7 @@ export const GlobalContext = React.createContext();
 export const GlobalProvider = ({ children }) => {
     const router = useRouter();
     const [isConfigured, setIsConfigured] = useState(null);
+    const [isShared, setIsShared] = useState(null);
     const [settings, setSettings] = useState();
     const [settingsLoading, setSettingsLoading] = useState();
     const [adminLoading, setAdminLoading] = useState(true);
@@ -18,6 +19,7 @@ export const GlobalProvider = ({ children }) => {
     const [isConnected, setIsConnected] = useState(false);
     const [sessionJwt, setSessionJwt] = useState();
     const [user, setUser] = useState();
+    const [adminSession, setAdminSession] = useState();
     const [orbisdb, setOrbisdb] = useState();
 
     useEffect(() => {
@@ -28,66 +30,19 @@ export const GlobalProvider = ({ children }) => {
 
     /** If user isn't connected after check we redirect to the auth page */
     useEffect(() => {
-        if(!adminLoading && !isAdmin && router.pathname != '/auth') {
-            console.log("Redirecting to /auth");
+        if(!adminLoading && !isAdmin && router.asPath != '/auth') {
+            console.log("Redirecting to auth page");
             router.push('/auth');
         }
     }, [adminLoading, isAdmin, router])
 
     /** Load settings and check for admin account right after */
     useEffect(() => {
-        init();   
-    }, []);
+        init();
+    }, [adminSession]);
 
-     /** Load settings from file */
-     async function init() {
-        console.log("Enter init()");
-        try {
-            let admins = await getAdmin();
-            console.log("admins:", admins);
-            if(admins) {
-                checkAdmin(admins); 
-            } else {
-                setAdminLoading(false);
-            }
-        } catch(e) {
-            setAdminLoading(false);
-            console.log("Error retrieving local settings, loading default one instead.");
-        }
-    }
-
-    /** Check if there is an existing user connected */
-    async function checkAdmin(admins) {
-        console.log("Enter checkAdmin");
-        // Retrieve admin session from local storage
-        let adminSession = localStorage.getItem("orbisdb-admin-session");
-
-        // Convert session string to the parent DID using Ceramic library
-        if(adminSession) {
-            setIsConnected(true);
-            try {
-                let resAdminSession = await DIDSession.fromSession(adminSession, null);
-                let didId = resAdminSession.did.parent;
-
-                // If user connected is included in the admins array in configuration we give admin access and save the session token to be used in API calls
-                let _isAdmin = admins?.includes(didId.toLowerCase());
-                if(didId && _isAdmin) {
-                    setIsAdmin(true);
-                    setSessionJwt(adminSession);
-                    loadSettings(adminSession);
-                } else {
-                    console.log("User is NOT an admin: ", didId);
-                }
-                
-            } catch(e) {
-                console.log("Error checking admin account:", e);
-            }
-        } else {
-            setIsConnected(false);
-        }
-        setAdminLoading(false);
-    }
     
+    /** Will connect to Ceramic using the seed in the config */
     useEffect(() => {
         if(settings?.configuration?.ceramic?.seed) {
             connectSeed();
@@ -126,20 +81,70 @@ export const GlobalProvider = ({ children }) => {
         }
     }, [settings]);
 
-    async function getAdmin() {
-        let result = await fetch("/api/settings/get-admin");
+    /** Load settings from file */
+    async function init() {
+        console.log("Enter init()");
+        try {
+            let admins = await getAdmin(adminSession);
+            console.log("admins:", admins);
+            if(admins) {
+                checkAdmin(admins); 
+            } else {
+                setAdminLoading(false);
+            }
+        } catch(e) {
+            setAdminLoading(false);
+            console.log("Error retrieving local settings, loading default one instead.");
+        }
+    }
+
+    /** Check if there is an existing user connected */
+    async function checkAdmin(admins) {
+        console.log("Enter checkAdmin");
+        // Retrieve admin session from local storage
+        let adminSessionJwt = localStorage.getItem("orbisdb-admin-session");
+        // Convert session string to the parent DID using Ceramic library
+        if(adminSessionJwt) {
+            setIsConnected(true);
+            try {
+                let resAdminSession = await DIDSession.fromSession(adminSessionJwt, null);
+                let didId = resAdminSession.did.parent;
+                setAdminSession(didId);
+
+                // If user connected is included in the admins array in configuration we give admin access and save the session token to be used in API calls
+                let _isAdmin = admins?.includes(didId);
+                if(didId && _isAdmin) {
+                    console.log("User is admin.");
+                    setIsAdmin(true);
+                    setSessionJwt(adminSessionJwt);
+                    loadSettings(adminSessionJwt);
+                } else {
+                    console.log("User is NOT an admin: ", didId);
+                }
+            } catch(e) {
+                console.log("Error checking admin account:", e);
+            }
+        } else {
+            setIsConnected(false);
+        }
+        setAdminLoading(false);
+    }
+
+
+    async function getAdmin(adminSession) {
+        let result = await fetch("/api/settings/get-admin/" + adminSession);
         let resultJson = await result.json();
         console.log("In getAdmin:", resultJson);
         return resultJson.admins;
     }
 
     async function loadSettings(_jwt) {
-        let adminSession = localStorage.getItem("orbisdb-admin-session");
+        let adminSession = _jwt ? _jwt : localStorage.getItem("orbisdb-admin-session");
         let result = await fetch("/api/settings/get", {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': `Bearer ${_jwt ? _jwt : adminSession}`
+              'Authorization': `Bearer ${adminSession}`
             }
         });
 
@@ -157,21 +162,20 @@ export const GlobalProvider = ({ children }) => {
     }
 
     /** Will check if node has been configured or not */
-    async function getIsConfigured(_jwt) {
-        let result = await fetch("/api/settings/is-configured", {
-            method: 'GET'
-        });
-
+    async function getIsConfigured() {
+        let result = await fetch("/api/settings/is-configured");
         let resultJson = await result.json();
         console.log("In isConfigured:", resultJson);
-        if(resultJson && resultJson.result == true) {
-            setIsConfigured(true);
+        if(resultJson) {
+            setIsConfigured(resultJson.is_configured ? true : false);
+            setIsShared(resultJson.is_shared ? true : false);
         } else {
             setIsConfigured(false);
+            setIsShared(false);
         }
     }
   
-    return <GlobalContext.Provider value={{ settings, setSettings, settingsLoading, loadSettings, isAdmin, setIsAdmin, user, setUser, orbisdb, setOrbisdb, sessionJwt, setSessionJwt, adminLoading, setAdminLoading, isConnected, init, getAdmin, isConfigured, setIsConfigured }}>{children}</GlobalContext.Provider>;
+    return <GlobalContext.Provider value={{ settings, setSettings, settingsLoading, loadSettings, isAdmin, setIsAdmin, user, setUser, orbisdb, setOrbisdb, sessionJwt, setSessionJwt, adminLoading, setAdminLoading, isConnected, init, getAdmin, isConfigured, setIsConfigured, isShared, adminSession }}>{children}</GlobalContext.Provider>;
   };
   
   export const useGlobal = () => useContext(GlobalContext);

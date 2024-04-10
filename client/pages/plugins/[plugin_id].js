@@ -27,8 +27,6 @@ export default function PluginDetails() {
   const router = useRouter();
   const { plugin_id } = router.query;
   const existingPluginIndex = getPluginIndex();
-  
-  
 
   useEffect(() => {
     if(plugin_id) {

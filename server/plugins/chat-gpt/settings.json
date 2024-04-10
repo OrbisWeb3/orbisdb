@@ -5,6 +5,7 @@
     "description": "A plugin to query OpenAI's Chat GPT API in order to enhance existing streams or create new ones.",
     "hooks": ["add_metadata", "update"],
     "routes": ["chat"],
+    "visible": false,
     "variables": [
       {
         "name": "Organization ID",

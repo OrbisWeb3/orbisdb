@@ -1,9 +1,10 @@
 import Link from 'next/link';
 import { useContext } from "react";
-import { GlobalContext } from "../contexts/Global";
+import { GlobalContext, useGlobal } from "../contexts/Global";
 import { getPluginsByContext } from "../utils"
 
 export default function ContextDetails({context}) {
+  const { slot } = useGlobal();
   return(
     <div className="flex flex-row bg-white px-4 py-3 border border-slate-200 rounded-md items-center">
       {/** Show context logo if any */}

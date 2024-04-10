@@ -1,17 +1,18 @@
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { DashIcon } from "./Icons";
+import { CopyIcon, DashIcon, ExternalLinkIcon } from "./Icons";
 import { useGlobal } from '../contexts/Global';
+import { copyToClipboard, getAddress, shortAddress } from '../utils';
 
 export default function Header({showItems}) {
-  const { sessionJwt } = useGlobal();
+  const { sessionJwt, adminSession, isShared } = useGlobal();
 
   // Define navigation items and their paths
   const navItems = [
-    { title: 'Contexts', path: '/', type: "equal" },
-    { title: 'Plugins', path: '/plugins', type: "includes" },
-    { title: 'Data', path: '/data', type: "includes" },
-    { title: 'Settings', path: '/settings', type: "equal" }
+    { title: 'Contexts', path: "/", type: "equal" },
+    { title: 'Plugins', path:  "/plugins", type: "includes" },
+    { title: 'Data', path:  "/data", type: "includes" },
+    { title: 'Playground', path:  "/playground", type: "equal" }
   ];
 
   async function restart() {
@@ -37,12 +38,22 @@ export default function Header({showItems}) {
             {navItems.map((item) => (
               <NavItem key={item.title} item={item} />
             ))}
+            {!isShared &&
+              <NavItem key="Settings" item={{ title: 'Settings', path:  "/settings", type: "equal" }} />
+            }
+            
           </div>
+          {/** 
           <div className='pr-4'>
-            <Link href="/playground" className='bg-blue-50 border border-dashed hover:border-solid cursor-pointer border-blue-200 text-blue-600 px-3 py-1.5 rounded-md text-sm'>Playground</Link>
+            <button onClick={() => restart()} className='bg-red-50 border border-dashed hover:border-solid cursor-pointer border-red-200 text-red-600 px-3 py-1 rounded-md text-xs'>Restart</button>
           </div>
+          */}
+
           <div className='pr-4'>
-            <button onClick={() => restart()} className='bg-red-50 border border-dashed hover:border-solid cursor-pointer border-red-200 text-red-600 px-3 py-1 rounded-md text-sm'>Restart</button>
+            <button className='bg-slate-50 border border-dashed hover:border-solid cursor-pointer border-slate-200 text-slate-600 px-4 py-1 rounded-full text-xxs font-medium items-center flex flex-row space-x-1.5' onClick={() => copyToClipboard(adminSession)}><span>Env: {adminSession}</span><CopyIcon /></button>
+          </div>
+          <div className='text-sm text-slate-500 '>
+            <NavItem key="Documentation" item={{ title: <><span>Documentation</span><ExternalLinkIcon /></>, path:  "https://github.com/OrbisWeb3/db-sdk", type: "equal", target:"_blank" }} />
           </div>
         </>
       :
@@ -56,25 +67,26 @@ export default function Header({showItems}) {
 
 const NavItem = ({ item, href }) => {
   const router = useRouter();
+  console.log("router.asPath:", router.asPath);
 
   // Determine whether the current route matches the item's link
   let selected = false;
   if(item.type == "equal") {
-    selected = router.pathname === item.path;
+    selected = router.asPath === item.path;
   } else if(item.type == "includes") {
-    selected = router.pathname.includes(item.path);
+    selected = router.asPath.includes(item.path);
   }
 
   if (selected) {
     return (
       <Link href={item.path} passHref>
-        <div className="text-slate-900 text-base border-b border-slate-900 h-full py-4">{item.title}</div>
+        <div className="text-slate-900 text-base border-b border-slate-900 h-full py-4 flex flex-row items-center space-x-1">{item.title}</div>
       </Link>
     );
   } else {
     return (
-      <Link href={item.path} passHref>
-        <div className="cursor-pointer hover:text-slate-800 h-full py-4">{item.title}</div>
+      <Link href={item.path} passHref target={item.target}>
+        <div className="cursor-pointer hover:text-slate-800 h-full py-4 flex flex-row items-center space-x-1">{item.title}</div>
       </Link>
     );
   }

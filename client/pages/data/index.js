@@ -8,6 +8,7 @@ import AceEditor from "react-ace";
 import "ace-builds/src-min-noconflict/mode-mysql";
 import "ace-builds/src-noconflict/theme-sqlserver";
 import "ace-builds/src-min-noconflict/ext-language_tools";
+import { copyToClipboard } from "../../utils";
 
 export default function Data() {
   const { settings, sessionJwt, loadSettings } = useGlobal();
@@ -54,6 +55,7 @@ export default function Data() {
       });
       
       result = await result.json();
+      console.log("result:", result);
       if (result.status == 200) {
         const fetchedTables = result.data.filter(item => item.type === 'TABLE').map(item => ({ id: item.table_name }));;
         const fetchedViews = result.data.filter(item => item.type === 'VIEW').map(item => ({ id: item.table_name, ...item }));;
@@ -67,7 +69,7 @@ export default function Data() {
         setViews([]);
       }
     } catch (e) {
-
+      console.log("Error querying db:", e);
     }
   }
 
@@ -375,16 +377,6 @@ const TableData = ({ sqlResult, showSuccessIfEmpty }) => {
 
   // Generate table headers
   const headers = getHeaders(sqlResult?.data);
-
-  // Will copy the cell data to the clipboard
-  const copyToClipboard = async (text) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      console.log('Text copied to clipboard');
-    } catch (err) {
-      console.error('Failed to copy: ', err);
-    }
-  };
 
   // Function to check if the item is an object or an array
   const isObjectOrArray = (item) => {

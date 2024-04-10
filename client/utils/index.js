@@ -1,7 +1,3 @@
-import { useContext } from "react";
-import { GlobalContext } from "../contexts/Global";
-
-
 /** Wait for x ms in an async function */
 export const sleep = (milliseconds) => {
   return new Promise(resolve => setTimeout(resolve, milliseconds))
@@ -17,6 +13,27 @@ export function shortAddress(address, number = 5) {
   const lastChars = address.substr(address.length - number);
   return firstChars.concat('-', lastChars);
 }
+
+/** Will extract the address from the did */
+export function getAddress(did) {
+  // Split the DID string into an array using ':' as the delimiter
+  const parts = did.split(':');
+  
+  // Return the last element of the array
+  return parts[parts.length - 1];
+}
+
+// Will copy the cell data to the clipboard
+export const copyToClipboard = async (text) => {
+  try {
+    await navigator.clipboard.writeText(text);
+    console.log('Text copied to clipboard');
+    alert("Copied to clipboard!");
+  } catch (err) {
+    console.error('Failed to copy: ', err);
+  }
+};
+
 
 /** Will fint the context using the stream id in the contexts and sub-contexts */
 export function findContextById(contexts, streamId) {

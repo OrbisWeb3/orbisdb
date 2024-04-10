@@ -8,9 +8,10 @@ import { getOrbisDBSettings, updateOrbisDBSettings, getTableName, getTableModelI
  * DB implementation to index streams with Postgre
  */
 export default class Postgre {
-  constructor(user, database, password, host, port) {
+  constructor(user, database, password, host, port, slot) {
     try {
       this.connection = null;
+      this.slot = slot;
 
       // Instantiate new pool for postgresql database (we skip ssl for local)
       this.adminPool = new Pool({
@@ -192,6 +193,22 @@ export default class Postgre {
     }
   }
 
+  /** Will create a new database */
+  async createDatabase(name) {
+    const client = await this.adminPool.connect();
+    try {
+      // SQL query to create a new database with the user id name
+      await client.query(`CREATE DATABASE "${name}"`);
+      console.log(`Database ${name} created successfully`);
+    } catch (error) {
+      console.error(`Could not create database ${name}`, error);
+    } finally {
+      // Make sure to close the client connection
+      await client.release();
+      console.log('Disconnected from PostgreSQL');
+    }
+  }
+
   /** Will prepare the indexing of a model by creating the corresponding table in our database */
   async indexModel(model, callback) {
     let content;
@@ -309,7 +326,7 @@ export default class Postgre {
    */
   async doesTableExist(tableName) {
     // Retrieve current settings
-    let settings = getOrbisDBSettings();
+    let settings = getOrbisDBSettings(this.slot);
 
     try {
       const modelsMapping = settings.models_mapping;
@@ -327,7 +344,7 @@ export default class Postgre {
   /** Will make sure we keep track of the relationship between the model id and readable table name */
   async mapTableName(model, title) {
     // Retrieve current settings
-    let settings = getOrbisDBSettings();
+    let settings = getOrbisDBSettings(this.slot);
 
      // Check if models_mapping exists, if not, create it
     if (!settings.models_mapping) {
@@ -338,7 +355,7 @@ export default class Postgre {
     settings.models_mapping[model] = title;
 
     // Rewrite the settings file
-    updateOrbisDBSettings(settings)
+    updateOrbisDBSettings(settings, this.slot)
   }
 
   /** Will query DB Schema with admin user */

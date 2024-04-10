@@ -1,0 +1,31 @@
+{
+  "id": "ens",
+  "name": "ENS",
+  "logo": "/img/ens.png",
+  "description": "Convert an ENS domain to an address or an address to an ENS domain.",
+  "hooks": ["add_metadata"],
+  "variables": [
+    {
+      "name": "RPC URL",
+      "description": "The RPC URL to use to communicate with the blockchain.",
+      "id": "rpc_url",
+      "type": "string",
+      "per_context": false
+    },
+    {
+      "name": "Action",
+      "description": "Which action should the plugin perform?",
+      "id": "action",
+      "type": "select",
+      "options": [{"value": "name_to_address", "label": "Name to Address"}, {"value": "address_to_name", "label": "Address to Name"}],
+      "per_context": true
+    },
+    {
+      "name": "Field",
+      "description": "Which field do you want to use to do the conversion? The stream's fields are under the 'content' object and generic fields are parents fields (like 'controller').",
+      "id": "field",
+      "type": "string",
+      "per_context": true
+    }
+  ]
+}

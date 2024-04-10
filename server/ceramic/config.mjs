@@ -59,7 +59,7 @@ export default class Ceramic {
 
         /** Create social models 
         try {
-            let model = await this.orbisdb.ceramic.createModel(orbisdbContextModelDefinition);
+            let model = await this.orbisdb.ceramic.createModel(discoursePostsModelDefinition);
             console.log("model:", model); 
         } catch(e) {
             console.log(cliColors.text.red, "Error creating model:", cliColors.reset, e);
@@ -109,6 +109,86 @@ const orbisdbContextModelDefinition = {
     }
 };
 
+
+/** 
+ * StreamID Mainnet: ___ 
+ * StreamID Testnet: kjzl6hvfrbw6c58ymz86815ejdbu5xpkwr169zih87k83bykaj14lte3e42u58w 
+ * */
+const discoursePostsModelDefinition = {
+    "name": "DiscoursePosts",
+    "version": "2.0",
+    "accountRelation": {
+        "type": "list"
+    },
+    "interface": false, // Assuming this field is part of your ModelDefinitionV2
+    "implements": [], // Example field for ModelDefinitionV2
+    "schema": {
+        "type": "object",
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "properties": {
+            "dao_name": {
+                "type": "string"
+            },
+            "author": {
+                "type": ["string", "null"]
+            },
+            "Role": {
+                "type": ["string", "null"]
+            },
+            "content": {
+                "type":  ["string", "null"]
+            },
+            "post_time": {
+                "type": ["string", "null"]
+            },
+            "total_likes": {
+                "type": ["integer", "null"]
+            },
+            "likes": {
+                "type": ["string", "null"]
+            },
+            "TotalEmojiReactions": {
+                "type": ["integer", "null"]
+            },
+            "emoji_reactions": {
+                "type": ["string", "null"]
+            },
+            "replies": {
+                "type": ["string", "null"]
+            },
+            "repliers": {
+                "type": ["string", "null"]
+            },
+            "TotalReplies": {
+                "type": ["integer", "null"]
+            },
+            "post_links": {
+                "type": ["string", "null"]
+            },
+            "link_clicks": {
+                "type": ["string", "null"]
+            },
+            "Links": {
+                "type": ["string", "null"]
+            },
+            "Images": {
+                "type": ["string", "null"]
+            },
+            "title": {
+                "type": ["string", "null"]
+            },
+            "post_identifier": {
+                "type": ["string", "null"]
+            },
+            "PostID": {
+                "type": ["string", "null"]
+            }
+        },
+        "additionalProperties": false
+    }
+};
+
+
 /** Model for Orbis posts */
 /** 
  * StreamID Mainnet: kjzl6hvfrbw6c88wvnnb8x62rwvt5iphtvgmg88s4qis09nvchbij21c70th28a 
@@ -119,8 +199,8 @@ const fullPostModelDefinition = {
     "accountRelation": {
         "type": "list"
     },
-    "interface": false, // Assuming this field is part of your ModelDefinitionV2
-    "implements": [], // Example field for ModelDefinitionV2
+    "interface": false,
+    "implements": [],
     "schema": {
         "type": "object",
         "$schema": "https://json-schema.org/draft/2020-12/schema",
