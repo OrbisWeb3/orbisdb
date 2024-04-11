@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { CopyIcon, DashIcon, ExternalLinkIcon } from "./Icons";
+import { CopyIcon, DashIcon, ExternalLinkIcon, OrbisDBLogo } from "./Icons";
 import { useGlobal } from '../contexts/Global';
 import { copyToClipboard, getAddress, shortAddress } from '../utils';
 
@@ -30,7 +30,7 @@ export default function Header({showItems}) {
 
   return(
     <div className="bg-white px-12 border-b border-slate-200 w-full flex flex-row items-center">
-      <p className="font-monospace mr-4 font-medium">orbisDB</p>
+      <p className="font-monospace mr-4 font-medium"><OrbisDBLogo sizeDivider={10.5} /></p>
       <DashIcon />
       {showItems ?
         <>
@@ -49,9 +49,11 @@ export default function Header({showItems}) {
           </div>
           */}
 
-          <div className='pr-4'>
-            <button className='bg-slate-50 border border-dashed hover:border-solid cursor-pointer border-slate-200 text-slate-600 px-4 py-1 rounded-full text-xxs font-medium items-center flex flex-row space-x-1.5' onClick={() => copyToClipboard(adminSession)}><span>Env: {adminSession}</span><CopyIcon /></button>
-          </div>
+          {isShared &&
+            <div className='pr-4'>
+              <button className='bg-slate-50 border border-dashed hover:border-solid cursor-pointer border-slate-200 text-slate-600 px-4 py-1 rounded-full text-xxs font-medium items-center flex flex-row space-x-1.5' onClick={() => copyToClipboard(adminSession)}><span>Env: {adminSession}</span><CopyIcon /></button>
+            </div>
+          }
           <div className='text-sm text-slate-500 '>
             <NavItem key="Documentation" item={{ title: <><span>Documentation</span><ExternalLinkIcon /></>, path:  "https://github.com/OrbisWeb3/db-sdk", type: "equal", target:"_blank" }} />
           </div>
