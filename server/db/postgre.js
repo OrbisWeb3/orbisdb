@@ -1,13 +1,13 @@
 import postgresql from "pg";
 import { snakeCase } from "change-case";
-import { cliColors } from "../utils/cliColors.mjs";
+import { cliColors } from "../utils/cliColors.js";
 const { Pool } = postgresql;
 import {
   getOrbisDBSettings,
   updateOrbisDBSettings,
   getTableName,
   getTableModelId,
-} from "../utils/helpers.mjs";
+} from "../utils/helpers.js";
 
 /**
  * DB implementation to index streams with Postgre

@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
-import { getOrbisDBSettings } from "./helpers.mjs";
+import { getOrbisDBSettings } from "./helpers.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -62,7 +62,7 @@ export async function loadAndInitPlugins() {
           try {
             // Construct paths
             const pluginDir = path.join(pluginsBaseDir, pluginConfig.plugin_id);
-            const pluginFile = path.join(pluginDir, "index.mjs");
+            const pluginFile = path.join(pluginDir, "index.js");
 
             // Dynamic import (as we're in an async function)
             const PluginModule = await import(pluginFile);
@@ -121,13 +121,12 @@ export async function loadAndInitPlugins() {
       }
     }
   } else {
-
-  /** If instance is not shared simply load plugins from global settings */
+    /** If instance is not shared simply load plugins from global settings */
     for (const pluginConfig of settings.plugins ?? []) {
       try {
         // Construct paths
         const pluginDir = path.join(pluginsBaseDir, pluginConfig.plugin_id);
-        const pluginFile = path.join(pluginDir, "index.mjs");
+        const pluginFile = path.join(pluginDir, "index.js");
 
         // Dynamic import (as we're in an async function)
         const PluginModule = await import(pluginFile);

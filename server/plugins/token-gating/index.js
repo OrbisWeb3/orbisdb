@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import { erc20_abi, erc721_abi, erc1155_abi } from "./abis.mjs";
+import { erc20_abi, erc721_abi, erc1155_abi } from "./abis.js";
 
 export default class TokenGatingPlugin {
   /**

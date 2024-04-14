@@ -1,9 +1,9 @@
 import * as bs58 from "bs58";
 import { BorshCoder } from "@project-serum/anchor";
-import { extractTokenTransfers, solPrograms } from "./utils.mjs";
-import { driftRawTx } from "./interfaces/drift.mjs";
-import { jupiterRawTx } from "./interfaces/jupiter.mjs";
-import { orcaRawTx } from "./interfaces/orca.mjs";
+import { extractTokenTransfers, solPrograms } from "./utils.js";
+import { driftRawTx } from "./interfaces/drift.js";
+import { jupiterRawTx } from "./interfaces/jupiter.js";
+import { orcaRawTx } from "./interfaces/orca.js";
 export default class HeliusWebhookReceiver {
   /**
    * This will initialize all of the hooks used by this plugin.

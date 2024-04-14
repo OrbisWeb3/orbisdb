@@ -1,4 +1,4 @@
-import { sleep } from "../../utils/helpers.mjs";
+import { sleep } from "../../utils/helpers.js";
 import { v4 as uuidv4 } from "uuid";
 
 export default class CSVUploaderPlugin {

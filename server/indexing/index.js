@@ -1,6 +1,6 @@
-import { sleep, findSlotsWithContext } from "../utils/helpers.mjs";
-import { cliColors } from "../utils/cliColors.mjs";
-import { loadAndInitPlugins } from "../utils/plugins.mjs";
+import { sleep, findSlotsWithContext } from "../utils/helpers.js";
+import { cliColors } from "../utils/cliColors.js";
+import { loadAndInitPlugins } from "../utils/plugins.js";
 import { EventSource } from "cross-eventsource";
 import { StreamID } from "@ceramicnetwork/streamid";
 import { Type, type, decode } from "codeco";

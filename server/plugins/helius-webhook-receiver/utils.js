@@ -1,6 +1,6 @@
-import { DriftInterface } from "./interfaces/drift.mjs";
-import { JupiterInterface } from "./interfaces/jupiter.mjs";
-import { OrcaInterface } from "./interfaces/orca.mjs";
+import { DriftInterface } from "./interfaces/drift.js";
+import { JupiterInterface } from "./interfaces/jupiter.js";
+import { OrcaInterface } from "./interfaces/orca.js";
 
 export const solPrograms = {
   dRiftyHA39MWEi3m9aunc5MzRF1JYuBsbn6VPcn33UH: {

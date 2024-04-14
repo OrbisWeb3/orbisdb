@@ -1,5 +1,5 @@
 import { ModelAccountRelation } from "@ceramicnetwork/stream-model";
-import { cliColors } from "../utils/cliColors.mjs";
+import { cliColors } from "../utils/cliColors.js";
 import { OrbisDB } from "@useorbis/db-sdk";
 import { OrbisKeyDidAuth } from "@useorbis/db-sdk/auth";
 

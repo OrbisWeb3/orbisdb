@@ -3,20 +3,20 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
-import { cliColors } from "./utils/cliColors.mjs";
+import { cliColors } from "./utils/cliColors.js";
 import { DIDSession } from "did-session";
 
 import bodyParser from "body-parser";
 import cors from "cors";
 import next from "next";
 
-import IndexingService from "./indexing/index.mjs";
-import Ceramic from "./ceramic/config.mjs";
-import Postgre from "./db/postgre.mjs";
-import HookHandler from "./utils/hookHandler.mjs";
+import IndexingService from "./indexing/index.js";
+import Ceramic from "./ceramic/config.js";
+import Postgre from "./db/postgre.js";
+import HookHandler from "./utils/hookHandler.js";
 import { v4 as uuidv4 } from "uuid";
 
-import { loadPlugins, loadPlugin } from "./utils/plugins.mjs";
+import { loadPlugins, loadPlugin } from "./utils/plugins.js";
 import {
   findContextById,
   findSlotsWithContext,
@@ -26,7 +26,7 @@ import {
   updateContext,
   updateOrAddPlugin,
   updateOrbisDBSettings,
-} from "./utils/helpers.mjs";
+} from "./utils/helpers.js";
 import { SelectStatement } from "@useorbis/db-sdk/query";
 
 /** Initialize dirname */
