@@ -2,16 +2,33 @@
   "name": "orbisdb",
   "version": "1.0.0",
   "description": "OrbisDB is an open database built on top of Ceramic allowing you to index and query your Ceramic data while extanding Ceramic capabilities with plugins. ",
-  "main": "index.js",
-  "type": "module",
+  "keywords": [
+    "web3",
+    "database",
+    "open-data",
+    "node",
+    "orbis"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/OrbisWeb3/orbisdb#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/OrbisWeb3/orbisdb.git"
+  },
+  "bugs": "https://github.com/OrbisWeb3/orbisdb/issues",
+  "author": {
+    "name": "Orbis",
+    "url": "https://github.com/OrbisWeb3"
+  },
   "scripts": {
     "build": "cd client && next build",
     "start": "NODE_ENV=production node index.js",
     "dev": "node index.js",
+    "format": "prettier . --write",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
-  "license": "MIT",
+  "main": "index.js",
+  "type": "module",
   "dependencies": {
     "@ceramicnetwork/codecs": "^4.2.0-rc.0",
     "@ceramicnetwork/common": "^5.1.0",
