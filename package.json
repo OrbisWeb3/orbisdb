@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "OrbisDB is an open database built on top of Ceramic allowing you to index and query your Ceramic data while extanding Ceramic capabilities with plugins. ",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "build": "cd client && next build",
     "start": "NODE_ENV=production node index.js",
