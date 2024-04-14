@@ -22,7 +22,7 @@
   },
   "scripts": {
     "build": "cd client && next build",
-    "start": "NODE_ENV=production node index.js",
+    "start": "cross-env NODE_ENV=production node index.js",
     "dev": "node index.js",
     "format": "prettier . --write",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -46,6 +46,7 @@
     "change-case": "^5.4.2",
     "codeco": "^1.2.1",
     "cors": "^2.8.5",
+    "cross-env": "^7.0.3",
     "cross-eventsource": "^1.0.0",
     "dids": "^4.0.4",
     "ethers": "^6.11.1",
