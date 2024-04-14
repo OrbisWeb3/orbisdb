@@ -2,21 +2,18 @@
 
 Driven by developer feedback and a new role as core developers in the Ceramic ecosystem, [Orbis](https://useorbis.com) is expanding its focus beyond social to offer a simple and efficient gateway for storing and managing open data on Ceramic.
 
-> [!WARNING]  
-> OrbisDB is a work-in-progress and is being developed in parallel with the OrbisDB SDK. It should be used only for test purposes for now.
+OrbisDB provides a developer-friendly interface to explore data with the ease of SQL and a plugin store to save development time on crypto-specific features; from data migration and gating mechanisms to automated blockchain interactions.
 
-OrbisDB is providing a developer-friendly interface to explore data with the ease of SQL and a plugin store to save development time on crypto-specific features; from data migration and gating mechanisms to automated blockchain interactions.
+OrbisDB is based on the upcoming Firehose API developed by Ceramic which means that **your Ceramic node must be running at least** on `v5.3.0`.
 
-OrbisDB is based on the upcoming Firehose API developed by Ceramic which means that **your Ceramic node must be running at least** on `v5.0.1`.
-
-    npm i -g @ceramicnetwork/cli@^5.0.1
+    npm i -g @ceramicnetwork/cli@^5.3.0
 
 > [!WARNING]  
 > The Ceramic Firehose API is still in beta so we recommend using it only on testing nodes for now.
 
 ## Component Overview
 
-OrbisDB is divided in two main components - **core** and **plugins**.
+OrbisDB is divided into two main components - **core** and **plugins**.
 
 This allows us to focus on stability and performance of core functions, while expanding functionality via the plugin system.
 
@@ -25,7 +22,7 @@ This allows us to focus on stability and performance of core functions, while ex
   - Listens to stream changes of specific models being used by developers and indexes the content in a Postgres database.
 - **Plugins:**
   - Optional and designed to perform operations beyond the core’s scope.
-  - Divided **into 4 categories** (`Create streams`, `Add metadata`, `Validate` and `Post process`). More details about plugins underneath.
+  - Divided **into 4 categories** (`Create streams`, `Add metadata`, `Validate` and `Post process`). More details about plugins are below.
 
 ## Usage
 
@@ -51,7 +48,7 @@ For model definition, we use standard Ceramic models, employing a JSON schema (u
 
 ### PostgreSQL
 
-We chose PostgreSQL as our indexing database due to its extensability, maturity and open-source values.
+We chose PostgreSQL as our indexing database due to its extensibility, maturity and open-source values.
 Postgres is used to index and query data from Ceramic, offering scalable performance and the benefits of traditional scaling methods.
 
 ### OrbisDB
@@ -83,7 +80,7 @@ You can find multiple examples of plugins in the `server/plugins` directory.
 
 ### Plugin structure
 
-Here is a very simple example of how an `HelloWorld` plugin looks like:
+Here is a very simple example of what a `HelloWorld` plugin looks like:
 
 ```javascript
 export default class HelloWorldPlugin {
@@ -194,7 +191,7 @@ export default class HelloWorldPlugin {
 As you can see plugins can use `hooks` and expose `routes`:
 
 - **Hooks**: Those hooks are being called during the lifecycle of a stream within OrbisDB. Sometimes **before** the indexing (`validate` and `add_metadata` hooks) in order to enhance the stream with additional metadata or validate a stream against rules specified by the plugin or **after** the indexing (`post_process` hook) to perform specific actions (such as trigger an email notification). The `generate` hook can even be used to create Ceramic streams automatically. Plugin developers can have their plugin perform any action they want within those hooks.
-- **Routes**: Plugins can expose their own routes which can be used as API endpoints or even HTML pages. For example, the `csv-uploader` plugin is exposing a simple HTML route to display a **Select file** button to have users upload their CSV file.
+- **Routes**: Plugins can expose their own routes which can be used as API endpoints or even HTML pages. For example, the `csv-uploader` plugin exposes a simple HTML route to display a **Select file** button to have users upload their CSV file.
 
 The `hooks` and `routes` must be initiated in the `init()` function the same way we do in the example above.
 
@@ -219,7 +216,7 @@ Plugins must have settings located in a `settings.json` file within the plugin's
 }
 ```
 
-Settings are exposing some key details of the plugin which will be used in the OrbisDB UI as well as **variables**. Those variables will be applied when the user installs the plugin. Here are some types of variables that we started using in our own plugins:
+Settings expose some key details of the plugin which will be used in the OrbisDB UI as well as **variables**. Those variables will be applied when the user installs the plugin. Here are some types of variables that we started using in our plugins:
 
 - API keys
 - The model ID to use by the plugin
