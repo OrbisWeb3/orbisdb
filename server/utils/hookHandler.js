@@ -3,7 +3,7 @@
  */
 const hooks = [
   ["generate", { isContextualized: false }],
-  ["validate", { isContextualized: true }], 
+  ["validate", { isContextualized: true }],
   ["add_metadata", { isContextualized: true }],
   ["update", { isContextualized: true }],
   ["post_process", { isContextualized: true }],
@@ -44,7 +44,7 @@ export default class HookHandler {
     }
 
     // Initialize some additional fields which can be used by the plugins.
-    let hookData = {...data};
+    let hookData = { ...data };
     hookData.isValid = true;
     hookData.pluginsData = {};
 
@@ -70,15 +70,21 @@ export default class HookHandler {
     // Loop through all handlers to execute them.
     for (const [pluginId, handler] of handlers) {
       // Safely execute the hook.
-      const result = await this.safeExecute(handler, JSON.parse(JSON.stringify(data)));
+      const result = await this.safeExecute(
+        handler,
+        JSON.parse(JSON.stringify(data))
+      );
       // Handle hook executed based on its type
       if (result?.error) {
-        console.error(`[hook:${hookName}/${pluginId}] Handler error.`, result.error);
+        console.error(
+          `[hook:${hookName}/${pluginId}] Handler error.`,
+          result.error
+        );
         continue;
       }
 
       // Will handle the result of the executed hook based on the hook type
-      switch(hookName) {
+      switch (hookName) {
         case "add_metadata":
           hookData.pluginsData[pluginId] = result;
           break;

@@ -11,53 +11,60 @@ import { useGlobal } from "../contexts/Global";
 let orbisdb;
 
 export default function Playground() {
-    const { settings, isShared, adminSession } = useGlobal();
+  const { settings, isShared, adminSession } = useGlobal();
 
-    useEffect(() => {
-        console.log("settings.configuration.ceramic.node:", settings.configuration.ceramic.node);
-        if(isShared) {
-          orbisdb = new OrbisDB({
-            ceramic: {
-                gateway: settings.configuration.ceramic.node,
+  useEffect(() => {
+    console.log(
+      "settings.configuration.ceramic.node:",
+      settings.configuration.ceramic.node
+    );
+    if (isShared) {
+      orbisdb = new OrbisDB({
+        ceramic: {
+          gateway: settings.configuration.ceramic.node,
+        },
+        nodes: [
+          {
+            gateway: "http://localhost:7008/",
+            env: adminSession,
+          },
+        ],
+      });
+    } else {
+      if (settings.configuration.ceramic.node) {
+        orbisdb = new OrbisDB({
+          ceramic: {
+            gateway: settings.configuration.ceramic.node,
+          },
+          nodes: [
+            {
+              gateway: "http://localhost:7008/",
+              key: "",
             },
-            nodes: [
-                {
-                    gateway: "http://localhost:7008/",
-                    env: adminSession,
-                },
-            ],
+          ],
         });
-        } else {
-          if(settings.configuration.ceramic.node) {
-            orbisdb = new OrbisDB({
-                ceramic: {
-                    gateway: settings.configuration.ceramic.node,
-                },
-                nodes: [
-                    {
-                        gateway: "http://localhost:7008/",
-                        key: "",
-                    },
-                ],
-            });
-          }
-        }
-        
-    }, [settings?.configuration]);
+      }
+    }
+  }, [settings?.configuration]);
 
   return (
-    <main className={`playground flex min-h-screen flex-col items-center p-6 pt-12 bg-slate-50`}>
-      <div className='text-xl text-slate-900 font-medium'>Playground</div>
-      <div className='text-base text-slate-500 text-center'>Here is a quick playground to understand how our DB SDK works. It can also be helpful to test your OrbisDB setup.</div>
+    <main
+      className={`playground flex min-h-screen flex-col items-center p-6 pt-12 bg-slate-50`}
+    >
+      <div className="text-xl text-slate-900 font-medium">Playground</div>
+      <div className="text-base text-slate-500 text-center">
+        Here is a quick playground to understand how our DB SDK works. It can
+        also be helpful to test your OrbisDB setup.
+      </div>
 
       {/** Demo container */}
-      <div className='bg-white flex items-start justify-center flex-row rounded-md p-6 border border-slate-200 mt-6 w-full lg:w-8/12 shadow-sm'>
+      <div className="bg-white flex items-start justify-center flex-row rounded-md p-6 border border-slate-200 mt-6 w-full lg:w-8/12 shadow-sm">
         <div className="flex flex-col md:flex-row w-full space-x-0 md:space-x-2 items-start">
           <Demo />
         </div>
       </div>
     </main>
-  )
+  );
 }
 let configurationCode = `import { OrbisDB } from "@useorbis/db-sdk";
 import { OrbisEVMAuth } from "@useorbis/db-sdk/auth";
@@ -85,160 +92,172 @@ const Demo = () => {
   const [modelId, setModelId] = useState("");
   const [tableName, setTableName] = useState("");
   const [modelDefinition, setModelDefinition] = useState({
-    "name": "MyCustomModel",
-    "schema": {
-      "type": "object",
-      "$schema": "https://json-schema.org/draft/2020-12/schema",
-      "properties": {
-        "custom_bool": {
-          "type": "boolean"
-        }
+    name: "MyCustomModel",
+    schema: {
+      type: "object",
+      $schema: "https://json-schema.org/draft/2020-12/schema",
+      properties: {
+        custom_bool: {
+          type: "boolean",
+        },
       },
-      "additionalProperties": false
+      additionalProperties: false,
     },
-    "version": "1.0",
-    "accountRelation": {
-      "type": "list"
-    }
+    version: "1.0",
+    accountRelation: {
+      type: "list",
+    },
   });
 
-  switch(step) {
+  switch (step) {
     case 0:
-      return(
-        <ConfigurationStep setStep={setStep} />
-      );
+      return <ConfigurationStep setStep={setStep} />;
     case 1:
-      return(
-        <ConnectStep setStep={setStep} />
-      );
+      return <ConnectStep setStep={setStep} />;
     case 2:
-      return(
-        <SetModel setModelId={setModelId} setStep={setStep} />
-      );
+      return <SetModel setModelId={setModelId} setStep={setStep} />;
     case 3.1:
-      return(
-        <CreateModel setModelId={setModelId} setModelDefinition={setModelDefinition} setStep={setStep} />
+      return (
+        <CreateModel
+          setModelId={setModelId}
+          setModelDefinition={setModelDefinition}
+          setStep={setStep}
+        />
       );
     case 3.2:
-      return(
-        <UseExistingModel modelId={modelId} setModelId={setModelId} setStep={setStep} setModelDefinition={setModelDefinition} />
+      return (
+        <UseExistingModel
+          modelId={modelId}
+          setModelId={setModelId}
+          setStep={setStep}
+          setModelDefinition={setModelDefinition}
+        />
       );
     case 4.1:
-      return(
-        <CreateModelInstance modelId={modelId} tableName={tableName} modelDefinition={modelDefinition} setStep={setStep} />
+      return (
+        <CreateModelInstance
+          modelId={modelId}
+          tableName={tableName}
+          modelDefinition={modelDefinition}
+          setStep={setStep}
+        />
       );
     case 5:
-      return(
+      return (
         <QueryModel modelId={modelId} tableName={tableName} setStep={setStep} />
       );
     default:
       return null;
   }
-}
+};
 
 /** Step 0: Configure your OrbisDB object */
-const ConfigurationStep = ({setStep}) => {
+const ConfigurationStep = ({ setStep }) => {
   const nextStep = async () => {
     setStep(1);
   };
 
-  return(
+  return (
     <>
       <div className="w-full md:w-5/12 pb-6 md:pb-0">
         {/** Instructions */}
-        <Instructions 
-          title="Configuration:" 
-          description="First of all you will have to import the OrbisDB libraries in your app and configure the OrbisDB and Ceramic settings." 
-          buttons={
-            [
-              {
-                cta: "Next",
-                action: () => nextStep()
-              }
-            ]
-          } />
+        <Instructions
+          title="Configuration:"
+          description="First of all you will have to import the OrbisDB libraries in your app and configure the OrbisDB and Ceramic settings."
+          buttons={[
+            {
+              cta: "Next",
+              action: () => nextStep(),
+            },
+          ]}
+        />
       </div>
 
       {/** Code */}
       <CodeEditor code={configurationCode} className="w-full md:w-7/12" />
     </>
-  )
-}
+  );
+};
 
 /** Step 1: Getting the users to connect to Ceramic */
-const ConnectStep = ({setStep}) => {
+const ConnectStep = ({ setStep }) => {
   const connect = async () => {
     const auth = new OrbisEVMAuth(window.ethereum);
     /*if (await orbisdb.isUserConnected()) {
       return true;
     }*/
-  
+
     const result = await orbisdb.connectUser({ auth });
     console.log(result);
     setStep(2);
   };
 
-  return(
+  return (
     <>
       <div className="w-full md:w-5/12 pb-6 md:pb-0">
         {/** Instructions */}
-        <Instructions 
-          title="Step 1:" 
-          description="Now you can connect your wallet." 
+        <Instructions
+          title="Step 1:"
+          description="Now you can connect your wallet."
           buttons={[
             {
               cta: "Connect",
-              action: () => connect()
-            }
-          ]} />
+              action: () => connect(),
+            },
+          ]}
+        />
       </div>
       {/** Code */}
       <CodeEditor code={connectCode} className="w-full md:w-7/12" />
     </>
-  )
-}
-
+  );
+};
 
 /** Step 2: Getting users to create their own model */
-const SetModel = ({setStep}) => {
-
+const SetModel = ({ setStep }) => {
   const createModel = async () => {
     setStep(3.1);
   };
 
   const loadExistingModel = () => {
     setStep(3.2);
-  }
+  };
 
-  return(
+  return (
     <>
       {/** Instructions */}
       <div className="w-full pb-6 md:pb-0">
-        <Instructions 
-          title="Step 2:" 
-          description={<>Do you want to use an existing model on the network to start with existing data or do you want to create your own?</>} 
+        <Instructions
+          title="Step 2:"
+          description={
+            <>
+              Do you want to use an existing model on the network to start with
+              existing data or do you want to create your own?
+            </>
+          }
           buttons={[
             {
               cta: "Create model",
-              action: () => createModel()
+              action: () => createModel(),
             },
             {
               cta: "Load existing model",
-              action: () => loadExistingModel()
-            }
-          ]} />
+              action: () => loadExistingModel(),
+            },
+          ]}
+        />
       </div>
     </>
-  )
-}
+  );
+};
 
 /** Step 3.1: Getting users to create their own model */
-const CreateModel = ({setModelId, setModelDefinition, setStep}) => {
+const CreateModel = ({ setModelId, setModelDefinition, setStep }) => {
   const [status, setStatus] = useState(0);
   const [accountRelation, setAccountRelation] = useState("list");
   const [modelTitle, setModelTitle] = useState("MyCustomModel");
   const [inputGroups, setInputGroups] = useState([
-    { id: 1, textValue: '', selectValue: '' }
+    { id: 1, textValue: "", selectValue: "" },
   ]);
   const [modelDemoDefinition, setModelDemoDefinition] = useState(``);
 
@@ -250,8 +269,8 @@ const CreateModel = ({setModelId, setModelDefinition, setStep}) => {
   };`;
 
   useEffect(() => {
-    updateModelDefintion(modelTitle, inputGroups)
-  }, [modelTitle, inputGroups, accountRelation])
+    updateModelDefintion(modelTitle, inputGroups);
+  }, [modelTitle, inputGroups, accountRelation]);
 
   function updateModelDefintion(title, fields) {
     // Dynamically build the properties object from inputGroups
@@ -263,65 +282,74 @@ const CreateModel = ({setModelId, setModelDefinition, setStep}) => {
     }, {});
 
     // Generate the JSON schema string
-    const schemaString = JSON.stringify({
+    const schemaString = JSON.stringify(
+      {
         name: title,
         version: "1.0",
         accountRelation: {
-          type: accountRelation
+          type: accountRelation,
         },
         schema: {
           type: "object",
           $schema: "https://json-schema.org/draft/2020-12/schema",
           properties: {
-            ...properties
+            ...properties,
           },
-          additionalProperties: false
-        }
-    }, null, 2); // The last two arguments format the JSON for readability
+          additionalProperties: false,
+        },
+      },
+      null,
+      2
+    ); // The last two arguments format the JSON for readability
 
     // Update the state or whatever is necessary with the new schema
     setModelDemoDefinition(schemaString);
   }
 
   const createModel = async () => {
-    if(inputGroups && inputGroups.length > 0) {
+    if (inputGroups && inputGroups.length > 0) {
       try {
         setStatus(1);
         console.log("orbisdb.ceramic:", orbisdb.ceramic);
         console.log("orbisdb.session:", orbisdb.session);
 
-        let model_stream = await orbisdb.ceramic.createModel(JSON.parse(modelDemoDefinition));
+        let model_stream = await orbisdb.ceramic.createModel(
+          JSON.parse(modelDemoDefinition)
+        );
         console.log("model_stream:", model_stream);
 
         let model_id = model_stream?.id?.toString();
-        console.log("model_stream:", model_id)
-        setModelId(model_id)
+        console.log("model_stream:", model_id);
+        setModelId(model_id);
         setModelDefinition(JSON.parse(modelDemoDefinition));
         setStatus(2);
         await sleep(2000);
         setStep(4.1);
-      } catch(e) {
+      } catch (e) {
         console.log("Error creating model:", e);
         setStatus(3);
         await sleep(3000);
         setStatus(0);
       }
-      
     } else {
       alert("You must assign properties to your model first.");
     }
   };
 
-  return(
+  return (
     <>
-    
       {/** Instructions */}
       <div className="flex w-full md:w-5/12 pb-6 md:pb-0 items-center flex-col">
         {/** Instructions */}
-        <Instructions 
-          title="Step 3:" 
-          description={<>Now you can create your own data model which will be used to structure your database.</>}  />
-
+        <Instructions
+          title="Step 3:"
+          description={
+            <>
+              Now you can create your own data model which will be used to
+              structure your database.
+            </>
+          }
+        />
 
         <div className="flex flex-col space-y-2 mt-2 pr-2">
           {/** Model title */}
@@ -332,7 +360,8 @@ const CreateModel = ({setModelId, setModelDefinition, setStep}) => {
               placeholder="Your model title"
               value={modelTitle}
               onChange={(e) => setModelTitle(e.target.value)}
-              className="bg-white border border-slate-200 rounded-md shadow-sm px-3 py-1.5 text-sm font-medium text-slate-900 mr-2 w-full" />
+              className="bg-white border border-slate-200 rounded-md shadow-sm px-3 py-1.5 text-sm font-medium text-slate-900 mr-2 w-full"
+            />
           </div>
 
           {/** Model account relation */}
@@ -342,7 +371,8 @@ const CreateModel = ({setModelId, setModelDefinition, setStep}) => {
               placeholder="Account relation"
               value={accountRelation}
               onChange={(e) => setAccountRelation(e.target.value)}
-              className="bg-white border border-slate-200 rounded-md shadow-sm px-3 py-1.5 text-sm font-medium text-slate-900">
+              className="bg-white border border-slate-200 rounded-md shadow-sm px-3 py-1.5 text-sm font-medium text-slate-900"
+            >
               <option value="list">List</option>
               <option value="single">Single</option>
               <option value="set">Set</option>
@@ -351,30 +381,42 @@ const CreateModel = ({setModelId, setModelDefinition, setStep}) => {
 
           {/** Dynamic fields added by the user */}
           <div className="text-slate-600 text-sm mb-1">Model properties:</div>
-          <ModelFieldsInputGroups inputGroups={inputGroups} setInputGroups={setInputGroups} />
+          <ModelFieldsInputGroups
+            inputGroups={inputGroups}
+            setInputGroups={setInputGroups}
+          />
         </div>
 
         <div className="flex flex-col mt-6 justify-center items-center space-y-4 w-full">
           <div className="flex w-1/3 border-b border-slate-200"></div>
-          <Button title="Save" onClick={() => createModel()} status={status} successTitle="Model created" />
+          <Button
+            title="Save"
+            onClick={() => createModel()}
+            status={status}
+            successTitle="Model created"
+          />
         </div>
       </div>
 
       {/** Code */}
       <CodeEditor code={createModelCode} className="w-full md:w-7/12" />
     </>
-  )
-}
-
+  );
+};
 
 /** Step 3.2: Getting users to create their own model */
-const UseExistingModel = ({modelId, setModelId, setModelDefinition, setStep}) => {
+const UseExistingModel = ({
+  modelId,
+  setModelId,
+  setModelDefinition,
+  setStep,
+}) => {
   const [status, setStatus] = useState(0);
 
   async function loadModel() {
     setStatus(1);
     let modelContent = await orbisdb.ceramic.getModel(modelId);
-    if(modelContent) {
+    if (modelContent) {
       setStatus(2);
       console.log("modelContent:", modelContent);
       setModelDefinition(modelContent.schema);
@@ -385,45 +427,59 @@ const UseExistingModel = ({modelId, setModelId, setModelDefinition, setStep}) =>
     }
   }
 
-  return(
-      <div className="flex w-full justify-center items-center flex-col md:flex-row">
-        <div className="w-1/2 flex flex-col">
-          {/** Instructions */}
-          <Instructions 
-            title="Step 3:" 
-            description={<>Load an existing model to start creating data with it.</>} />
+  return (
+    <div className="flex w-full justify-center items-center flex-col md:flex-row">
+      <div className="w-1/2 flex flex-col">
+        {/** Instructions */}
+        <Instructions
+          title="Step 3:"
+          description={
+            <>Load an existing model to start creating data with it.</>
+          }
+        />
 
-          {/** Model ID */}
-          <div className="flex flex-col items-start mt-1">
-            <div className="text-slate-600 text-sm mb-1">Model ID:</div>
-            <input
-              type="text"
-              placeholder="Your model's Stream ID"
-              value={modelId}
-              onChange={(e) => setModelId(e.target.value.trim())}
-              className="bg-white border border-slate-200 rounded-md shadow-sm px-3 py-1.5 text-sm font-medium text-slate-900 mr-2 w-full" />
-          </div>
-
-          {/** Load model CTA */}
-          <div className="flex flex-col mt-2 justify-center items-center space-y-4 w-full">
-            <div className="flex w-1/3"></div>
-            <Button title="Load" onClick={() => loadModel()} status={status} successTitle="Model loaded" />
-          </div>
+        {/** Model ID */}
+        <div className="flex flex-col items-start mt-1">
+          <div className="text-slate-600 text-sm mb-1">Model ID:</div>
+          <input
+            type="text"
+            placeholder="Your model's Stream ID"
+            value={modelId}
+            onChange={(e) => setModelId(e.target.value.trim())}
+            className="bg-white border border-slate-200 rounded-md shadow-sm px-3 py-1.5 text-sm font-medium text-slate-900 mr-2 w-full"
+          />
         </div>
+
+        {/** Load model CTA */}
+        <div className="flex flex-col mt-2 justify-center items-center space-y-4 w-full">
+          <div className="flex w-1/3"></div>
+          <Button
+            title="Load"
+            onClick={() => loadModel()}
+            status={status}
+            successTitle="Model loaded"
+          />
+        </div>
+      </div>
     </div>
-  )
-}
+  );
+};
 
 /** Step 4.1: Create model instance document */
-const CreateModelInstance = ({modelId, tableName, modelDefinition, setStep}) => {
+const CreateModelInstance = ({
+  modelId,
+  tableName,
+  modelDefinition,
+  setStep,
+}) => {
   const [status, setStatus] = useState(0);
   const [contextId, setContextId] = useState("");
 
   const initialFields = modelDefinition.schema.properties
-    ? Object.keys(modelDefinition.schema.properties).map(key => ({
+    ? Object.keys(modelDefinition.schema.properties).map((key) => ({
         name: key,
         type: modelDefinition.schema.properties[key].type,
-        value: ''
+        value: "",
       }))
     : [];
 
@@ -444,24 +500,24 @@ const CreateModelInstance = ({modelId, tableName, modelDefinition, setStep}) => 
   const insertStatement = orbisdb
     .insert("${modelId}")
     .value(${JSON.stringify(propertiesData, null, 2)})
-    .context("${contextId ? contextId : "<CONTEXT_ID>" }")
+    .context("${contextId ? contextId : "<CONTEXT_ID>"}")
     .run();
 }`;
 
   const createStream = async () => {
     if (!(await orbisdb.isUserConnected())) {
       alert("User isn't connected.");
-      throw "Not connected"; 
+      throw "Not connected";
     }
     setStatus(1);
     const resultInsert = await orbisdb
-        .insert(modelId)
-        .value(propertiesData)
-        .context(contextId)
-        .run();
+      .insert(modelId)
+      .value(propertiesData)
+      .context(contextId)
+      .run();
 
     console.log("createStream() result", resultInsert);
-    if(resultInsert.error) {
+    if (resultInsert.error) {
       setStatus(3);
       await sleep(1000);
       setStatus(0);
@@ -470,44 +526,53 @@ const CreateModelInstance = ({modelId, tableName, modelDefinition, setStep}) => 
       await sleep(1000);
       setStep(5);
     }
-    
   };
 
-  return(
+  return (
     <>
-          
       {/** Instructions */}
       <div className="flex w-full md:w-5/12 pb-6 md:pb-0 items-center flex-col">
-        <Instructions 
-          title="Step 4:" 
-          description={<>Now we can create a stream / document following the schema you specified.</>} />
+        <Instructions
+          title="Step 4:"
+          description={
+            <>
+              Now we can create a stream / document following the schema you
+              specified.
+            </>
+          }
+        />
 
         {/** Context ID */}
         <div className="flex flex-col items-start mb-2 w-full pr-2">
-            <div className="text-slate-600 text-sm mb-1">Context ID:</div>
-            <input
-                type="text"
-                placeholder="Your context ID"
-                value={contextId}
-                onChange={(e) => setContextId(e.target.value)}
-                className="flex-1 bg-white border border-slate-200 rounded-md shadow-sm px-3 py-1.5 text-sm font-medium text-slate-900 mb-2 w-full" />
+          <div className="text-slate-600 text-sm mb-1">Context ID:</div>
+          <input
+            type="text"
+            placeholder="Your context ID"
+            value={contextId}
+            onChange={(e) => setContextId(e.target.value)}
+            className="flex-1 bg-white border border-slate-200 rounded-md shadow-sm px-3 py-1.5 text-sm font-medium text-slate-900 mb-2 w-full"
+          />
         </div>
-
 
         <div className="flex flex-col items-center space-y-3 w-full pr-2">
           <ModelDocumentVariables fields={fields} setFields={setFields} />
-          <Button title="Create stream" onClick={() => createStream()} status={status} successTitle="Stream created" />
+          <Button
+            title="Create stream"
+            onClick={() => createStream()}
+            status={status}
+            successTitle="Stream created"
+          />
         </div>
       </div>
 
       {/** Code */}
       <CodeEditor code={createStreamCode} className="w-full md:w-7/12" />
     </>
-  )
-}
+  );
+};
 
 /** Step 5: Query streams inserted in new model table */
-const QueryModel = ({modelId, tableName, setStep}) => {
+const QueryModel = ({ modelId, tableName, setStep }) => {
   const [status, setStatus] = useState(0);
   const [data, setData] = useState([]);
   const [_tableName, setTableName] = useState(tableName);
@@ -524,70 +589,83 @@ const QueryModel = ({modelId, tableName, setStep}) => {
     setStatus(1);
     let result;
     try {
-      result = await orbisdb.select().from(_tableName).orderBy(["indexed_at", "desc"]).limit(10).run();
+      result = await orbisdb
+        .select()
+        .from(_tableName)
+        .orderBy(["indexed_at", "desc"])
+        .limit(10)
+        .run();
       console.log("result:", result);
-      if(result.rows) {
+      if (result.rows) {
         setData(result.rows);
       }
       setStatus(2);
-    } catch(e) {
+    } catch (e) {
       console.log("error querying stream:", e);
       alert("Error querying table.");
     }
-    
   };
 
-  return(
+  return (
     <>
       <div className="flex w-full md:w-5/12 pb-6 md:pb-0 items-center flex-col">
         {/** Instructions */}
-        <Instructions 
-          title="Step 5:" 
+        <Instructions
+          title="Step 5:"
           showBack={true}
           backAction={() => setStep(4.1)}
-          description="Let's query the streams we just created with our model. " />
-        
-        {!tableName &&
+          description="Let's query the streams we just created with our model. "
+        />
+
+        {!tableName && (
           <div className="flex flex-col items-start mb-2 w-full pr-2">
             <div className="text-slate-600 text-sm mb-1">Table name:</div>
             <input
-            type="text"
-            placeholder="Table name"
-            value={_tableName}
-            onChange={(e) => setTableName(e.target.value)}
-            className="flex-1 bg-white border border-slate-200 rounded-md shadow-sm px-3 py-1.5 text-sm font-medium text-slate-900 mb-2 w-full" />
+              type="text"
+              placeholder="Table name"
+              value={_tableName}
+              onChange={(e) => setTableName(e.target.value)}
+              className="flex-1 bg-white border border-slate-200 rounded-md shadow-sm px-3 py-1.5 text-sm font-medium text-slate-900 mb-2 w-full"
+            />
           </div>
-        }
+        )}
 
         {/** Display results */}
-        {(data && data.length > 0) &&
+        {data && data.length > 0 && (
           <div className="flex flex-col space-y-2 mb-2">
             {data.map((item, key) => {
               item.stream_id = shortAddress(item.stream_id);
               item.controller = shortAddress(item.controller);
-              item._metadata_context = item._metadata_context ? shortAddress(item._metadata_context) : "";
+              item._metadata_context = item._metadata_context
+                ? shortAddress(item._metadata_context)
+                : "";
               return (
-                  <div key={key} className="bg-white border border-slate-200 w-full rounded-md px-3 py-1.5 text-xxs text-slate-900 mr-2 whitespace-pre-wrap font-mono">
-                      {JSON.stringify(item, null, 3)}:
-                  </div>
+                <div
+                  key={key}
+                  className="bg-white border border-slate-200 w-full rounded-md px-3 py-1.5 text-xxs text-slate-900 mr-2 whitespace-pre-wrap font-mono"
+                >
+                  {JSON.stringify(item, null, 3)}:
+                </div>
               );
-          })}
+            })}
           </div>
-        }
-        
+        )}
+
         {/** Query CTA */}
-        <Button title="Query" onClick={() => query()} status={status} successTitle="Results returned" />
+        <Button
+          title="Query"
+          onClick={() => query()}
+          status={status}
+          successTitle="Results returned"
+        />
       </div>
       {/** Code */}
       <CodeEditor code={queryCode} className="w-full md:w-7/12" />
     </>
-  )
-}
+  );
+};
 
-
-
-const ModelDocumentVariables = ({fields, setFields}) => {
-
+const ModelDocumentVariables = ({ fields, setFields }) => {
   const handleInputChange = (index, value) => {
     const updatedFields = fields.map((field, i) =>
       i === index ? { ...field, value } : field
@@ -602,7 +680,7 @@ const ModelDocumentVariables = ({fields, setFields}) => {
       acc[field.name] = field.value;
       return acc;
     }, {});
-    console.log('Submitted Data:', submittedData);
+    console.log("Submitted Data:", submittedData);
     // Process the submitted data as needed
   };
 
@@ -623,8 +701,11 @@ const ModelDocumentVariables = ({fields, setFields}) => {
         return (
           <select
             value={field.value}
-            onChange={(e) => handleInputChange(index, e.target.value == "true" ? true : false)}
-            className="bg-white border border-slate-200 w-full rounded-md shadow-sm px-3 py-1.5 text-sm font-medium text-slate-900 mr-2">
+            onChange={(e) =>
+              handleInputChange(index, e.target.value == "true" ? true : false)
+            }
+            className="bg-white border border-slate-200 w-full rounded-md shadow-sm px-3 py-1.5 text-sm font-medium text-slate-900 mr-2"
+          >
             <option value="">Select value</option>
             <option value={true}>True</option>
             <option value={false}>False</option>
@@ -636,7 +717,9 @@ const ModelDocumentVariables = ({fields, setFields}) => {
           <input
             type="number"
             value={field.value}
-            onChange={(e) => handleInputChange(index, parseFloat(e.target.value))}
+            onChange={(e) =>
+              handleInputChange(index, parseFloat(e.target.value))
+            }
             className="bg-white border border-slate-200 w-full rounded-md shadow-sm px-3 py-1.5 text-sm font-medium text-slate-900 mr-2"
             placeholder={"Enter the " + field.name + " value here"}
           />
@@ -657,15 +740,14 @@ const ModelDocumentVariables = ({fields, setFields}) => {
       ))}
     </form>
   );
-}
+};
 
-function ModelFieldsInputGroups({inputGroups, setInputGroups}) {
-
+function ModelFieldsInputGroups({ inputGroups, setInputGroups }) {
   const addInputGroup = () => {
     const newInputGroup = {
       id: inputGroups.length + 1,
-      textValue: '',
-      selectValue: ''
+      textValue: "",
+      selectValue: "",
     };
     setInputGroups([...inputGroups, newInputGroup]);
   };
@@ -676,7 +758,7 @@ function ModelFieldsInputGroups({inputGroups, setInputGroups}) {
     );
     setInputGroups(updatedInputGroups);
   };
-  
+
   const handleSelectChange = (index, value) => {
     const updatedInputGroups = inputGroups.map((group, i) =>
       i === index ? { ...group, selectValue: value } : group
@@ -693,12 +775,14 @@ function ModelFieldsInputGroups({inputGroups, setInputGroups}) {
             placeholder="Field name"
             value={group.textValue}
             onChange={(e) => handleTextChange(index, e.target.value)}
-            className="flex-1 bg-white border border-slate-200 rounded-md shadow-sm px-3 py-1.5 text-sm font-medium text-slate-900 mr-2" />
+            className="flex-1 bg-white border border-slate-200 rounded-md shadow-sm px-3 py-1.5 text-sm font-medium text-slate-900 mr-2"
+          />
           <select
             placeholder="Field type"
             value={group.selectValue}
             onChange={(e) => handleSelectChange(index, e.target.value)}
-            className="bg-white border border-slate-200 rounded-md shadow-sm px-3 py-1.5 text-sm font-medium text-slate-900 w-full">
+            className="bg-white border border-slate-200 rounded-md shadow-sm px-3 py-1.5 text-sm font-medium text-slate-900 w-full"
+          >
             <option value="">Field type</option>
             <option value="string">String</option>
             <option value="number">Number</option>
@@ -709,42 +793,66 @@ function ModelFieldsInputGroups({inputGroups, setInputGroups}) {
       ))}
       <button
         onClick={addInputGroup}
-        className="text-sm font-medium text-[#4483FD] hover:underline">
+        className="text-sm font-medium text-[#4483FD] hover:underline"
+      >
         + Add another field
       </button>
     </div>
   );
 }
 
-const Instructions = ({ showBack, backAction, title, description, buttons}) => {
-  return(
-    <div className='flex flex-col justify-center items-center pr-4'>
+const Instructions = ({
+  showBack,
+  backAction,
+  title,
+  description,
+  buttons,
+}) => {
+  return (
+    <div className="flex flex-col justify-center items-center pr-4">
       <div className="flex flex-row items-center w-full">
-        {showBack &&
+        {showBack && (
           <div className="flex p-1 cursor-pointer" onClick={backAction}>
-            <svg width="7" height="10" viewBox="0 0 6 10" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path fill-rule="evenodd" clip-rule="evenodd" d="M5.79062 0.230169C6.07772 0.528748 6.06841 1.00353 5.76983 1.29063L1.83208 5L5.76983 8.70938C6.06841 8.99647 6.07772 9.47125 5.79062 9.76983C5.50353 10.0684 5.02875 10.0777 4.73017 9.79063L0.230167 5.54063C0.0831082 5.39922 -1.18115e-06 5.20401 -1.17223e-06 5C-1.16331e-06 4.79599 0.0831082 4.60078 0.230167 4.45938L4.73017 0.209376C5.02875 -0.077719 5.50353 -0.0684095 5.79062 0.230169Z" fill="#0F172A"/>
+            <svg
+              width="7"
+              height="10"
+              viewBox="0 0 6 10"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                fill-rule="evenodd"
+                clip-rule="evenodd"
+                d="M5.79062 0.230169C6.07772 0.528748 6.06841 1.00353 5.76983 1.29063L1.83208 5L5.76983 8.70938C6.06841 8.99647 6.07772 9.47125 5.79062 9.76983C5.50353 10.0684 5.02875 10.0777 4.73017 9.79063L0.230167 5.54063C0.0831082 5.39922 -1.18115e-06 5.20401 -1.17223e-06 5C-1.16331e-06 4.79599 0.0831082 4.60078 0.230167 4.45938L4.73017 0.209376C5.02875 -0.077719 5.50353 -0.0684095 5.79062 0.230169Z"
+                fill="#0F172A"
+              />
             </svg>
           </div>
-        }
-        <div className='text-base text-slate-900 font-medium flex-1 text-center'>{title}</div>
+        )}
+        <div className="text-base text-slate-900 font-medium flex-1 text-center">
+          {title}
+        </div>
       </div>
-      <div className='text-sm text-slate-500 mb-4 text-center px-4'>{description}</div>
+      <div className="text-sm text-slate-500 mb-4 text-center px-4">
+        {description}
+      </div>
       {/** Loop through all buttons CTA */}
-      {(buttons && buttons.length > 0) &&
+      {buttons && buttons.length > 0 && (
         <div className="flex flex-row space-x-2">
           {buttons.map((button, key) => (
-            <Button title={button.cta} onClick={button.action} key={key}  />
+            <Button title={button.cta} onClick={button.action} key={key} />
           ))}
         </div>
-      }
+      )}
     </div>
-  )
-}
+  );
+};
 
-const CodeEditor = ({code, className = "w-7/12"}) => {
-  return(
-    <div className={`text-white flex overflow-y-scroll sql_editor rounded-md py-3 bg-[#2e3440] ${className}`}>
+const CodeEditor = ({ code, className = "w-7/12" }) => {
+  return (
+    <div
+      className={`text-white flex overflow-y-scroll sql_editor rounded-md py-3 bg-[#2e3440] ${className}`}
+    >
       <AceEditor
         id="editor"
         aria-label="editor"
@@ -767,23 +875,24 @@ const CodeEditor = ({code, className = "w-7/12"}) => {
           enableSnippets: true,
         }}
         value={code}
-        showLineNumbers />
+        showLineNumbers
+      />
     </div>
-  )
-}
+  );
+};
 
 /** Helpful to delay a function for a few seconds */
 export const sleep = (milliseconds) => {
-  return new Promise(resolve => setTimeout(resolve, milliseconds))
-}
+  return new Promise((resolve) => setTimeout(resolve, milliseconds));
+};
 
 /** Returns a shortened version of a string */
 export function shortAddress(address, number = 5) {
-  if(!address) {
+  if (!address) {
     return "-";
   }
 
   const firstChars = address.substring(0, number);
   const lastChars = address.substr(address.length - number);
-  return firstChars.concat('---', lastChars);
+  return firstChars.concat("---", lastChars);
 }

@@ -1,4 +1,3 @@
-
 export default class ExampleModerationPlugin {
   /**
    * This will initialize all of the hooks used by this plugin.
@@ -7,8 +6,8 @@ export default class ExampleModerationPlugin {
   async init() {
     return {
       HOOKS: {
-        "validate": (stream) => this.isValid(stream),
-        "add_metadata": (stream) => this.analyzeSentiment(stream),
+        validate: (stream) => this.isValid(stream),
+        add_metadata: (stream) => this.analyzeSentiment(stream),
       },
     };
   }
@@ -17,7 +16,7 @@ export default class ExampleModerationPlugin {
   async isValid(stream) {
     let score = Math.random();
     // Will terminate (stream should be moderated) if score is higher than 0.6
-    if(score > 0.6) {
+    if (score > 0.6) {
       return false;
     } else {
       return true;
@@ -28,8 +27,8 @@ export default class ExampleModerationPlugin {
   async analyzeSentiment(stream) {
     return {
       sentiment: "positive",
-      score: Math.random()
-    }
+      score: Math.random(),
+    };
   }
 }
 

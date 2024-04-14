@@ -25,7 +25,11 @@
       "description": "Which type of contract is this?",
       "id": "contract_type",
       "type": "select",
-      "options": [{"value": "erc_20", "label": "ERC20"}, {"value": "erc721", "label": "ERC721"},{"value": "erc1155", "label": "ERC1155"}],
+      "options": [
+        { "value": "erc_20", "label": "ERC20" },
+        { "value": "erc721", "label": "ERC721" },
+        { "value": "erc1155", "label": "ERC1155" }
+      ],
       "per_context": true
     },
     {
@@ -41,7 +45,7 @@
       "description": "The ID of the token you want to use if contract type is ERC1155.",
       "id": "token_id",
       "type": "string",
-      "conditions": [{"id": "contract_type", "value": "erc1155"}],
+      "conditions": [{ "id": "contract_type", "value": "erc1155" }],
       "per_context": true
     }
   ]

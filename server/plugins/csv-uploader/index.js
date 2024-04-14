@@ -1,5 +1,5 @@
 import { sleep } from "../../utils/helpers.mjs";
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from "uuid";
 
 export default class CSVUploaderPlugin {
   constructor() {
@@ -7,7 +7,7 @@ export default class CSVUploaderPlugin {
     console.log("Enter init(à for CSVUploaderPlugin and uuid:" + this.uuid);
     this.progressStoreTestInterval();
   }
-  
+
   /**
    * This will initialize all of the hooks used by this plugin.
    * A plugin can register multiple hooks, each hook being linked to a function that will be executed when the hook is triggered
@@ -17,12 +17,12 @@ export default class CSVUploaderPlugin {
     return {
       ROUTES: {
         GET: {
-          "upload": (req, res) => this.uploadRoute(req, res),
-          "progress": (req, res) => this.progressRoute(req, res)
+          upload: (req, res) => this.uploadRoute(req, res),
+          progress: (req, res) => this.progressRoute(req, res),
         },
         POST: {
-          "parse": (req, res) => this.parseRoute(req, res)
-        }
+          parse: (req, res) => this.parseRoute(req, res),
+        },
       },
     };
   }
@@ -30,7 +30,10 @@ export default class CSVUploaderPlugin {
   async progressStoreTestInterval() {
     // Start the interval function
     this.interval = setInterval(() => {
-       console.log("In progressStoreTestInterval for id " + this.uuid + ":", this.progressStore)
+      console.log(
+        "In progressStoreTestInterval for id " + this.uuid + ":",
+        this.progressStore
+      );
     }, 1 * 3000);
   }
 
@@ -38,7 +41,7 @@ export default class CSVUploaderPlugin {
   async uploadRoute(req, res) {
     const sessionId = uuidv4(); // Assign a unique identifier to this session (used for upload progress tracking)
     this.progressStore[sessionId] = { totalRows: 0, processedRows: 0 };
-    const authHeader = req.headers['authorization'];
+    const authHeader = req.headers["authorization"];
     console.log("authHeader:", authHeader);
 
     let model_details = await this.orbisdb.ceramic.getModel(this.model_id);
@@ -48,7 +51,7 @@ export default class CSVUploaderPlugin {
 
     // Serialize the properties object to a JSON string
     let propertiesJson = JSON.stringify(properties);
-    
+
     res.send(`<!DOCTYPE html>
     <html lang="en">
       <head>
@@ -319,17 +322,21 @@ export default class CSVUploaderPlugin {
       </body>
     </html>`);
   }
-  
+
   /** Will parse the data retrieved from CSV and push it to Ceramic one by one */
   async parseRoute(req, res) {
     let stream_ids = [];
-    if(req.body) {
+    if (req.body) {
       const { data, sessionId, modelProperties } = req.body;
       console.log("modelProperties:", modelProperties);
 
       // Update progressStore
-      this.progressStore[sessionId] = { totalRows: data.length, processedRows: 0, failedRows: 0 };
-      console.log('Received CSV Data:', data);
+      this.progressStore[sessionId] = {
+        totalRows: data.length,
+        processedRows: 0,
+        failedRows: 0,
+      };
+      console.log("Received CSV Data:", data);
       let i = 0;
       let iErrors = 0;
 
@@ -339,39 +346,63 @@ export default class CSVUploaderPlugin {
         if (Object.keys(content).length > 0) {
           try {
             /** We call the update hook here in order to support hooks able to update data before it's created in Ceramic  */
-				    let __content = await global.indexingService.hookHandler.executeHook("update", content, this.context);
+            let __content =
+              await global.indexingService.hookHandler.executeHook(
+                "update",
+                content,
+                this.context
+              );
 
             // Filter __content and convert numbers to their respective typed objects
             let filteredContent = Object.keys(__content)
-            .filter(key => key in modelProperties) // Filter keys based on properties
-            .reduce((obj, key) => {
-              const value = __content[key];
-              obj[key] = this.convertToTypedObject(key, value, modelProperties); // Convert and assign the value
-              console.log("obj[key]:", obj[key]);
-              return obj;
-            }, {});
+              .filter((key) => key in modelProperties) // Filter keys based on properties
+              .reduce((obj, key) => {
+                const value = __content[key];
+                obj[key] = this.convertToTypedObject(
+                  key,
+                  value,
+                  modelProperties
+                ); // Convert and assign the value
+                console.log("obj[key]:", obj[key]);
+                return obj;
+              }, {});
             console.log("filteredContent:", filteredContent);
-            
+
             /** We then create the stream in Ceramic with the updated content */
-            let stream = await this.orbisdb.insert(this.model_id).value(filteredContent).context(this.context).run();
+            let stream = await this.orbisdb
+              .insert(this.model_id)
+              .value(filteredContent)
+              .context(this.context)
+              .run();
             let stream_id = stream.id?.toString();
             console.log("Inserted stream:", stream_id);
             stream_ids.push(stream_id);
             i++;
             /** Update progress store for this session id in order to be displayed in the app */
-            this.progressStore[sessionId] = { totalRows: data.length, processedRows: i, failedRows: iErrors };
+            this.progressStore[sessionId] = {
+              totalRows: data.length,
+              processedRows: i,
+              failedRows: iErrors,
+            };
             console.log("this.progressStore:", this.progressStore);
             await sleep(100);
-            
           } catch (error) {
             iErrors++;
-            this.progressStore[sessionId] = { totalRows: data.length, processedRows: i, failedRows: iErrors };
-            console.error('Error creating stream:', error);
+            this.progressStore[sessionId] = {
+              totalRows: data.length,
+              processedRows: i,
+              failedRows: iErrors,
+            };
+            console.error("Error creating stream:", error);
           }
         }
       }
 
-      res.send({ message: 'CSV data uploaded to Ceramic successfully.', count: i, streams: stream_ids });
+      res.send({
+        message: "CSV data uploaded to Ceramic successfully.",
+        count: i,
+        streams: stream_ids,
+      });
     }
   }
 
@@ -380,11 +411,11 @@ export default class CSVUploaderPlugin {
     const type = properties[key]?.type;
     console.log("type in convertToTypedObject for:" + key, type);
 
-    if(type.includes("integer")) {
+    if (type.includes("integer")) {
       return parseInt(value, 10);
     }
 
-    if(type.includes("float") || type.includes("numeric")) {
+    if (type.includes("float") || type.includes("numeric")) {
       return parseFloat(value, 10);
     }
 
@@ -398,7 +429,11 @@ export default class CSVUploaderPlugin {
     if (progress) {
       res.json(progress);
     } else {
-      res.json({ message: 'Session not found.', sessionId: sessionId, progressStore: this.progressStore });
+      res.json({
+        message: "Session not found.",
+        sessionId: sessionId,
+        progressStore: this.progressStore,
+      });
     }
   }
 }

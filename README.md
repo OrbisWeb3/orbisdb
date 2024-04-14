@@ -1,4 +1,5 @@
 # OrbisDB
+
 Driven by developer feedback and a new role as core developers in the Ceramic ecosystem, [Orbis](https://useorbis.com) is expanding its focus beyond social to offer a simple and efficient gateway for storing and managing open data on Ceramic.
 
 > [!WARNING]  
@@ -6,7 +7,7 @@ Driven by developer feedback and a new role as core developers in the Ceramic ec
 
 OrbisDB is providing a developer-friendly interface to explore data with the ease of SQL and a plugin store to save development time on crypto-specific features; from data migration and gating mechanisms to automated blockchain interactions.
 
-OrbisDB is based on the upcoming Firehose API developed by Ceramic which means that **your Ceramic node must be running at least** on `v5.0.1`. 
+OrbisDB is based on the upcoming Firehose API developed by Ceramic which means that **your Ceramic node must be running at least** on `v5.0.1`.
 
     npm i -g @ceramicnetwork/cli@^5.0.1
 
@@ -14,18 +15,20 @@ OrbisDB is based on the upcoming Firehose API developed by Ceramic which means t
 > The Ceramic Firehose API is still in beta so we recommend using it only on testing nodes for now.
 
 ## Component Overview
+
 OrbisDB is divided in two main components - **core** and **plugins**.
 
 This allows us to focus on stability and performance of core functions, while expanding functionality via the plugin system.
 
 - **Core:**
-    - Dedicated to read/write operation of the indexing service
-    - Listens to stream changes of specific models being used by developers and indexes the content in a Postgres database.
+  - Dedicated to read/write operation of the indexing service
+  - Listens to stream changes of specific models being used by developers and indexes the content in a Postgres database.
 - **Plugins:**
-    - Optional and designed to perform operations beyond the core’s scope.
-    - Divided **into 4 categories** (`Create streams`, `Add metadata`, `Validate` and `Post process`). More details about plugins underneath.
+  - Optional and designed to perform operations beyond the core’s scope.
+  - Divided **into 4 categories** (`Create streams`, `Add metadata`, `Validate` and `Post process`). More details about plugins underneath.
 
 ## Usage
+
 To get started with OrbisDB we recommend downloading this repository locally and running it as a simple NodeJS program.
 
     npm install
@@ -44,7 +47,7 @@ OrbisDB is built on top of Ceramic protocol and PostgreSQL (both of which are a 
 Ceramic is used for stream discovery, modeling, network communications and writes.
 We moved away from Tile Documents (used by Orbis Social) and are using Model Instance Documents used by ComposeDB, offering interoperability.
 
-For model definition, we use standard Ceramic models, employing a JSON schema (unlike ComposeDB’s GraphQL approach). 
+For model definition, we use standard Ceramic models, employing a JSON schema (unlike ComposeDB’s GraphQL approach).
 
 ### PostgreSQL
 
@@ -62,13 +65,16 @@ An OrbisDB node is responsible for Ceramic <> Postgres interactions, as well as 
 It features a custom-built query builder and an abstraction for Ceramic interactions.
 
 ## Data lifecycle
+
 All data is always stored on Ceramic and only then does it get indexed and stored in OrbisDB.
 
 This ensures data ownership, integrity and composability with minimal performance sacrifices.
 
 ## Plugins
+
 As explained before, each OrbisDB instance can be enhanced with plugins. Plugins can use four different hooks:
- - `generate` to **Create streams**: Automatically create new streams based on external data sources (ie. blockchain event, a local CSV file or an API data source).
+
+- `generate` to **Create streams**: Automatically create new streams based on external data sources (ie. blockchain event, a local CSV file or an API data source).
 - `add_metadata` to **Add metadata**: Modifies or enhances the stream content before indexing (ie. classify the content using AI, fetch the ENS name of the stream’s controller)
 - `validate` to **Validate / Gate:** Checks the stream details and decides whether it should be indexed or not (for moderation, token gating or sybil resistance)
 - `post_process` to **Perform an action**: Performs actions **after** a stream has been indexed (ie. send an email or a push notification, trigger a blockchain transaction...).
@@ -76,6 +82,7 @@ As explained before, each OrbisDB instance can be enhanced with plugins. Plugins
 You can find multiple examples of plugins in the `server/plugins` directory.
 
 ### Plugin structure
+
 Here is a very simple example of how an `HelloWorld` plugin looks like:
 
 ```javascript
@@ -87,12 +94,12 @@ export default class HelloWorldPlugin {
   async init() {
     return {
       HOOKS: {
-        "generate": () => this.start(),
-        "validate": (stream) => this.isValid(stream),
-        "add_metadata": (stream) => this.hello(stream),
+        generate: () => this.start(),
+        validate: (stream) => this.isValid(stream),
+        add_metadata: (stream) => this.hello(stream),
       },
       ROUTES: {
-        "hello": this.helloApi,
+        hello: this.helloApi,
         "hello-html": this.helloHtmlApi,
       },
     };
@@ -100,44 +107,52 @@ export default class HelloWorldPlugin {
 
   /** Will kickstart the generation of a new stream */
   async start() {
-    console.log("Start subscription in HelloWorld plugin to generate a new stream every " + this.secs_interval + " seconds");
-    
+    console.log(
+      "Start subscription in HelloWorld plugin to generate a new stream every " +
+        this.secs_interval +
+        " seconds"
+    );
+
     // Perform first call
     this.createStream();
 
     // Start the interval function
-    if(this.secs_interval) {
+    if (this.secs_interval) {
       this.interval = setInterval(() => {
-          this.createStream();
-      }, this.secs_interval * 1000);  
+        this.createStream();
+      }, this.secs_interval * 1000);
     } else {
       console.log("The interval hasn't been specified.");
     }
-    
   }
 
   /** Will stop the plugin's interval */
   async stop() {
-      console.log('Stopping plugin:', this.uuid);
-      if(this.interval) {
-          clearInterval(this.interval);
-          this.interval = null; // Clear the stored interval ID
-      }
+    console.log("Stopping plugin:", this.uuid);
+    if (this.interval) {
+      clearInterval(this.interval);
+      this.interval = null; // Clear the stored interval ID
+    }
   }
 
   async createStream() {
     console.log("Enter createStream in HelloWorld plugin.");
-    this.model_id ="kjzl6hvfrbw6c646f9as8ecl9ni6l5qh06hxnx1gbectvymjwjiz48dtlkadyrp";
+    this.model_id =
+      "kjzl6hvfrbw6c646f9as8ecl9ni6l5qh06hxnx1gbectvymjwjiz48dtlkadyrp";
 
     /** We then create the stream in Ceramic with the updated content */
     try {
-      let stream = await global.indexingService.ceramic.orbisdb.insert(this.model_id).value({
-        body: "hello world!",
-        mention: ""
-      }).context(this.context).run();
+      let stream = await global.indexingService.ceramic.orbisdb
+        .insert(this.model_id)
+        .value({
+          body: "hello world!",
+          mention: "",
+        })
+        .context(this.context)
+        .run();
       console.log("Stream created in HelloWorld plugin.");
-    } catch(e) {
-        console.log("Error creating stream with model:" + this.model_id + ":", e);
+    } catch (e) {
+      console.log("Error creating stream with model:" + this.model_id + ":", e);
     }
   }
 
@@ -149,16 +164,15 @@ export default class HelloWorldPlugin {
   /** Returns a simple hello:world key value pair which will be added to the plugins_data field */
   async hello(stream) {
     return {
-      hello: "world"
-    }
+      hello: "world",
+    };
   }
-
 
   /** Example of an API route returning a simple json object. The routes declared by a plugin are automatically exposed by the OrbisDB instance */
   helloApi(req, res) {
     res.json({
-      hello: "world"
-    })
+      hello: "world",
+    });
   }
 
   /** Example of an API route returning a simple HTML page. The routes declared by a plugin are automatically exposed by the OrbisDB instance */
@@ -177,7 +191,8 @@ export default class HelloWorldPlugin {
 }
 ```
 
-As you can see plugins can use `hooks` and expose `routes`: 
+As you can see plugins can use `hooks` and expose `routes`:
+
 - **Hooks**: Those hooks are being called during the lifecycle of a stream within OrbisDB. Sometimes **before** the indexing (`validate` and `add_metadata` hooks) in order to enhance the stream with additional metadata or validate a stream against rules specified by the plugin or **after** the indexing (`post_process` hook) to perform specific actions (such as trigger an email notification). The `generate` hook can even be used to create Ceramic streams automatically. Plugin developers can have their plugin perform any action they want within those hooks.
 - **Routes**: Plugins can expose their own routes which can be used as API endpoints or even HTML pages. For example, the `csv-uploader` plugin is exposing a simple HTML route to display a **Select file** button to have users upload their CSV file.
 
@@ -202,10 +217,10 @@ Plugins must have settings located in a `settings.json` file within the plugin's
     }
   ]
 }
-
 ```
 
 Settings are exposing some key details of the plugin which will be used in the OrbisDB UI as well as **variables**. Those variables will be applied when the user installs the plugin. Here are some types of variables that we started using in our own plugins:
+
 - API keys
 - The model ID to use by the plugin
 - Interval in seconds to wait before generating a new stream

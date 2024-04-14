@@ -1,8 +1,8 @@
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
-import { DIDSession } from 'did-session'
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+import { DIDSession } from "did-session";
 
 /** Initialize dirname */
 const __filename = fileURLToPath(import.meta.url);
@@ -10,18 +10,18 @@ const __dirname = dirname(__filename);
 
 /** Helpful to delay a function for a few seconds */
 export const sleep = (milliseconds) => {
-  return new Promise(resolve => setTimeout(resolve, milliseconds))
-}
+  return new Promise((resolve) => setTimeout(resolve, milliseconds));
+};
 
 /** Will convert a Ceramic JWT into a readable address */
 export async function getAdminDid(authHeader) {
-  const token = authHeader.split(' ')[1]; // Split 'Bearer <token>'
-  if(token) {
+  const token = authHeader.split(" ")[1]; // Split 'Bearer <token>'
+  if (token) {
     try {
       let resAdminSession = await DIDSession.fromSession(token, null);
       let didId = resAdminSession.did.parent;
       return didId;
-    } catch(e) {
+    } catch (e) {
       console.log("Error auth admin:", e);
       return null;
     }
@@ -38,10 +38,13 @@ export function getOrbisDBSettings(slot) {
     const settingsData = fs.readFileSync(_path);
     orbisdbSettings = settingsData.length ? JSON.parse(settingsData) : {};
   } catch (error) {
-    console.error("Error reading or parsing orbisdb-settings.json, returning empty settings:", error);
+    console.error(
+      "Error reading or parsing orbisdb-settings.json, returning empty settings:",
+      error
+    );
     orbisdbSettings = {}; // Set a default value or handle the error as per your requirement
   }
-  if(slot && orbisdbSettings.is_shared) {
+  if (slot && orbisdbSettings.is_shared) {
     return orbisdbSettings.slots ? orbisdbSettings.slots[slot] : {};
   } else {
     return orbisdbSettings;
@@ -51,18 +54,21 @@ export function getOrbisDBSettings(slot) {
 /** Update the settings file */
 export function updateOrbisDBSettings(updatedSettings, slot) {
   let settingsToSave;
-  
+
   // Retrieve global settings in order to update the correct slot
   let oldSettings = getOrbisDBSettings();
 
   /** Build new settings object according to slot */
-  if(slot && slot != undefined && slot != "global" && oldSettings.is_shared) { 
+  if (slot && slot != undefined && slot != "global" && oldSettings.is_shared) {
     if (!oldSettings.slots) {
       oldSettings.slots = {}; // Initialize slots as an array if it's not an array already
     }
     oldSettings.slots[slot] = updatedSettings;
     settingsToSave = oldSettings;
-    console.log("Trying to update settings for " + slot + " with:", settingsToSave);
+    console.log(
+      "Trying to update settings for " + slot + " with:",
+      settingsToSave
+    );
   } else {
     settingsToSave = updatedSettings;
     console.log("Trying to update global settings with:", settingsToSave);
@@ -72,7 +78,7 @@ export function updateOrbisDBSettings(updatedSettings, slot) {
   try {
     let _path = path.resolve(__dirname, "../../orbisdb-settings.json");
     fs.writeFileSync(_path, JSON.stringify(settingsToSave, null, 2));
-  } catch(e) {
+  } catch (e) {
     console.log("Error updating orbisdb settings:", e);
   }
 }
@@ -108,11 +114,11 @@ export function findSlotsWithContext(contextId) {
 /** Will convert a did in a valid db name */
 export function toValidDbName(input) {
   // Replace invalid characters with underscores
-  let validName = input.replace(/[^a-zA-Z0-9]/g, '_');
+  let validName = input.replace(/[^a-zA-Z0-9]/g, "_");
 
   // Ensure the name starts with a letter or underscore
   if (!validName.match(/^[a-zA-Z_]/)) {
-      validName = '_' + validName;
+    validName = "_" + validName;
   }
 
   // Trim the name to 63 characters to meet PostgreSQL's default limit
@@ -124,12 +130,11 @@ export function toValidDbName(input) {
 /** Retrieve readable table name from model using mapping */
 export function getTableName(model) {
   let settings = getOrbisDBSettings();
-  if(settings && settings.models_mapping) {
+  if (settings && settings.models_mapping) {
     return settings.models_mapping[model];
   } else {
     return model;
   }
-  
 }
 
 // Add a method to get the model ID for a human-readable table name
@@ -162,8 +167,10 @@ export const findContextById = (id, contexts) => {
 
 // Function to update an existing context or add a new one
 export const updateContext = (contexts, newContext) => {
-  if(contexts && contexts.length > 0) {
-    const index = contexts.findIndex(ctx => ctx.stream_id === newContext.stream_id);
+  if (contexts && contexts.length > 0) {
+    const index = contexts.findIndex(
+      (ctx) => ctx.stream_id === newContext.stream_id
+    );
     if (index !== -1) {
       // Context already exists, update it
       contexts[index] = { ...contexts[index], ...newContext };
@@ -177,15 +184,16 @@ export const updateContext = (contexts, newContext) => {
   }
 
   console.log("contexts:", contexts);
-  return contexts; 
+  return contexts;
 };
-
 
 /** This will check if the plugin exists and either add it to the settings or update the existing one */
 export function updateOrAddPlugin(settings, newPlugin) {
   // Check if the plugin already exists
-  if(settings.plugins && settings.plugins.length > 0) {
-    const existingPluginIndex = settings?.plugins?.findIndex(p => p.plugin_id === newPlugin.plugin_id);
+  if (settings.plugins && settings.plugins.length > 0) {
+    const existingPluginIndex = settings?.plugins?.findIndex(
+      (p) => p.plugin_id === newPlugin.plugin_id
+    );
 
     if (existingPluginIndex && existingPluginIndex !== -1) {
       // The plugin exists, update its variables

@@ -1,24 +1,23 @@
 {
-    "id": "solana-token-gating",
-    "name": "Solana Token Gating",
-    "logo": "/img/solana-token-gating.png",
-    "description": "Token gate your Solana applications.",
-    "hooks": ["validate"],
-    "routes": ["balance"],
-    "variables": [
-      {
-        "name": "RPC URL",
-        "description": "Your Solana RPC URL. You can use helius.dev to get one if you don't have any.",
-        "id": "rpc_url",
-        "type": "string"
-      },
-      {
-        "name": "Minimum Amount",
-        "description": "The minimum amount in SOL that users must have to interact with this context.",
-        "id": "min_amount",
-        "type": "float",
-        "per_context": true
-      }
-    ]
-  }
-  
+  "id": "solana-token-gating",
+  "name": "Solana Token Gating",
+  "logo": "/img/solana-token-gating.png",
+  "description": "Token gate your Solana applications.",
+  "hooks": ["validate"],
+  "routes": ["balance"],
+  "variables": [
+    {
+      "name": "RPC URL",
+      "description": "Your Solana RPC URL. You can use helius.dev to get one if you don't have any.",
+      "id": "rpc_url",
+      "type": "string"
+    },
+    {
+      "name": "Minimum Amount",
+      "description": "The minimum amount in SOL that users must have to interact with this context.",
+      "id": "min_amount",
+      "type": "float",
+      "per_context": true
+    }
+  ]
+}

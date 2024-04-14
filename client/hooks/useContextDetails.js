@@ -12,7 +12,7 @@ const useContextDetails = (id) => {
 
   return {
     name,
-    logo
+    logo,
   };
-}
+};
 export default useContextDetails;

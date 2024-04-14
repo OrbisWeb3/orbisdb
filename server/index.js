@@ -4,7 +4,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 import { cliColors } from "./utils/cliColors.mjs";
-import { DIDSession } from 'did-session'
+import { DIDSession } from "did-session";
 
 import bodyParser from "body-parser";
 import cors from "cors";
@@ -14,13 +14,19 @@ import IndexingService from "./indexing/index.mjs";
 import Ceramic from "./ceramic/config.mjs";
 import Postgre from "./db/postgre.mjs";
 import HookHandler from "./utils/hookHandler.mjs";
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from "uuid";
 
+import { loadPlugins, loadPlugin } from "./utils/plugins.mjs";
 import {
-  loadPlugins,
-  loadPlugin,
-} from "./utils/plugins.mjs";
-import { findContextById, findSlotsWithContext, getAdminDid, getOrbisDBSettings, toValidDbName, updateContext, updateOrAddPlugin, updateOrbisDBSettings } from "./utils/helpers.mjs";
+  findContextById,
+  findSlotsWithContext,
+  getAdminDid,
+  getOrbisDBSettings,
+  toValidDbName,
+  updateContext,
+  updateOrAddPlugin,
+  updateOrbisDBSettings,
+} from "./utils/helpers.mjs";
 import { SelectStatement } from "@useorbis/db-sdk/query";
 
 /** Initialize dirname */
@@ -44,12 +50,12 @@ const packageJson = JSON.parse(
 
 const authMiddleware = async (req, res, next) => {
   let globalSettings = getOrbisDBSettings();
-  const authHeader = req.headers['authorization'];
+  const authHeader = req.headers["authorization"];
 
-  if(authHeader) {
-    const token = authHeader.split(' ')[1]; // Split 'Bearer <token>'
+  if (authHeader) {
+    const token = authHeader.split(" ")[1]; // Split 'Bearer <token>'
     console.log("token:", token);
-    if(token) {
+    if (token) {
       try {
         let _isAdmin;
         let _isAdminsEmpty;
@@ -58,43 +64,56 @@ const authMiddleware = async (req, res, next) => {
         console.log("didId extracted from header middleware is:", didId);
 
         /** Perform different verification logic for shared instances and non-shared ones */
-        if(globalSettings.is_shared) {
+        if (globalSettings.is_shared) {
           // The auth middleware should not be applied for shared instances because users can only modify the slot of the authentication they are using
           _isAdminsEmpty = false;
           _isAdmin = true;
         } else {
           _isAdmin = globalSettings?.configuration?.admins?.includes(didId);
-          _isAdminsEmpty = !globalSettings?.configuration?.admins || globalSettings.configuration.admins.length === 0;
+          _isAdminsEmpty =
+            !globalSettings?.configuration?.admins ||
+            globalSettings.configuration.admins.length === 0;
         }
-  
-        if(didId && (_isAdmin || _isAdminsEmpty)) {
-            return next();
+
+        if (didId && (_isAdmin || _isAdminsEmpty)) {
+          return next();
         } else {
-            return res.json({status: 401, result: "This account isn't an admin."});
+          return res.json({
+            status: 401,
+            result: "This account isn't an admin.",
+          });
         }
-      } catch(e) {
+      } catch (e) {
         console.log("Error checking session JWT:", e);
-        return res.json({status: 401, result: "Error checking session JWT with " + token});
+        return res.json({
+          status: 401,
+          result: "Error checking session JWT with " + token,
+        });
       }
-      
     } else {
-      return res.json({status: 401, result: "You must be connected in order to access this endpoint."});
+      return res.json({
+        status: 401,
+        result: "You must be connected in order to access this endpoint.",
+      });
     }
   } else {
-    return res.json({status: 401, result: "You must be connected in order to access this endpoint."});
+    return res.json({
+      status: 401,
+      result: "You must be connected in order to access this endpoint.",
+    });
   }
 };
 
 // Use body parser to parse body field for POST and session
-server.use(bodyParser.json({limit: '50mb'}));
-server.use(bodyParser.urlencoded({limit: '50mb'}));
+server.use(bodyParser.json({ limit: "50mb" }));
+server.use(bodyParser.urlencoded({ limit: "50mb" }));
 server.use(cors());
 
 async function startServer() {
   await app.prepare();
 
   // Healthcheck endpoint
-  server.get('/health', (req, res) => res.status(200).send('OK'));
+  server.get("/health", (req, res) => res.status(200).send("OK"));
 
   // Expose some OrbisDB settings through a metadata endpoint
   server.get("/api/metadata", async (req, res) => {
@@ -129,7 +148,7 @@ async function startServer() {
 
   // Returns API settings
   server.get("/api/settings/get", authMiddleware, async (req, res) => {
-    const authHeader = req.headers['authorization'];
+    const authHeader = req.headers["authorization"];
     let adminDid = await getAdminDid(authHeader);
     console.log("adminDid for /api/settings/get request:", adminDid);
     try {
@@ -142,21 +161,24 @@ async function startServer() {
       console.error(err);
       res.json({
         status: "500",
-        error: 'Failed to read settings.'
+        error: "Failed to read settings.",
       });
     }
   });
 
   // Returns instance admin
   server.get("/api/settings/setup-configuration-shared", async (req, res) => {
-    const authHeader = req.headers['authorization'];
+    const authHeader = req.headers["authorization"];
     let adminDid = await getAdminDid(authHeader);
-    console.log("adminDid for /api/settings/setup-configuration-shared request:", adminDid);
+    console.log(
+      "adminDid for /api/settings/setup-configuration-shared request:",
+      adminDid
+    );
 
     try {
       // Step 1: Retrieve global configuration to use the global ceramic node and db credentials
       let settings = getOrbisDBSettings();
-          
+
       // Step 2: Create a new database for this admin did
       let databaseName = toValidDbName(adminDid);
       await global.indexingService.database.createDatabase(databaseName);
@@ -167,7 +189,7 @@ async function startServer() {
       const array = Array.from(seed); // Convert Uint8Array to array
       const _seed = JSON.parse(JSON.stringify(array)); // Convert array to JSON object
       let seedStr = "[" + _seed.toString() + "]";
-      console.log("seedStr:", seedStr)
+      console.log("seedStr:", seedStr);
 
       // Step 4: Build new credentials configuration in settings for this user
       let ceramicConfiguration = settings.configuration.ceramic;
@@ -179,9 +201,9 @@ async function startServer() {
       let slotSettings = {
         configuration: {
           ceramic: ceramicConfiguration,
-          db: dbConfiguration
-        }
-      }
+          db: dbConfiguration,
+        },
+      };
 
       // Apply to global settings
       if (!settings.slots) {
@@ -200,9 +222,9 @@ async function startServer() {
       res.json({
         status: "200",
         result: "DB created",
-        updatedSettings: slotSettings
+        updatedSettings: slotSettings,
       });
-    } catch(e) {
+    } catch (e) {
       console.log("Error setup shared configuration db:", e);
       res.json({
         status: "300",
@@ -215,7 +237,7 @@ async function startServer() {
   server.get("/api/settings/get-admin/:admin_did", async (req, res) => {
     try {
       const globalSettings = getOrbisDBSettings();
-      if(globalSettings.is_shared) {
+      if (globalSettings.is_shared) {
         res.json({
           status: "200",
           admins: [req.params.admin_did],
@@ -230,7 +252,7 @@ async function startServer() {
       console.error(err);
       res.json({
         status: "500",
-        error: 'Failed to read settings.'
+        error: "Failed to read settings.",
       });
     }
   });
@@ -239,27 +261,27 @@ async function startServer() {
   server.get("/api/settings/is-configured", async (req, res) => {
     try {
       const settings = getOrbisDBSettings();
-  
-      if(settings) {
+
+      if (settings) {
         // Map over the slots array to include only the id and title of each slot
 
-        if(settings.is_shared) {
+        if (settings.is_shared) {
           res.json({
             status: "200",
-            is_shared: true
+            is_shared: true,
           });
         } else {
           res.json({
             status: "200",
             is_configured: settings.configuration ? true : false,
-            is_shared: false
+            is_shared: false,
           });
         }
       } else {
         res.json({
           status: "200",
           is_configured: false,
-          is_shared: false
+          is_shared: false,
         });
       }
     } catch (err) {
@@ -267,7 +289,7 @@ async function startServer() {
       res.json({
         status: "200",
         is_shared: false,
-        is_configured: false
+        is_configured: false,
       });
     }
   });
@@ -277,7 +299,7 @@ async function startServer() {
     const { plugin } = req.body;
 
     // Retrieve admin
-    const authHeader = req.headers['authorization'];
+    const authHeader = req.headers["authorization"];
     let adminDid = await getAdminDid(authHeader);
 
     try {
@@ -296,14 +318,13 @@ async function startServer() {
       res.status(200).json({
         status: 200,
         updatedSettings,
-        result: "New plugin added to the settings file."
+        result: "New plugin added to the settings file.",
       });
-
     } catch (err) {
       console.error(err);
-      res.status(500).json({ error: 'Failed to update settings.' });
+      res.status(500).json({ error: "Failed to update settings." });
     }
-  }); 
+  });
 
   // Adds a new context or update an existing one
   server.post("/api/settings/assign-context", async (req, res) => {
@@ -315,22 +336,30 @@ async function startServer() {
     let globalSettings = getOrbisDBSettings();
 
     // Retrieve admin
-    const authHeader = req.headers['authorization'];
+    const authHeader = req.headers["authorization"];
     let adminDid = await getAdminDid(authHeader);
 
     try {
       let settings = getOrbisDBSettings(adminDid);
 
       // Find the plugin by plugin_id
-      const pluginIndex = settings.plugins?.findIndex(plugin => plugin.plugin_id === plugin_id);
+      const pluginIndex = settings.plugins?.findIndex(
+        (plugin) => plugin.plugin_id === plugin_id
+      );
       if (pluginIndex === -1) {
-        throw new Error('Plugin not found');
+        throw new Error("Plugin not found");
       }
 
       // Update or add the context
       let contextIndex = -1;
-      if(settings.plugins && settings.plugins.length > 0 && settings.plugins[pluginIndex]?.contexts) {
-        contextIndex = settings.plugins[pluginIndex].contexts.findIndex(c => c.uuid === uuid);
+      if (
+        settings.plugins &&
+        settings.plugins.length > 0 &&
+        settings.plugins[pluginIndex]?.contexts
+      ) {
+        contextIndex = settings.plugins[pluginIndex].contexts.findIndex(
+          (c) => c.uuid === uuid
+        );
       }
 
       /** Add a new plugin instance if there wasn't any uuid passed, otherwise update the referenced context */
@@ -338,31 +367,34 @@ async function startServer() {
         console.log("Assigning plugin to a new context.");
         let val = {
           path: path,
-          slot: (adminDid && globalSettings.is_shared) ? adminDid : "global",
+          slot: adminDid && globalSettings.is_shared ? adminDid : "global",
           context: path[path.length - 1],
-          uuid: uuidv4() // Assign a unique identifier to this plugin instance on install
+          uuid: uuidv4(), // Assign a unique identifier to this plugin instance on install
         };
 
-        if (variables && Object.keys(variables).length > 0) { // Check if variables is not empty
+        if (variables && Object.keys(variables).length > 0) {
+          // Check if variables is not empty
           val.variables = variables;
         }
 
         // Update settings
-        if(settings.plugins) {
-          if(settings.plugins[pluginIndex].contexts) {
+        if (settings.plugins) {
+          if (settings.plugins[pluginIndex].contexts) {
             settings.plugins[pluginIndex].contexts.push(val);
           } else {
             settings.plugins[pluginIndex].contexts = [val];
           }
         } else {
-          settings.plugins = [{
-            contexts: [val]
-          }];
+          settings.plugins = [
+            {
+              contexts: [val],
+            },
+          ];
         }
-
       } else {
         // Update variable for existing plugin instance
-        settings.plugins[pluginIndex].contexts[contextIndex].variables = variables;
+        settings.plugins[pluginIndex].contexts[contextIndex].variables =
+          variables;
 
         // TODO: Update runtime variables for this plugin
         let pluginsInstances = await global.indexingService.plugins;
@@ -376,7 +408,7 @@ async function startServer() {
         }
       }
 
-      console.log("settings:", settings)
+      console.log("settings:", settings);
 
       // Write the updated settings back to the file
       await updateOrbisDBSettings(settings, adminDid);
@@ -385,20 +417,21 @@ async function startServer() {
       global.indexingService.resetPlugins();
 
       // Return results
-      res.status(200).json({ message: 'Context updated successfully', settings: settings });
+      res
+        .status(200)
+        .json({ message: "Context updated successfully", settings: settings });
     } catch (err) {
       console.error(err);
-      res.status(500).json({ error: 'Failed to update settings.' });
+      res.status(500).json({ error: "Failed to update settings." });
     }
-  }); 
-
+  });
 
   // Adds a new context or update an existing one
   server.post("/api/settings/add-context", async (req, res) => {
     const { context: _context } = req.body;
     let context = JSON.parse(_context);
 
-    const authHeader = req.headers['authorization'];
+    const authHeader = req.headers["authorization"];
     let adminDid = await getAdminDid(authHeader);
 
     let settings = getOrbisDBSettings(adminDid);
@@ -407,7 +440,10 @@ async function startServer() {
       // Check if the context is a sub-context or already exists
       if (context.context) {
         // Find the parent context or the existing context
-        let parentOrExistingContext = findContextById(context.context, settings.contexts);
+        let parentOrExistingContext = findContextById(
+          context.context,
+          settings.contexts
+        );
 
         if (parentOrExistingContext) {
           // Check if we're dealing with a parent context or an existing sub-context
@@ -419,10 +455,16 @@ async function startServer() {
           if (parentOrExistingContext.stream_id === context.context) {
             // It's a sub-context, update it
             console.log("It's a sub-context, update it.");
-            parentOrExistingContext.contexts = updateContext(parentOrExistingContext.contexts, context);
+            parentOrExistingContext.contexts = updateContext(
+              parentOrExistingContext.contexts,
+              context
+            );
           } else {
             // Update or add the sub-context
-            parentOrExistingContext.contexts = updateContext(parentOrExistingContext.contexts, context);
+            parentOrExistingContext.contexts = updateContext(
+              parentOrExistingContext.contexts,
+              context
+            );
           }
         } else {
           throw new Error(`Parent context not found for: ${context.context}`);
@@ -443,12 +485,11 @@ async function startServer() {
         status: 200,
         settings,
         context,
-        result: "Context updated in the settings file."
+        result: "Context updated in the settings file.",
       });
-
     } catch (err) {
       console.error(err);
-      res.status(500).json({ error: 'Failed to update settings.' });
+      res.status(500).json({ error: "Failed to update settings." });
     }
   });
 
@@ -501,7 +542,7 @@ async function startServer() {
       await updateOrbisDBSettings(settings);
 
       // Close previous indexing service
-      if(global.indexingService) {
+      if (global.indexingService) {
         global.indexingService.stop();
       }
 
@@ -636,9 +677,9 @@ async function startServer() {
   // API endpoint to query a table
   server.post("/api/db/query-all", authMiddleware, async (req, res) => {
     const { table, page, order_by_indexed_at } = req.body;
-    
+
     // Retrieve admin
-    const authHeader = req.headers['authorization'];
+    const authHeader = req.headers["authorization"];
     let adminDid = await getAdminDid(authHeader);
 
     // Retrieve global settings
@@ -646,7 +687,7 @@ async function startServer() {
 
     // If this is a shared instance we select the right db to query or use the global one
     let database = global.indexingService.databases["global"];
-    if(adminDid && settings.is_shared) {
+    if (adminDid && settings.is_shared) {
       database = global.indexingService.databases[adminDid];
     }
 
@@ -654,7 +695,7 @@ async function startServer() {
       let response = await database.queryGlobal(
         table,
         parseInt(page, 10),
-        order_by_indexed_at === 'true'
+        order_by_indexed_at === "true"
       );
       if (response && response.data) {
         res.json({
@@ -679,14 +720,13 @@ async function startServer() {
     }
   });
 
-
   /** Will build a query from JSON and run it */
   server.post("/api/db/query/json", async (req, res) => {
     const { jsonQuery, env } = req.body;
     let slot = env;
 
     const { query, params } = SelectStatement.buildQueryFromJson(jsonQuery);
-    
+
     // Retrieve global settings
     let settings = getOrbisDBSettings();
     console.log("slot:", slot);
@@ -694,7 +734,7 @@ async function startServer() {
 
     // If this is a shared instance we select the right db to query or use the global one
     let database = global.indexingService.databases["global"];
-    if(slot && settings.is_shared) {
+    if (slot && settings.is_shared) {
       database = global.indexingService.databases[slot];
     }
 
@@ -726,7 +766,7 @@ async function startServer() {
   /** Will query the db schema in order to */
   server.get("/api/db/query-schema", authMiddleware, async (req, res) => {
     // Retrieve admin
-    const authHeader = req.headers['authorization'];
+    const authHeader = req.headers["authorization"];
     let adminDid = await getAdminDid(authHeader);
 
     // Retrieve global settings
@@ -734,7 +774,7 @@ async function startServer() {
 
     // If this is a shared instance we select the right db to query or use the global one
     let database = global.indexingService.databases["global"];
-    if(adminDid && settings.is_shared) {
+    if (adminDid && settings.is_shared) {
       database = global.indexingService.databases[adminDid];
     }
 
@@ -769,7 +809,7 @@ async function startServer() {
     const { query, params } = req.body;
 
     // Retrieve admin
-    const authHeader = req.headers['authorization'];
+    const authHeader = req.headers["authorization"];
     let adminDid = await getAdminDid(authHeader);
 
     // Retrieve global settings
@@ -777,7 +817,7 @@ async function startServer() {
 
     // If this is a shared instance we select the right db to query or use the global one
     let database = global.indexingService.databases["global"];
-    if(adminDid && settings.is_shared) {
+    if (adminDid && settings.is_shared) {
       database = global.indexingService.databases[adminDid];
     }
 
@@ -810,22 +850,21 @@ async function startServer() {
   /** Will check if a local Ceramic node is running on the same server */
   server.get("/api/local-ceramic-node", async (req, res) => {
     try {
-      let healtcheck_url = 'http://localhost:7007/api/v0/node/healthcheck';
+      let healtcheck_url = "http://localhost:7007/api/v0/node/healthcheck";
       let response = await fetch(healtcheck_url);
       let resNode = await response.text();
 
       res.json({
         status: "200",
-        res: resNode
+        res: resNode,
       });
-    } catch(e) {
+    } catch (e) {
       res.status(500).json({
         status: "500",
         result: "There isn't any Ceramic node running locally.",
       });
     }
-    
-  });  
+  });
 
   if (!dev) {
     // Serve static files from Next.js production build
@@ -836,7 +875,7 @@ async function startServer() {
     );
     server.use(express.static(path.join(__dirname, "../client/public")));
   }
-  
+
   // Default catch-all handler to allow Next.js to handle all other routes:
   server.all("*", (req, res) => {
     return handle(req, res); // Continue with Next.js handling if authenticated or if it's the '/auth' path
@@ -856,7 +895,7 @@ async function startServer() {
 /** Will stop the previous indexing service and restart a new one */
 function restartIndexingService() {
   // Close previous indexing service
-  if(global.indexingService) {
+  if (global.indexingService) {
     global.indexingService.stop();
   }
 
@@ -891,11 +930,12 @@ export async function startIndexing() {
     globalDbConfig.password,
     globalDbConfig.host,
     globalDbConfig.port,
-    null);
+    null
+  );
 
-  if(settings.is_shared) {
+  if (settings.is_shared) {
     /** Create one postgre and ceramic object per slot */
-    if(settings.slots) {
+    if (settings.slots) {
       Object.entries(settings.slots).forEach(([key, slot]) => {
         console.log("Trying to configure indexing for:", key);
         if (slot.configuration) {
@@ -907,10 +947,11 @@ export async function startIndexing() {
             globalDbConfig.password,
             globalDbConfig.host,
             globalDbConfig.port,
-            key);
-    
+            key
+          );
+
           databases[key] = database;
-    
+
           /** Instantiate the Ceramic object with node's url from config's slot */
           let seed = JSON.parse(slot.configuration.ceramic.seed);
           let ceramic = new Ceramic(
@@ -920,7 +961,11 @@ export async function startIndexing() {
           );
           ceramics[key] = ceramic;
         } else {
-          console.log("Couldn't init IndexingService for " + key + " because configuration isn't setup yet.");
+          console.log(
+            "Couldn't init IndexingService for " +
+              key +
+              " because configuration isn't setup yet."
+          );
         }
       });
     }
@@ -930,7 +975,9 @@ export async function startIndexing() {
       databases["global"] = globalDatabase;
       ceramics["global"] = globalCeramic;
     } else {
-      console.log("Couldn't init OrbisDB because configuration isn't setup yet.");
+      console.log(
+        "Couldn't init OrbisDB because configuration isn't setup yet."
+      );
     }
   }
 

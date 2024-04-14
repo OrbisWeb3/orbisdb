@@ -1,4 +1,3 @@
-
 export default class GitcoinPassportPlugin {
   /**
    * This will initialize all of the hooks used by this plugin.
@@ -7,7 +6,7 @@ export default class GitcoinPassportPlugin {
   async init() {
     return {
       HOOKS: {
-        "validate": (stream) => this.isValid(stream),
+        validate: (stream) => this.isValid(stream),
         //"stream:add_metadata": (stream) => this.hello(stream),
       },
     };
@@ -22,7 +21,7 @@ export default class GitcoinPassportPlugin {
     let { address } = getAddressFromDid(stream.controller);
     console.log("address:", address);
 
-    if(address) {
+    if (address) {
       /** Will submit passport to make sure we retrieve the latest score */
       let res = await this.submitPassport(address);
       console.log("res:", res);
@@ -30,9 +29,9 @@ export default class GitcoinPassportPlugin {
       // Check if passport was already submitted recently
       let isRecent = isTimestampRecent(res.last_score_timestamp);
 
-      if(isRecent && res.status == "DONE") {
+      if (isRecent && res.status == "DONE") {
         // Passport was already submitted recently so we use the latest score
-        score =  Number(res.score);
+        score = Number(res.score);
       } else {
         /** Wait for Passport to process the submission and then retrieve the passport score */
         await sleep(3000);
@@ -43,14 +42,15 @@ export default class GitcoinPassportPlugin {
       }
       console.log("score:", score);
       /** Make sure the user's score is above the minimum score required by the developer */
-			if(score > this.min_score) {
-				return true;
-			} else {
-				return false;
-			}
-
+      if (score > this.min_score) {
+        return true;
+      } else {
+        return false;
+      }
     } else {
-      console.log("Stream " + stream.stream_id + " rejected by Gitcoin Passport.");
+      console.log(
+        "Stream " + stream.stream_id + " rejected by Gitcoin Passport."
+      );
       return false;
     }
   }
@@ -60,21 +60,22 @@ export default class GitcoinPassportPlugin {
     let passport_details;
     /** Submit passport to generate a score */
     try {
-      let res = await fetch('https://api.scorer.gitcoin.co/registry/submit-passport', {
-        method: 'POST',
-        body: JSON.stringify(
-          {
+      let res = await fetch(
+        "https://api.scorer.gitcoin.co/registry/submit-passport",
+        {
+          method: "POST",
+          body: JSON.stringify({
             address: address,
-            scorer_id: this.scorer_id
-          }
-        ),
-        headers: {
-          "Content-Type": "application/json",
-          "X-API-Key": this.api_key
+            scorer_id: this.scorer_id,
+          }),
+          headers: {
+            "Content-Type": "application/json",
+            "X-API-Key": this.api_key,
+          },
         }
-      });
+      );
       passport_details = await res.json();
-    } catch(e) {
+    } catch (e) {
       console.log("Error submitting passport for this scorer: ", e);
     }
     return passport_details;
@@ -84,15 +85,21 @@ export default class GitcoinPassportPlugin {
   async getPassportScore(address) {
     let res_score_details;
     try {
-      let res_score = await fetch('https://api.scorer.gitcoin.co/registry/score/'+ this.scorer_id +'/' + address, {
-        method: 'GET',
-        headers: {
-          "Content-Type": "application/json",
-          "X-API-Key": this.api_key
+      let res_score = await fetch(
+        "https://api.scorer.gitcoin.co/registry/score/" +
+          this.scorer_id +
+          "/" +
+          address,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            "X-API-Key": this.api_key,
+          },
         }
-      });
+      );
       res_score_details = await res_score.json();
-    } catch(e) {
+    } catch (e) {
       console.log("Error retrieving passport score for this scorer: ", e);
     }
 
@@ -107,7 +114,7 @@ function isTimestampRecent(timestampStr) {
   try {
     // Extracting the timestamp from the response and removing the timezone part.
     // This creates a consistent ISO-8601 format that JavaScript can understand.
-    const dateTimePart = timestampStr.split('+')[0]; // '2023-10-20T08:18:56.915704'
+    const dateTimePart = timestampStr.split("+")[0]; // '2023-10-20T08:18:56.915704'
 
     // Adding 'Z' to indicate UTC time zone, ensuring it's treated as UTC regardless of the system's local time zone.
     const utcTimestamp = `${dateTimePart}Z`;
@@ -134,11 +141,11 @@ function isTimestampRecent(timestampStr) {
 
 /** Returns a JSON object with the address and network based on the did */
 export function getAddressFromDid(did) {
-  if(did) {
+  if (did) {
     let didParts = did.split(":");
-    if(did.substring(0, 7) == "did:pkh") {
+    if (did.substring(0, 7) == "did:pkh") {
       /** Explode address to retrieve did */
-      if(didParts.length >= 4) {
+      if (didParts.length >= 4) {
         let address = didParts[4];
         let network = didParts[2];
         let chain = didParts[2] + ":" + didParts[3];
@@ -147,42 +154,42 @@ export function getAddressFromDid(did) {
         return {
           address: address,
           network: network,
-          chain: chain
-        }
+          chain: chain,
+        };
       } else {
         /** Return null object */
         return {
           address: null,
           network: null,
-          chain: null
-        }
+          chain: null,
+        };
       }
-    } else if(did.substring(0, 7) == "did:key") {
+    } else if (did.substring(0, 7) == "did:key") {
       /** Return did object */
       return {
         address: didParts[3],
-        network: 'key',
-        chain: 'key'
-      }
+        network: "key",
+        chain: "key",
+      };
     } else {
       /** Return null object */
       return {
         address: null,
         network: null,
-        chain: null
-      }
+        chain: null,
+      };
     }
   } else {
     /** Return null object */
     return {
       address: null,
       network: null,
-      chain: null
-    }
+      chain: null,
+    };
   }
 }
 
 /** Wait for x ms in an async function */
 export const sleep = (milliseconds) => {
-  return new Promise(resolve => setTimeout(resolve, milliseconds))
-}
+  return new Promise((resolve) => setTimeout(resolve, milliseconds));
+};

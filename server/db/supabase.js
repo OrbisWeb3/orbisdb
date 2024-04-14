@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient } from "@supabase/supabase-js";
 
 /**
  * DB implementation to index streams in Supabase
@@ -14,15 +14,15 @@ export default class Supabase {
     /** Generate variables to insert */
     let variables = {
       ...content,
-      pluginsData
-    }
+      pluginsData,
+    };
     console.log("Saving in DB::", variables);
 
     /** The database would have one table per model indexed, those tables would be created when the project is initialized in the UI */
     try {
       //let { data, error, status } = await this.supabase.from(model).upsert(variables);
-    } catch(e) {
-      console.log("Error saving stream in database:", e)
+    } catch (e) {
+      console.log("Error saving stream in database:", e);
     }
   }
 }

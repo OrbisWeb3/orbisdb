@@ -6,7 +6,7 @@ export default class DataSourcePlugin {
   async init() {
     return {
       HOOKS: {
-        "generate": () => this.start(),
+        generate: () => this.start(),
       },
     };
   }
@@ -31,18 +31,17 @@ export default class DataSourcePlugin {
       this.interval = setInterval(() => {
         this.fetchApi();
       }, this.secs_interval * 1000);
-
-    } catch(e) {
+    } catch (e) {
       console.log("Couldn't connect to Ceramic, check the seed again:", e);
     }
   }
 
   /** Will stop the plugin's interval */
   async stop() {
-    console.log('Stopping plugin:', this.uuid);
-    if(this.interval) {
-        clearInterval(this.interval);
-        this.interval = null; // Clear the stored interval ID
+    console.log("Stopping plugin:", this.uuid);
+    if (this.interval) {
+      clearInterval(this.interval);
+      this.interval = null; // Clear the stored interval ID
     }
   }
 
@@ -50,26 +49,33 @@ export default class DataSourcePlugin {
   async fetchApi() {
     let results = await this.getResult();
 
-    if(results) {
+    if (results) {
       for (const result of results) {
         if (result) {
           try {
             let content = {
               ...result,
               context: this.context,
-              timestamp: Math.floor(Date.now() / 1000)
+              timestamp: Math.floor(Date.now() / 1000),
             };
-            
 
             /** We call the update hook here in order to support hooks able to update data before it's created in Ceramic  */
-				    let __content = await global.indexingService.hookHandler.executeHook("update", content, this.context);
+            let __content =
+              await global.indexingService.hookHandler.executeHook(
+                "update",
+                content,
+                this.context
+              );
             console.log("content:", __content);
 
             /** We then create the stream with the updated content */
-            let stream = await global.indexingService.ceramic.orbisdb.insert(this.model_id).value(__content).context(this.context).run();
+            let stream = await global.indexingService.ceramic.orbisdb
+              .insert(this.model_id)
+              .value(__content)
+              .context(this.context)
+              .run();
 
             console.log("Stream created:", stream);
-
           } catch (e) {
             console.log("Error creating model stream:", e);
           }
@@ -77,7 +83,6 @@ export default class DataSourcePlugin {
       }
     }
   }
-
 
   /** Will return the result expected by the developer using the variables */
   async getResult() {
@@ -88,13 +93,13 @@ export default class DataSourcePlugin {
       let data = await res.json();
 
       // Iterate over each document group
-      let keys = JSON.parse(this.keys)
+      let keys = JSON.parse(this.keys);
       for (const doc of keys) {
         let result = {};
 
         // Iterate over the keys and build the result object for each document
         for (const item of doc.keys) {
-          if ('path' in item) {
+          if ("path" in item) {
             // Existing path traversal logic
             let value = data;
             for (const pathSegment of item.path) {
@@ -109,14 +114,12 @@ export default class DataSourcePlugin {
                   default:
                     result[item.key] = value.toString();
                 }
-
               } else {
                 console.log("value is undefined for: ", item.path);
                 result[item.key] = null;
               }
             }
-
-          } else if ('value' in item) {
+          } else if ("value" in item) {
             // Existing value assignment logic
             result[item.key] = item.value;
           }
@@ -124,7 +127,7 @@ export default class DataSourcePlugin {
 
         results.push(result);
       }
-    } catch(e) {
+    } catch (e) {
       console.log("Error fetching URL:" + this.url + ": ", e);
     }
 
@@ -133,45 +136,42 @@ export default class DataSourcePlugin {
 }
 
 let modelDef = {
-  "name": "PriceFeed",
-  "description": "Model storing price feeds for any asset. Version: 1.02",
-  "version": "1.0",
-  "accountRelation": {
-    "type": "list"
+  name: "PriceFeed",
+  description: "Model storing price feeds for any asset. Version: 1.02",
+  version: "1.0",
+  accountRelation: {
+    type: "list",
   },
-  "schema": {
-    "type": "object",
-    "$schema": "https://json-schema.org/draft/2020-12/schema",
-    "required": [
-      "asset",
-      "currency"
-    ],
-    "properties": {
-      "asset": {
-        "type": "string"
+  schema: {
+    type: "object",
+    $schema: "https://json-schema.org/draft/2020-12/schema",
+    required: ["asset", "currency"],
+    properties: {
+      asset: {
+        type: "string",
       },
-      "price": {
-        "type": ["number", "null"]
+      price: {
+        type: ["number", "null"],
       },
-      "currency": {
-        "type": "string"
+      currency: {
+        type: "string",
       },
-      "source": {
-        "type": "string"
+      source: {
+        type: "string",
       },
-      "candle": {
-        "type": "string"
+      candle: {
+        type: "string",
       },
-      "timestamp": {
-        "type": "integer"
+      timestamp: {
+        type: "integer",
       },
-      "context": {
-        "type": "string"
-      }
+      context: {
+        type: "string",
+      },
     },
-    "additionalProperties": false
-  }
-}
+    additionalProperties: false,
+  },
+};
 
 /** To create a model */
 /*let stream = await Model.create(this.ceramic,
