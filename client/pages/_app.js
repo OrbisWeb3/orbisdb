@@ -64,6 +64,17 @@ function AppContent({ Component, pageProps }) {
     )
   }*/
 
+  // User is not connected and instance is not configured
+  else if (!isConfigured && !isConnected) {
+    console.log("User is not connected and instance is not configured");
+    return (
+      <div className="h-full w-full flex flex-col">
+        <Header showItems={false} />
+        <ConfigurationSetup />
+      </div>
+    );
+  }
+
   // Admin is not connected and instance is configured
   else if (!isConnected && isShared) {
     return (
@@ -82,7 +93,7 @@ function AppContent({ Component, pageProps }) {
     );
   }
 
-  // User is connected but is not connected and the instance is configured
+  // User is not connected and the instance is configured
   else if (!isConnected && !isAdmin && isConfigured) {
     return (
       <div className="h-full w-full flex flex-col">
@@ -95,16 +106,14 @@ function AppContent({ Component, pageProps }) {
       </div>
     );
   } else if (!adminLoading && !isAdmin && isConfigured) {
-
-  /** User is connected but not admin */
+    /** User is connected but not admin */
     return (
       <div className="h-full w-full flex flex-col">
         <Auth />
       </div>
     );
   } else if (settings?.configuration?.admins && !isShared) {
-
-  /** User has finalized configuration, render app */
+    /** User has finalized configuration, render app */
     console.log(
       "settings?.configuration?.admins:",
       settings?.configuration?.admins

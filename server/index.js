@@ -183,13 +183,12 @@ async function startServer() {
       let databaseName = toValidDbName(adminDid);
       await global.indexingService.database.createDatabase(databaseName);
 
-      // Step 3/ Generate a new seed
+      // Step 3: Generate a new seed for the new user of the shared instance
       const buffer = new Uint8Array(32);
       const seed = crypto.getRandomValues(buffer);
       const array = Array.from(seed); // Convert Uint8Array to array
       const _seed = JSON.parse(JSON.stringify(array)); // Convert array to JSON object
       let seedStr = "[" + _seed.toString() + "]";
-      console.log("seedStr:", seedStr);
 
       // Step 4: Build new credentials configuration in settings for this user
       let ceramicConfiguration = settings.configuration.ceramic;
@@ -210,7 +209,6 @@ async function startServer() {
         settings.slots = {}; // Initialize slots as an array if it's not an array already
       }
       settings.slots[adminDid] = slotSettings;
-      console.log("Trying to save settings:", settings);
 
       // Step 5: Update global settings
       updateOrbisDBSettings(settings);
@@ -913,25 +911,32 @@ export async function startIndexing() {
 
   // Initialize some objects
   let ceramics = {};
+  let globalCeramic;
   let databases = {};
+  let globalDatabase;
 
   // Initiate global Ceramic
-  let globalSeed = JSON.parse(globalCeramicConfig.seed);
-  let globalCeramic = new Ceramic(
-    globalCeramicConfig.node,
-    "http://localhost:" + PORT,
-    globalSeed
-  );
+  if (settings?.configuration) {
+    let globalSeed = JSON.parse(globalCeramicConfig.seed);
+    globalCeramic = new Ceramic(
+      globalCeramicConfig.node,
+      "http://localhost:" + PORT,
+      globalSeed
+    );
 
-  /** Instantiate the global database to use which should be saved in the "orbisdb-settings.json" file */
-  let globalDatabase = new Postgre(
-    globalDbConfig.user,
-    globalDbConfig.database,
-    globalDbConfig.password,
-    globalDbConfig.host,
-    globalDbConfig.port,
-    null
-  );
+    /** Instantiate the global database to use which should be saved in the "orbisdb-settings.json" file */
+    globalDatabase = new Postgre(
+      globalDbConfig.user,
+      globalDbConfig.database,
+      globalDbConfig.password,
+      globalDbConfig.host,
+      globalDbConfig.port,
+      null
+    );
+  } else {
+    console.log("Couldn't init OrbisDB because configuration isn't setup yet.");
+    return;
+  }
 
   if (settings.is_shared) {
     /** Create one postgre and ceramic object per slot */
@@ -974,10 +979,6 @@ export async function startIndexing() {
     if (settings?.configuration) {
       databases["global"] = globalDatabase;
       ceramics["global"] = globalCeramic;
-    } else {
-      console.log(
-        "Couldn't init OrbisDB because configuration isn't setup yet."
-      );
     }
   }
 
