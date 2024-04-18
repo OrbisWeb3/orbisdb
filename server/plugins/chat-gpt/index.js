@@ -139,8 +139,9 @@ export default class ChatGPTPlugin {
     return prompt;
   }
 
-  chatHtml(req, res) {
-    res.send(`
+  async chatHtml(req, res) {
+    res.type("text/html");
+    return `
           <html>
             <head>
                 <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
@@ -205,7 +206,7 @@ export default class ChatGPTPlugin {
               </script>
             </body>
           </html>
-        `);
+        `;
   }
 
   async chatSubmit(req, res) {

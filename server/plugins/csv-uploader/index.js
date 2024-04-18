@@ -52,7 +52,8 @@ export default class CSVUploaderPlugin {
     // Serialize the properties object to a JSON string
     const propertiesJson = JSON.stringify(properties);
 
-    res.send(`<!DOCTYPE html>
+    res.type("text/html");
+    return `<!DOCTYPE html>
     <html lang="en">
       <head>
         <meta charset="UTF-8">
@@ -320,7 +321,7 @@ export default class CSVUploaderPlugin {
           }
         </script>
       </body>
-    </html>`);
+    </html>`;
   }
 
   /** Will parse the data retrieved from CSV and push it to Ceramic one by one */

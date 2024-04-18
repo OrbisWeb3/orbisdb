@@ -30,14 +30,18 @@ export default class HelloWorldPlugin {
     // Perform first call
     this.createStream();
 
-    // Start the interval function
-    if (this.secs_interval) {
-      this.interval = setInterval(() => {
-        this.createStream();
-      }, this.secs_interval * 1000);
-    } else {
-      console.log("The interval hasn't been specified.");
+    if (!this.secs_interval) {
+      return console.log("The interval hasn't been specified");
     }
+
+    // Start the interval function
+    this.interval = setInterval(
+      () => {
+        this.createStream();
+      },
+      // Make sure we don't exceed timeout interval
+      Math.min(this.secs_interval * 1000, 2147483647)
+    );
   }
 
   /** Will stop the plugin's interval */
@@ -91,7 +95,9 @@ export default class HelloWorldPlugin {
 
   /** Example of an API route returning a simple HTML page. The routes declared by a plugin are automatically exposed by the OrbisDB instance */
   async helloHtmlApi(req, res) {
-    res.send(`<!DOCTYPE html>
+    res.type("text/html");
+
+    return `<!DOCTYPE html>
       <html>
         <head>
           <title>Simple Page</title>
@@ -100,6 +106,6 @@ export default class HelloWorldPlugin {
           <h1>Hello, this is a simple HTML page</h1>
           <p>More content here...</p>
         </body>
-      </html>`);
+      </html>`;
   }
 }

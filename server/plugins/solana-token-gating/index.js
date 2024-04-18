@@ -82,8 +82,10 @@ export default class SolanaTokenGating {
   }
 
   /** Example of an API route returning a simple HTML page. The routes declared by a plugin are automatically exposed by the OrbisDB instance */
-  helloHtmlApi(req, res) {
-    res.send(`<!DOCTYPE html>
+  async helloHtmlApi(req, res) {
+    res.type("text/html");
+
+    return `<!DOCTYPE html>
       <html>
         <head>
           <title>Simple Page</title>
@@ -92,7 +94,7 @@ export default class SolanaTokenGating {
           <h1>Hello, this is a simple HTML page</h1>
           <p>More content here...</p>
         </body>
-      </html>`);
+      </html>`;
   }
 }
 
