@@ -3,6 +3,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 import { DIDSession } from "did-session";
+import { startIndexing } from "../index.js";
 
 /** Initialize dirname */
 const __filename = fileURLToPath(import.meta.url);
@@ -12,6 +13,17 @@ const __dirname = dirname(__filename);
 export const sleep = (milliseconds) => {
   return new Promise((resolve) => setTimeout(resolve, milliseconds));
 };
+
+/** Will stop the previous indexing service and restart a new one */
+export async function restartIndexingService() {
+  // Close previous indexing service
+  if (global.indexingService) {
+    await global.indexingService.stop();
+  }
+
+  // Start indexing service
+  await startIndexing();
+}
 
 /** Will convert a Ceramic JWT into a readable address */
 export async function getAdminDid(authHeader) {

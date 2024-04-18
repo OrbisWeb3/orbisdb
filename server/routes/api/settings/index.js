@@ -2,6 +2,7 @@ import { startIndexing } from "../../../index.js";
 import { adminDidAuthMiddleware } from "../../../middleware/didAuthMiddleware.js";
 import {
   getOrbisDBSettings,
+  restartIndexingService,
   updateOrbisDBSettings,
 } from "../../../utils/helpers.js";
 
@@ -46,11 +47,11 @@ export default async function (server, opts) {
       };
     });
 
-    server.patch("/:slot", async (req, res) => {
+    server.patch("/:slot?", async (req, res) => {
       const { slot } = req.params;
       const { configuration } = req.body;
 
-      if (slot !== req.adminDid) {
+      if (slot && slot !== req.adminDid) {
         return res.unauthorized(
           `You're not authorized to make changes to slot ${slot}.`
         );

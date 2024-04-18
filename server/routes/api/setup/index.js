@@ -3,6 +3,7 @@ import {
   getOrbisDBSettings,
   toValidDbName,
   updateOrbisDBSettings,
+  restartIndexingService,
 } from "../../../utils/helpers.js";
 
 const generateSeed = async () => {

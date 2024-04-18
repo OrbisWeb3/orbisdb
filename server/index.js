@@ -96,17 +96,6 @@ async function startServer() {
   );
 }
 
-/** Will stop the previous indexing service and restart a new one */
-function restartIndexingService() {
-  // Close previous indexing service
-  if (global.indexingService) {
-    global.indexingService.stop();
-  }
-
-  // Start indexing service
-  startIndexing();
-}
-
 /** Initialize the app by loading all of the required plugins while initializng those and start the indexing service */
 export async function startIndexing() {
   // Retrieve OrbisDB current settings
