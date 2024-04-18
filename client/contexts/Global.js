@@ -139,7 +139,7 @@ export const GlobalProvider = ({ children }) => {
   }
 
   async function getAdmin(adminSession) {
-    let result = await fetch("/api/settings/get-admin/" + adminSession);
+    let result = await fetch(`/api/settings/admins/${adminSession}`);
     let resultJson = await result.json();
     console.log("In getAdmin:", resultJson);
     return resultJson.admins;
@@ -149,7 +149,7 @@ export const GlobalProvider = ({ children }) => {
     let adminSession = _jwt
       ? _jwt
       : localStorage.getItem("orbisdb-admin-session");
-    let result = await fetch("/api/settings/get", {
+    let result = await fetch("/api/settings", {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -171,7 +171,7 @@ export const GlobalProvider = ({ children }) => {
 
   /** Will check if node has been configured or not */
   async function getIsConfigured() {
-    let result = await fetch("/api/settings/is-configured");
+    let result = await fetch("/api/setup/status");
     let resultJson = await result.json();
     console.log("In isConfigured:", resultJson);
     if (resultJson) {

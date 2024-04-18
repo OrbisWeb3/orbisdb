@@ -10,7 +10,7 @@ export default function Plugins() {
     loadPlugins();
     async function loadPlugins() {
       try {
-        let rawResponse = await fetch("/api/plugins/get", {
+        let rawResponse = await fetch("/api/plugins", {
           method: "GET",
           headers: {
             "Content-Type": "application/json",

@@ -20,8 +20,9 @@ export default function Settings() {
     console.log("Enter saveSettings() with:", jsonValue);
     setStatus(STATUS.LOADING);
     try {
-      let rawResponse = await fetch("/api/settings/update-full-settings", {
-        method: "POST",
+      // TODO: Check the value of this and security implications
+      let rawResponse = await fetch("/api/settings", {
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${sessionJwt}`,

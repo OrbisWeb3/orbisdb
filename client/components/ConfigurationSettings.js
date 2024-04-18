@@ -62,8 +62,8 @@ export function ConfigurationSetup() {
   async function checkLocalCeramicNode() {
     let isValid;
     try {
-      let response = await fetch("/api/local-ceramic-node");
-      let res = await response.json();
+      const response = await fetch("/api/ceramic/local/status");
+      const res = await response.json();
       console.log("checkLocalCeramicNode res:", res);
 
       if (response.status == 200) {
@@ -125,8 +125,8 @@ export function ConfigurationSetup() {
     }
     setStatus(STATUS.LOADING);
     try {
-      let rawResponse = await fetch("/api/settings/update-configuration", {
-        method: "POST",
+      const rawResponse = await fetch("/api/settings", {
+        method: "PATCH",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${sessionJwt}`,

@@ -60,7 +60,7 @@ export default function Data() {
 
     /** Will run custom query wrote by user */
     try {
-      let rawResponse = await fetch("/api/db/query-schema", {
+      let rawResponse = await fetch("/api/db/schema", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -103,7 +103,7 @@ export default function Data() {
     };
 
     try {
-      let rawResponse = await fetch("/api/db/query-all", {
+      let rawResponse = await fetch("/api/db/query/all", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -399,7 +399,7 @@ const SqlEditor = (props) => {
     setLoading(true);
     console.log("Running query:", props.sqlValue);
     try {
-      let rawResponse = await fetch("/api/db/query", {
+      let rawResponse = await fetch("/api/db/query/raw", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

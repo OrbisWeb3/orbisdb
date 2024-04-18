@@ -197,15 +197,13 @@ const ConfigurationSharedSetup = () => {
   async function configure() {
     setStatus(STATUS.LOADING);
     try {
-      let rawResponse = await fetch(
-        "/api/settings/setup-configuration-shared",
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${sessionJwt}`,
-          },
-        }
-      );
+      let rawResponse = await fetch("/api/setup/shared", {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${sessionJwt}`,
+        },
+        method: "POST",
+      });
 
       const response = await rawResponse.json();
       console.log("Configuration results:", response);

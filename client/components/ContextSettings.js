@@ -55,7 +55,7 @@ export default function ContextSettings({
     /** If successful update in local settings */
     if (res.id) {
       // Update settings to add new context
-      const response = await fetch("/api/settings/add-context", {
+      const response = await fetch("/api/contexts", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -29,7 +29,7 @@ export default function AssignContextModal({
     async function loadPluginDetails() {
       /** Load plugin details */
       try {
-        let response = await fetch("/api/plugins/" + plugin_id, {
+        let response = await fetch(`/api/plugins/${plugin_id}`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -98,7 +98,7 @@ export default function AssignContextModal({
     console.log("requestBody:", requestBody);
 
     /** Submit assign context form */
-    let response = await fetch("/api/settings/assign-context", {
+    let response = await fetch(`/api/plugins/${plugin_id}/context`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

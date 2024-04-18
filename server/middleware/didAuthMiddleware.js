@@ -2,6 +2,34 @@ import { getOrbisDBSettings } from "../utils/helpers.js";
 import { DIDSession } from "did-session";
 
 export const didAuthMiddleware = async (req, res) => {
+  const authHeader = req.headers["authorization"];
+
+  if (!authHeader) {
+    return res.unauthorized(
+      "You must be connected in order to access this endpoint."
+    );
+  }
+
+  const token = authHeader.split(" ")[1]; // Split 'Bearer <token>'
+  if (!token || token === "null") {
+    return res.unauthorized(
+      "You must be connected in order to access this endpoint."
+    );
+  }
+
+  try {
+    const resAdminSession = await DIDSession.fromSession(token, null);
+    const didId = resAdminSession.did.parent;
+    req.did = didId;
+    return;
+  } catch (e) {
+    return res.unauthorized(
+      `Invalid token format or an internal error. ${e.message}`
+    );
+  }
+};
+
+export const adminDidAuthMiddleware = async (req, res) => {
   const globalSettings = getOrbisDBSettings();
   const authHeader = req.headers["authorization"];
 
@@ -12,7 +40,6 @@ export const didAuthMiddleware = async (req, res) => {
   }
 
   const token = authHeader.split(" ")[1]; // Split 'Bearer <token>'
-  console.log({ token });
   if (!token || token === "null") {
     return res.unauthorized(
       "You must be connected in order to access this endpoint."
@@ -39,6 +66,7 @@ export const didAuthMiddleware = async (req, res) => {
     }
 
     if (didId && (_isAdmin || _isAdminsEmpty)) {
+      req.adminDid = didId;
       return;
     } else {
       return res.unauthorized("This account isn't an admin.");

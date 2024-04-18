@@ -330,7 +330,7 @@ const OnePlugin = ({
     loadPluginDetails();
     async function loadPluginDetails() {
       try {
-        let rawResponse = await fetch("/api/plugins/" + plugin.plugin_id, {
+        let rawResponse = await fetch(`/api/plugins/${plugin.plugin_id}`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -398,12 +398,7 @@ const OnePlugin = ({
           <>
             {pluginDetails.routes.map((route, index) => (
               <Link
-                href={
-                  "/api/plugin-routes/" +
-                  plugin.contextAssigned.uuid +
-                  "/" +
-                  route
-                }
+                href={`/api/plugins/${plugin.contextAssigned.uuid}/routes/${route}`}
                 target="_blank"
                 className="bg-white border border-slate-200 hover:border-[#4483FD]  rounded-md px-3 py-2 text-xs font-medium text-slate-800 space-x-1 flex flex-row items-center"
                 key={index}

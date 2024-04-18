@@ -16,8 +16,8 @@ export default function Header({ showItems }) {
   ];
 
   async function restart() {
-    let result = await fetch("/api/restart", {
-      method: "GET",
+    let result = await fetch("/api/settings/restart", {
+      method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${sessionJwt}`,
