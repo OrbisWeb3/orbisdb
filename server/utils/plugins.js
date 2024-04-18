@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { fileURLToPath } from "url";
+import { fileURLToPath, pathToFileURL } from "url";
 import { dirname } from "path";
 import { getOrbisDBSettings } from "./helpers.js";
 
@@ -65,7 +65,7 @@ export async function loadAndInitPlugins() {
             const pluginFile = path.join(pluginDir, "index.js");
 
             // Dynamic import (as we're in an async function)
-            const PluginModule = await import(pluginFile);
+            const PluginModule = await import(pathToFileURL(pluginFile));
             const PluginClass = PluginModule.default;
 
             // Create a new instance of the plugin for each contextualized install
@@ -129,7 +129,7 @@ export async function loadAndInitPlugins() {
         const pluginFile = path.join(pluginDir, "index.js");
 
         // Dynamic import (as we're in an async function)
-        const PluginModule = await import(pluginFile);
+        const PluginModule = await import(pathToFileURL(pluginFile));
         const PluginClass = PluginModule.default;
 
         // Create a new instance of the plugin for each contextualized install
