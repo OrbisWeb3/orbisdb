@@ -10,16 +10,16 @@ export default function Plugins() {
     loadPlugins();
     async function loadPlugins() {
       try {
-        let result = await fetch("/api/plugins/get", {
+        let rawResponse = await fetch("/api/plugins/get", {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${sessionJwt}`,
           },
         });
-        result = await result.json();
+        const result = await rawResponse.json();
         console.log("plugins:", result);
-        if (result.status == 200) {
+        if (rawResponse.status == 200) {
           setPlugins(result.plugins);
         } else {
           console.log("Error retrieving plugins available.");

@@ -60,7 +60,7 @@ export default function Data() {
 
     /** Will run custom query wrote by user */
     try {
-      let result = await fetch("/api/db/query-schema", {
+      let rawResponse = await fetch("/api/db/query-schema", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -68,9 +68,9 @@ export default function Data() {
         },
       });
 
-      result = await result.json();
+      const result = await rawResponse.json();
       console.log("result:", result);
-      if (result.status == 200) {
+      if (rawResponse.status == 200) {
         const fetchedTables = result.data
           .filter((item) => item.type === "TABLE")
           .map((item) => ({ id: item.table_name }));
@@ -103,7 +103,7 @@ export default function Data() {
     };
 
     try {
-      let result = await fetch("/api/db/query-all", {
+      let rawResponse = await fetch("/api/db/query-all", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -111,9 +111,9 @@ export default function Data() {
         },
         body: JSON.stringify(requestBody),
       });
-      result = await result.json();
+      const result = await rawResponse.json();
       console.log("data:", result);
-      if (result.status == 200) {
+      if (rawResponse.status == 200) {
         setLoading(false);
         setData(result.data);
         setCountTotalResults(result.totalCount); // Assuming you have a state to hold the total count
@@ -399,7 +399,7 @@ const SqlEditor = (props) => {
     setLoading(true);
     console.log("Running query:", props.sqlValue);
     try {
-      let result = await fetch("/api/db/query", {
+      let rawResponse = await fetch("/api/db/query", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -407,9 +407,9 @@ const SqlEditor = (props) => {
         },
         body: JSON.stringify({ query: props.sqlValue }),
       });
-      result = await result.json();
+      const result = await rawResponse.json();
       console.log("data from custom query:", result);
-      if (result.status == 200) {
+      if (rawResponse.status == 200) {
         setLoading(false);
         setSqlResult(result);
       } else {

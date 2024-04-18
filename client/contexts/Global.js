@@ -159,7 +159,7 @@ export const GlobalProvider = ({ children }) => {
 
     let resultJson = await result.json();
     console.log("In load settings:", resultJson);
-    if (resultJson?.status == 200) {
+    if (result.status == 200) {
       setSettings(resultJson?.settings);
     } else {
       setSettings({});

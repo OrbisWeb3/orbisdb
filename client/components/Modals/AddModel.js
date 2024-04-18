@@ -69,7 +69,7 @@ const AddModelSteps = ({ step, setStep, setAddModalVis }) => {
   async function saveInSettings() {
     setStatus(STATUS.LOADING);
     try {
-      let response = await fetch("/api/settings/add-model", {
+      let rawResponse = await fetch("/api/settings/add-model", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -82,9 +82,9 @@ const AddModelSteps = ({ step, setStep, setAddModalVis }) => {
           },
         }),
       });
-      response = await response.json();
+      const response = await rawResponse.json();
       console.log("response:", response);
-      if (response.status == 200) {
+      if (rawResponse.status == 200) {
         setSettings(response.settings);
         setStatus(STATUS.SUCCESS);
         await sleep(500);
@@ -103,7 +103,7 @@ const AddModelSteps = ({ step, setStep, setAddModalVis }) => {
   async function startIndexing() {
     setStatus(STATUS.LOADING);
     try {
-      let response = await fetch("/api/settings/index-model", {
+      let rawResponse = await fetch("/api/settings/index-model", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -112,9 +112,9 @@ const AddModelSteps = ({ step, setStep, setAddModalVis }) => {
           modelId,
         }),
       });
-      response = await response.json();
+      response = await rawResponse.json();
       console.log("response in startIndexing:", response);
-      if (response.status == 200) {
+      if (rawResponse.status == 200) {
         setSettings(response.settings);
         setStatus(STATUS.SUCCESS);
         await sleep(500);

@@ -29,16 +29,16 @@ export default function AssignContextModal({
     async function loadPluginDetails() {
       /** Load plugin details */
       try {
-        let result = await fetch("/api/plugins/" + plugin_id, {
+        let response = await fetch("/api/plugins/" + plugin_id, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${sessionJwt}`,
           },
         });
-        result = await result.json();
+        const result = await response.json();
         console.log("plugin details:", result);
-        if (result.status == 200) {
+        if (response.status == 200) {
           setPluginDetails(result.plugin);
         } else {
           console.log("Error retrieving plugin details.");

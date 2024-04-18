@@ -43,16 +43,16 @@ export default function PluginDetails() {
     async function loadPluginDetails() {
       /** Load plugin details */
       try {
-        let result = await fetch("/api/plugins/" + plugin_id, {
+        let rawResponse = await fetch("/api/plugins/" + plugin_id, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${sessionJwt}`,
           },
         });
-        result = await result.json();
+        const result = await rawResponse.json();
         console.log("plugin details:", result);
-        if (result.status == 200) {
+        if (rawResponse.status == 200) {
           setPluginDetails(result.plugin);
         } else {
           console.log("Error retrieving plugin details.");
@@ -99,7 +99,7 @@ export default function PluginDetails() {
 
     // Save settings in the orbisdb-settings.json file
     try {
-      let response = await fetch("/api/settings/install-plugin", {
+      let rawResponse = await fetch("/api/settings/install-plugin", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -113,10 +113,10 @@ export default function PluginDetails() {
         }),
       });
 
-      response = await response.json();
+      const response = await rawResponse.json();
       console.log("plugin added:", response);
 
-      if (response.status == 200) {
+      if (rawResponse.status == 200) {
         setStatus(STATUS.SUCCESS);
         setSettings(response.updatedSettings);
         setIsInstalled(true);

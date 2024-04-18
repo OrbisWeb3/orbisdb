@@ -1,20 +1,25 @@
-import express from "express";
+import Fastify from "fastify";
+
+import cors from "@fastify/cors";
+import fastifySensible from "@fastify/sensible";
+import { didAuthMiddleware } from "./middleware/didAuthMiddleware.js";
+import fastifyMultipart from "@fastify/multipart";
+
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
-import { cliColors } from "./utils/cliColors.js";
-import { DIDSession } from "did-session";
 
-import bodyParser from "body-parser";
-import cors from "cors";
+import { cliColors } from "./utils/cliColors.js";
+
+import { v4 as uuidv4 } from "uuid";
+
 import next from "next";
 
 import IndexingService from "./indexing/index.js";
 import Ceramic from "./ceramic/config.js";
 import Postgre from "./db/postgre.js";
 import HookHandler from "./utils/hookHandler.js";
-import { v4 as uuidv4 } from "uuid";
 
 import { loadPlugins, loadPlugin } from "./utils/plugins.js";
 import {
@@ -27,7 +32,9 @@ import {
   updateOrAddPlugin,
   updateOrbisDBSettings,
 } from "./utils/helpers.js";
+
 import { SelectStatement } from "@useorbis/db-sdk/query";
+import fastifyStatic from "@fastify/static";
 
 /** Initialize dirname */
 const __filename = fileURLToPath(import.meta.url);
@@ -35,141 +42,96 @@ const __dirname = dirname(__filename);
 
 // Create an instance of the application using Next JS pointing to the front-end files located in the client folder
 const dev = process.env.NODE_ENV !== "production";
-const app = next({
+const nextJs = next({
   dev,
   dir: "./client",
 });
 
-const handle = app.getRequestHandler();
-const server = express();
+// Initialize the main Fastify instance
+
+const server = new Fastify({
+  bodyLimit: 50000000,
+  ignoreTrailingSlash: true,
+});
 const PORT = process.env.PORT || 7008;
 
 const packageJson = JSON.parse(
   fs.readFileSync(path.resolve(__dirname, "../package.json"))
 );
 
-const authMiddleware = async (req, res, next) => {
-  let globalSettings = getOrbisDBSettings();
-  const authHeader = req.headers["authorization"];
-
-  if (authHeader) {
-    const token = authHeader.split(" ")[1]; // Split 'Bearer <token>'
-    console.log("token:", token);
-    if (token) {
-      try {
-        let _isAdmin;
-        let _isAdminsEmpty;
-        let resAdminSession = await DIDSession.fromSession(token, null);
-        let didId = resAdminSession.did.parent;
-        console.log("didId extracted from header middleware is:", didId);
-
-        /** Perform different verification logic for shared instances and non-shared ones */
-        if (globalSettings.is_shared) {
-          // The auth middleware should not be applied for shared instances because users can only modify the slot of the authentication they are using
-          _isAdminsEmpty = false;
-          _isAdmin = true;
-        } else {
-          _isAdmin = globalSettings?.configuration?.admins?.includes(didId);
-          _isAdminsEmpty =
-            !globalSettings?.configuration?.admins ||
-            globalSettings.configuration.admins.length === 0;
-        }
-
-        if (didId && (_isAdmin || _isAdminsEmpty)) {
-          return next();
-        } else {
-          return res.json({
-            status: 401,
-            result: "This account isn't an admin.",
-          });
-        }
-      } catch (e) {
-        console.log("Error checking session JWT:", e);
-        return res.json({
-          status: 401,
-          result: "Error checking session JWT with " + token,
-        });
-      }
-    } else {
-      return res.json({
-        status: 401,
-        result: "You must be connected in order to access this endpoint.",
-      });
-    }
-  } else {
-    return res.json({
-      status: 401,
-      result: "You must be connected in order to access this endpoint.",
-    });
-  }
-};
-
-// Use body parser to parse body field for POST and session
-server.use(bodyParser.json({ limit: "50mb" }));
-server.use(bodyParser.urlencoded({ limit: "50mb" }));
-server.use(cors());
-
 async function startServer() {
-  await app.prepare();
+  await nextJs.prepare();
+  const nextRequestHandler = nextJs.getRequestHandler();
+
+  await server.register(cors, {});
+  await server.register(fastifyMultipart, {
+    limits: {
+      fileSize: 50000000,
+    },
+  });
 
   // Healthcheck endpoint
-  server.get("/health", (req, res) => res.status(200).send("OK"));
+  server.get("/health", async () => "OK");
 
   // Expose some OrbisDB settings through a metadata endpoint
   server.get("/api/metadata", async (req, res) => {
-    let orbisdbSettings = getOrbisDBSettings();
-    return res.json({
+    const orbisdbSettings = getOrbisDBSettings();
+    const plugins = await loadPlugins();
+
+    return {
       version: packageJson.version,
       models: orbisdbSettings?.models,
       models_mapping: orbisdbSettings?.models_mapping,
-      plugins: (await loadPlugins()).map((plugin) => ({
+      plugins: plugins.map((plugin) => ({
         id: plugin.id,
         name: plugin.name,
         hooks: plugin.hooks,
       })),
+    };
+  });
+
+  // authMiddleware
+
+  await server.register(async function (server) {
+    await server.addHook("onRequest", didAuthMiddleware);
+
+    // Custom handling of some specific URLs may also go here. For example:
+    server.get("/api/plugins/get", async (req, res) => {
+      try {
+        const plugins = await loadPlugins();
+        return {
+          plugins,
+        };
+      } catch (e) {
+        return res.internalServerError("Error loading plugins.");
+      }
     });
-  });
 
-  // Custom handling of some specific URLs may also go here. For example:
-  server.get("/api/plugins/get", authMiddleware, async (req, res) => {
-    try {
-      let plugins = await loadPlugins();
-      res.json({
-        status: "200",
-        plugins: plugins,
-      });
-    } catch (e) {
-      res.json({
-        status: "300",
-        result: "Error loading plugins.",
-      });
-    }
-  });
+    // Returns API settings
+    server.get("/api/settings/get", async (req, res) => {
+      const authHeader = req.headers["authorization"];
+      const adminDid = await getAdminDid(authHeader);
 
-  // Returns API settings
-  server.get("/api/settings/get", authMiddleware, async (req, res) => {
-    const authHeader = req.headers["authorization"];
-    let adminDid = await getAdminDid(authHeader);
-    console.log("adminDid for /api/settings/get request:", adminDid);
-    try {
-      const settings = getOrbisDBSettings(adminDid);
-      res.json({
-        status: "200",
-        settings: settings,
-      });
-    } catch (err) {
-      console.error(err);
-      res.json({
-        status: "500",
-        error: "Failed to read settings.",
-      });
-    }
+      console.log("adminDid for /api/settings/get request:", adminDid);
+
+      try {
+        const settings = getOrbisDBSettings(adminDid);
+
+        return {
+          settings,
+        };
+      } catch (err) {
+        console.error(err);
+
+        return res.internalServerError("Failed to read settings.");
+      }
+    });
   });
 
   // Returns instance admin
   server.get("/api/settings/setup-configuration-shared", async (req, res) => {
     const authHeader = req.headers["authorization"];
-    let adminDid = await getAdminDid(authHeader);
+    const adminDid = await getAdminDid(authHeader);
     console.log(
       "adminDid for /api/settings/setup-configuration-shared request:",
       adminDid
@@ -177,7 +139,7 @@ async function startServer() {
 
     try {
       // Step 1: Retrieve global configuration to use the global ceramic node and db credentials
-      let settings = getOrbisDBSettings();
+      const settings = getOrbisDBSettings();
 
       // Step 2: Create a new database for this admin did
       let databaseName = toValidDbName(adminDid);
@@ -217,17 +179,14 @@ async function startServer() {
       restartIndexingService(settings);
 
       // Return results
-      res.json({
-        status: "200",
+      return {
         result: "DB created",
         updatedSettings: slotSettings,
-      });
+      };
     } catch (e) {
       console.log("Error setup shared configuration db:", e);
-      res.json({
-        status: "300",
-        result: "Error creating database.",
-      });
+
+      return res.internalServerError("Error creating database.");
     }
   });
 
@@ -236,22 +195,17 @@ async function startServer() {
     try {
       const globalSettings = getOrbisDBSettings();
       if (globalSettings.is_shared) {
-        res.json({
-          status: "200",
+        return {
           admins: [req.params.admin_did],
-        });
+        };
       } else {
-        res.json({
-          status: "200",
+        return {
           admins: globalSettings?.configuration?.admins,
-        });
+        };
       }
     } catch (err) {
       console.error(err);
-      res.json({
-        status: "500",
-        error: "Failed to read settings.",
-      });
+      return res.internalServerError("Failed to read settings.");
     }
   });
 
@@ -264,31 +218,28 @@ async function startServer() {
         // Map over the slots array to include only the id and title of each slot
 
         if (settings.is_shared) {
-          res.json({
-            status: "200",
+          return {
             is_shared: true,
-          });
+          };
         } else {
-          res.json({
-            status: "200",
+          return {
             is_configured: settings.configuration ? true : false,
             is_shared: false,
-          });
+          };
         }
       } else {
-        res.json({
-          status: "200",
+        return {
           is_configured: false,
           is_shared: false,
-        });
+        };
       }
     } catch (err) {
       console.error(err);
-      res.json({
-        status: "200",
+
+      return {
         is_shared: false,
         is_configured: false,
-      });
+      };
     }
   });
 
@@ -298,11 +249,11 @@ async function startServer() {
 
     // Retrieve admin
     const authHeader = req.headers["authorization"];
-    let adminDid = await getAdminDid(authHeader);
+    const adminDid = await getAdminDid(authHeader);
 
     try {
       // Retrieve settings for this slot
-      let settings = getOrbisDBSettings(adminDid);
+      const settings = getOrbisDBSettings(adminDid);
 
       // Add the new plugin or update it if already exists
       const updatedSettings = updateOrAddPlugin(settings, plugin);
@@ -310,17 +261,17 @@ async function startServer() {
       console.log("New settings:", updatedSettings);
 
       // Rewrite the settings file
-      await updateOrbisDBSettings(updatedSettings, adminDid);
+      updateOrbisDBSettings(updatedSettings, adminDid);
 
       // Send the response
-      res.status(200).json({
-        status: 200,
+      return {
         updatedSettings,
         result: "New plugin added to the settings file.",
-      });
+      };
     } catch (err) {
       console.error(err);
-      res.status(500).json({ error: "Failed to update settings." });
+
+      return res.internalServerError("Failed to update settings.");
     }
   });
 
@@ -331,14 +282,14 @@ async function startServer() {
     console.log("Enter assign-context with variables:", variables);
 
     // Retrieve global settings
-    let globalSettings = getOrbisDBSettings();
+    const globalSettings = getOrbisDBSettings();
 
     // Retrieve admin
     const authHeader = req.headers["authorization"];
-    let adminDid = await getAdminDid(authHeader);
+    const adminDid = await getAdminDid(authHeader);
 
     try {
-      let settings = getOrbisDBSettings(adminDid);
+      const settings = getOrbisDBSettings(adminDid);
 
       // Find the plugin by plugin_id
       const pluginIndex = settings.plugins?.findIndex(
@@ -409,30 +360,32 @@ async function startServer() {
       console.log("settings:", settings);
 
       // Write the updated settings back to the file
-      await updateOrbisDBSettings(settings, adminDid);
+      updateOrbisDBSettings(settings, adminDid);
 
       // Reset plugins
       global.indexingService.resetPlugins();
 
       // Return results
-      res
-        .status(200)
-        .json({ message: "Context updated successfully", settings: settings });
+      return {
+        message: "Context updated successfully",
+        settings: settings,
+      };
     } catch (err) {
       console.error(err);
-      res.status(500).json({ error: "Failed to update settings." });
+
+      return res.internalServerError("Failed to update settings.");
     }
   });
 
   // Adds a new context or update an existing one
   server.post("/api/settings/add-context", async (req, res) => {
     const { context: _context } = req.body;
-    let context = JSON.parse(_context);
+    const context = JSON.parse(_context);
 
     const authHeader = req.headers["authorization"];
-    let adminDid = await getAdminDid(authHeader);
+    const adminDid = await getAdminDid(authHeader);
 
-    let settings = getOrbisDBSettings(adminDid);
+    const settings = getOrbisDBSettings(adminDid);
 
     try {
       // Check if the context is a sub-context or already exists
@@ -476,18 +429,18 @@ async function startServer() {
       console.log("Updated settings:", settings);
 
       // Rewrite the settings file
-      await updateOrbisDBSettings(settings, adminDid);
+      updateOrbisDBSettings(settings, adminDid);
 
       // Send the response
-      res.status(200).json({
-        status: 200,
+      return {
         settings,
         context,
         result: "Context updated in the settings file.",
-      });
+      };
     } catch (err) {
       console.error(err);
-      res.status(500).json({ error: "Failed to update settings." });
+
+      return res.internalServerError("Failed to update settings.");
     }
   });
 
@@ -498,27 +451,27 @@ async function startServer() {
 
     try {
       // Retrieve current settings
-      let settings = getOrbisDBSettings(slot);
+      const settings = getOrbisDBSettings(slot);
       console.log("settings:", settings);
 
       // Assign new configuration values
       settings.configuration = configuration;
 
       // Rewrite the settings file
-      await updateOrbisDBSettings(settings, slot);
+      updateOrbisDBSettings(settings, slot);
 
       // Restart indexing service
       restartIndexingService();
 
       // Send the response
-      res.status(200).json({
-        status: 200,
+      return {
         updatedSettings: settings,
         result: "New configuration saved.",
-      });
+      };
     } catch (err) {
       console.error(err);
-      res.status(500).json({ error: "Failed to update settings." });
+
+      return res.internalServerError("Failed to update settings.");
     }
   });
 
@@ -537,7 +490,7 @@ async function startServer() {
       */
 
       // Rewrite the settings file
-      await updateOrbisDBSettings(settings);
+      updateOrbisDBSettings(settings);
 
       // Close previous indexing service
       if (global.indexingService) {
@@ -548,185 +501,152 @@ async function startServer() {
       startIndexing();
 
       // Send the response
-      res.status(200).json({
-        status: 200,
+      return {
         updatedSettings: settings,
         result: "New configuration saved.",
-      });
+      };
     } catch (err) {
       console.error(err);
-      res.status(500).json({ error: "Failed to update settings." });
+
+      return res.internalServerError("Failed to update settings.");
     }
   });
 
-  /** Dynamic route to handle GET routes exposed by installed plugins */
-  server.get(
-    "/api/plugin-routes/:plugin_uuid/:plugin_route/:plugin_params?",
-    async (req, res) => {
+  /** Dynamic route to handle GET / POST / PUT / PATCH / DELETE routes exposed by installed plugins */
+  server.route({
+    method: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+    exposesHeadRoute: false,
+    url: "/api/plugin-routes/:plugin_uuid/:plugin_route/:plugin_params?",
+    handler: async (req, res) => {
+      const reqMethod = req.method.toUpperCase();
       const { plugin_uuid, plugin_route } = req.params;
-      let method;
 
       // Retrieve the plugin installed using uuid
       let plugin = await loadPlugin(plugin_uuid);
       let { ROUTES } = await plugin.init();
-      method = ROUTES?.GET[plugin_route];
 
-      if (method) {
-        await method(req, res);
-      } else {
-        res.status(200).json({
-          status: 200,
-          plugin_uuid,
-          plugin_route,
-          result:
-            "Couldn't access this route, make sure that this plugin is properly installed.",
-        });
+      if (reqMethod in ROUTES) {
+        const method = ROUTES[reqMethod][plugin_route];
+        if (method) {
+          return await method(req, res);
+        }
       }
-    }
-  );
 
-  /** Dynamic route to handle GET routes exposed by installed plugins */
-  server.post(
-    "/api/plugin-routes/:plugin_uuid/:plugin_route",
-    async (req, res) => {
-      const { plugin_uuid, plugin_route } = req.params;
-      console.log(
-        "Trying to load method for plugin: " +
-          plugin_uuid +
-          " and route:" +
-          plugin_route
+      return res.notFound(
+        `Couldn't access route (${reqMethod}:${plugin_route}), make sure that the plugin (${plugin_uuid}) is properly installed and the route is exposed.`
       );
-      let method;
-
-      // Retrive all plugins installed
-      let plugin = await loadPlugin(plugin_uuid);
-      let { ROUTES } = await plugin.init();
-      console.log("ROUTES:", ROUTES);
-      method = ROUTES?.POST[plugin_route];
-      console.log("method:", method);
-
-      if (method) {
-        await method(req, res);
-      } else {
-        res.status(200).json({
-          status: 200,
-          plugin_uuid,
-          plugin_route,
-          result:
-            "Couldn't access this route, make sure that this plugin is properly installed.",
-        });
-      }
-    }
-  );
-
-  // API endpoint to get details of a specific plugin
-  server.get("/api/plugins/:plugin_id", authMiddleware, async (req, res) => {
-    const { plugin_id } = req.params;
-
-    try {
-      const plugins = await loadPlugins(); // This loads all available plugins
-      const plugin = plugins.find((p) => p.id === plugin_id); // Find the plugin with the corresponding id
-
-      if (plugin) {
-        res.json({
-          status: "200",
-          plugin: plugin, // Return the found plugin
-        });
-      } else {
-        // If no plugin matches the provided id, send an appropriate response
-        res.status(404).json({
-          status: "404",
-          result: `Plugin with id "${plugin_id}" not found.`,
-        });
-      }
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({
-        status: "500",
-        result: "Internal server error while loading plugins.",
-      });
-    }
+    },
   });
 
-  // Restart the Indexing service
-  server.get("/api/restart", authMiddleware, async (req, res) => {
-    console.log(
-      cliColors.text.cyan,
-      "⚰️ Restarting indexing service...",
-      cliColors.reset
-    );
+  // API endpoint to get details of a specific plugin
+  await server.register(async function (server) {
+    await server.addHook("onRequest", didAuthMiddleware);
 
-    // Stop the current indexing service
-    global.indexingService.stop();
+    server.get("/api/plugins/:plugin_id", async (req, res) => {
+      const { plugin_id } = req.params;
 
-    // Start a new indexing service
-    startIndexing();
+      try {
+        const plugins = await loadPlugins(); // This loads all available plugins
+        const plugin = plugins.find((p) => p.id === plugin_id); // Find the plugin with the corresponding id
 
-    // Return results
-    res.json({
-      status: "200",
-      result: "Indexing service restarted.",
+        // If no plugin matches the provided id, send an appropriate response
+        if (!plugin) {
+          return res.notFound(`Plugin with id "${plugin_id}" not found.`);
+        }
+
+        return {
+          plugin,
+        };
+      } catch (error) {
+        console.error(error);
+        return res.internalServerError(
+          `Internal server error while loading plugin ${plugin_id}.`
+        );
+      }
+    });
+
+    // Restart the Indexing service
+    server.get("/api/restart", async (req, res) => {
+      console.log(
+        cliColors.text.cyan,
+        "⚰️ Restarting indexing service...",
+        cliColors.reset
+      );
+
+      // Stop the current indexing service
+      global.indexingService.stop();
+
+      // Start a new indexing service
+      startIndexing();
+
+      // Return results
+      return {
+        result: "Indexing service restarted.",
+      };
     });
   });
 
   // Ping-pong API endpoint
-  server.get("/api/ping", async (req, res) => res.send("pong"));
+  server.get("/api/ping", async (req, res) => "pong");
 
-  // API endpoint to query a table
-  server.post("/api/db/query-all", authMiddleware, async (req, res) => {
-    const { table, page, order_by_indexed_at } = req.body;
+  await server.register(async function (server) {
+    await server.addHook("onRequest", didAuthMiddleware);
 
-    // Retrieve admin
-    const authHeader = req.headers["authorization"];
-    let adminDid = await getAdminDid(authHeader);
+    // API endpoint to query a table
+    server.post("/api/db/query-all", async (req, res) => {
+      const { table, page, order_by_indexed_at } = req.body;
 
-    // Retrieve global settings
-    let settings = getOrbisDBSettings();
+      // Retrieve admin
+      const authHeader = req.headers["authorization"];
+      let adminDid = await getAdminDid(authHeader);
 
-    // If this is a shared instance we select the right db to query or use the global one
-    let database = global.indexingService.databases["global"];
-    if (adminDid && settings.is_shared) {
-      database = global.indexingService.databases[adminDid];
-    }
+      // Retrieve global settings
+      let settings = getOrbisDBSettings();
 
-    try {
-      let response = await database.queryGlobal(
-        table,
-        parseInt(page, 10),
-        order_by_indexed_at === "true"
-      );
-      if (response && response.data) {
-        res.json({
-          status: "200",
-          data: response.data.rows,
-          totalCount: response.totalCount,
-          title: response.title,
-        });
-      } else {
-        res.status(200).json({
-          status: "200",
-          data: [],
-          error: `There wasn't any results returned from table ${table}.`,
-        });
+      // If this is a shared instance we select the right db to query or use the global one
+      let database = global.indexingService.databases["global"];
+      if (adminDid && settings.is_shared) {
+        database = global.indexingService.databases[adminDid];
       }
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({
-        status: "500",
-        error: "Internal server error while querying table.",
-      });
-    }
+
+      try {
+        let response = await database.queryGlobal(
+          table,
+          parseInt(page, 10),
+          order_by_indexed_at === "true"
+        );
+        if (response && response.data) {
+          return {
+            data: response.data.rows,
+            totalCount: response.totalCount,
+            title: response.title,
+          };
+        } else {
+          // TODO: Check where used, use appropriate res.notFound
+          res.status(404);
+          return {
+            data: [],
+            error: `There wasn't any results returned from table ${table}.`,
+          };
+        }
+      } catch (error) {
+        console.error(error);
+        return res.internalServerError(
+          `Internal server error while querying table ${table}.`
+        );
+      }
+    });
   });
 
   /** Will build a query from JSON and run it */
   server.post("/api/db/query/json", async (req, res) => {
     const { jsonQuery, env } = req.body;
-    let slot = env;
+    const slot = env;
 
     const { query, params } = SelectStatement.buildQueryFromJson(jsonQuery);
 
     // Retrieve global settings
-    let settings = getOrbisDBSettings();
+    const settings = getOrbisDBSettings();
     console.log("slot:", slot);
     console.log("env:", env);
 
@@ -737,157 +657,163 @@ async function startServer() {
     }
 
     try {
-      let response = await database.query(query, params);
-      if (response) {
-        res.json({
-          status: "200",
-          data: response.data?.rows,
-          totalCount: response.totalCount,
-          title: response.title,
-        });
-      } else {
-        res.status(404).json({
-          status: "404",
+      const response = await database.query(query, params);
+      if (!response) {
+        res.status(404);
+        return {
           data: [],
           error: `There wasn't any results returned from table.`,
-        });
+        };
       }
+
+      return {
+        data: response.data?.rows,
+        totalCount: response.totalCount,
+        title: response.title,
+      };
     } catch (error) {
       console.error(error);
-      res.status(500).json({
-        status: "500",
-        result: "Internal server error while querying table.",
-      });
+
+      res.internalServerError("Internal server error while querying table.");
     }
   });
 
-  /** Will query the db schema in order to */
-  server.get("/api/db/query-schema", authMiddleware, async (req, res) => {
-    // Retrieve admin
-    const authHeader = req.headers["authorization"];
-    let adminDid = await getAdminDid(authHeader);
+  await server.register(async function (server) {
+    await server.addHook("onRequest", didAuthMiddleware);
 
-    // Retrieve global settings
-    let settings = getOrbisDBSettings();
+    /** Will query the db schema in order to */
+    server.get("/api/db/query-schema", async (req, res) => {
+      // Retrieve admin
+      const authHeader = req.headers["authorization"];
+      let adminDid = await getAdminDid(authHeader);
 
-    // If this is a shared instance we select the right db to query or use the global one
-    let database = global.indexingService.databases["global"];
-    if (adminDid && settings.is_shared) {
-      database = global.indexingService.databases[adminDid];
-    }
+      // Retrieve global settings
+      let settings = getOrbisDBSettings();
 
-    // Perform query
-    try {
-      let response = await database.query_schema();
-      if (response) {
-        res.json({
-          status: "200",
+      // If this is a shared instance we select the right db to query or use the global one
+      let database = global.indexingService.databases["global"];
+      if (adminDid && settings.is_shared) {
+        database = global.indexingService.databases[adminDid];
+      }
+
+      // Perform query
+      try {
+        let response = await database.query_schema();
+        if (!response) {
+          res.status(404);
+          return {
+            data: [],
+            error: `There wasn't any results returned from table.`,
+          };
+        }
+
+        return {
           data: response.data?.rows,
           totalCount: response.totalCount,
           title: response.title,
-        });
-      } else {
-        res.status(404).json({
-          status: "404",
-          data: [],
-          error: `There wasn't any results returned from table.`,
-        });
+        };
+      } catch (error) {
+        console.error(error);
+        return res.internalServerError(
+          `Internal server error while querying table schemas.`
+        );
       }
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({
-        status: "500",
-        result: "Internal server error while querying table.",
-      });
-    }
-  });
+    });
 
-  /** Will run the query wrote by user */
-  server.post("/api/db/query", authMiddleware, async (req, res) => {
-    const { query, params } = req.body;
+    /** Will run the query wrote by user */
+    server.post("/api/db/query", async (req, res) => {
+      const { query, params } = req.body;
 
-    // Retrieve admin
-    const authHeader = req.headers["authorization"];
-    let adminDid = await getAdminDid(authHeader);
+      // Retrieve admin
+      const authHeader = req.headers["authorization"];
+      const adminDid = await getAdminDid(authHeader);
 
-    // Retrieve global settings
-    let settings = getOrbisDBSettings();
+      // Retrieve global settings
+      const settings = getOrbisDBSettings();
 
-    // If this is a shared instance we select the right db to query or use the global one
-    let database = global.indexingService.databases["global"];
-    if (adminDid && settings.is_shared) {
-      database = global.indexingService.databases[adminDid];
-    }
+      // If this is a shared instance we select the right db to query or use the global one
+      let database = global.indexingService.databases["global"];
+      if (adminDid && settings.is_shared) {
+        database = global.indexingService.databases[adminDid];
+      }
 
-    try {
-      let response = await database.query(query, params);
-      if (response) {
-        res.json({
-          status: "200",
+      try {
+        const response = await database.query(query, params);
+        if (!response) {
+          res.status(404);
+          return {
+            data: [],
+            error: `There wasn't any results returned from table.`,
+          };
+        }
+
+        return {
           data: response.data?.rows ? response.data.rows : [],
           error: response.error,
           totalCount: response.totalCount,
           title: response.title,
-        });
-      } else {
-        res.status(404).json({
-          status: "404",
-          data: [],
-          error: `There wasn't any results returned from table.`,
-        });
+        };
+      } catch (error) {
+        console.error(error);
+        return res.internalServerError(
+          "Internal server error while querying table."
+        );
       }
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({
-        status: "500",
-        result: "Internal server error while querying table.",
-      });
-    }
+    });
   });
 
   /** Will check if a local Ceramic node is running on the same server */
   server.get("/api/local-ceramic-node", async (req, res) => {
     try {
-      let healtcheck_url = "http://localhost:7007/api/v0/node/healthcheck";
-      let response = await fetch(healtcheck_url);
-      let resNode = await response.text();
+      const local_healtcheck_url =
+        "http://localhost:7007/api/v0/node/healthcheck";
+      const response = await fetch(local_healtcheck_url);
 
-      res.json({
-        status: "200",
-        res: resNode,
-      });
+      return {
+        response: await response.text(),
+      };
     } catch (e) {
-      res.status(500).json({
-        status: "500",
-        result: "There isn't any Ceramic node running locally.",
-      });
+      return res.notFound("There isn't any Ceramic node running locally.");
     }
   });
 
   if (!dev) {
     // Serve static files from Next.js production build
     console.log("Using production build.");
-    server.use(
-      "/_next",
-      express.static(path.join(__dirname, "../client/.next"))
-    );
-    server.use(express.static(path.join(__dirname, "../client/public")));
+    server.register(fastifyStatic, {
+      prefix: "/public/",
+      root: path.join(__dirname, "../client/public"),
+    });
+
+    server.register(fastifyStatic, {
+      root: path.join(__dirname, "../client/.next"),
+      prefix: "/_next/",
+      decorateReply: false,
+    });
   }
 
   // Default catch-all handler to allow Next.js to handle all other routes:
-  server.all("*", (req, res) => {
-    return handle(req, res); // Continue with Next.js handling if authenticated or if it's the '/auth' path
+  server.route({
+    method: ["GET", "POST", "PATCH", "PUT", "DELETE"],
+    exposesHeadRoute: false,
+    url: "*",
+    handler: async (req, res) => {
+      return nextRequestHandler(req.raw, res.raw);
+    },
   });
 
-  server.listen(PORT, (err) => {
-    if (err) throw err;
-    console.log(
-      cliColors.text.cyan,
-      "📞 OrbisDB UI ready on",
-      cliColors.reset,
-      "http://localhost:" + PORT
-    );
+  const hostInformation = await server.listen({
+    // TODO: make it exposable
+    host: "127.0.0.1",
+    port: PORT,
   });
+
+  console.log(
+    cliColors.text.cyan,
+    "📞 OrbisDB UI ready on",
+    cliColors.reset,
+    hostInformation
+  );
 }
 
 /** Will stop the previous indexing service and restart a new one */

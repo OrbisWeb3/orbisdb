@@ -66,7 +66,7 @@ export function ConfigurationSetup() {
       let res = await response.json();
       console.log("checkLocalCeramicNode res:", res);
 
-      if (res.status == 200) {
+      if (response.status == 200) {
         isValid = true;
       } else {
         isValid = false;
@@ -125,7 +125,7 @@ export function ConfigurationSetup() {
     }
     setStatus(STATUS.LOADING);
     try {
-      let response = await fetch("/api/settings/update-configuration", {
+      let rawResponse = await fetch("/api/settings/update-configuration", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -150,10 +150,10 @@ export function ConfigurationSetup() {
         }),
       });
 
-      response = await response.json();
+      const response = await rawResponse.json();
       console.log("Configuration saved:", response);
 
-      if (response.status == 200) {
+      if (rawResponse.status == 200) {
         console.log(
           "Success updating configutation with:",
           response.updatedSettings

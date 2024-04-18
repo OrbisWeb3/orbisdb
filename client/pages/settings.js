@@ -20,7 +20,7 @@ export default function Settings() {
     console.log("Enter saveSettings() with:", jsonValue);
     setStatus(STATUS.LOADING);
     try {
-      let response = await fetch("/api/settings/update-full-settings", {
+      let rawResponse = await fetch("/api/settings/update-full-settings", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -29,10 +29,10 @@ export default function Settings() {
         body: jsonValue,
       });
 
-      response = await response.json();
+      response = await rawResponse.json();
       console.log("Configuration saved:", response);
 
-      if (response.status == 200) {
+      if (rawResponse.status == 200) {
         console.log(
           "Success updating configutation with:",
           response.updatedSettings

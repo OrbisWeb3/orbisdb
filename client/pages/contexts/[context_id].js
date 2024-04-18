@@ -330,16 +330,16 @@ const OnePlugin = ({
     loadPluginDetails();
     async function loadPluginDetails() {
       try {
-        let result = await fetch("/api/plugins/" + plugin.plugin_id, {
+        let rawResponse = await fetch("/api/plugins/" + plugin.plugin_id, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${sessionJwt}`,
           },
         });
-        result = await result.json();
+        const result = await rawResponse.json();
         console.log("plugin details:", result);
-        if (result.status == 200) {
+        if (rawResponse.status == 200) {
           setPluginDetails(result.plugin);
         } else {
           console.log("Error retrieving plugin details.");

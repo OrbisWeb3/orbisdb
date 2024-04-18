@@ -69,7 +69,7 @@ export default function ContextSettings({
       const data = await response.json();
       console.log("data:", data);
 
-      if (data.status == 200) {
+      if (response.status == 200) {
         /** Update context state */
         if (setContext) {
           setContext(data.context);
