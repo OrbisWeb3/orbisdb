@@ -55,74 +55,12 @@ export async function loadAndInitPlugins() {
   const pluginsBaseDir = path.join(__dirname, "../plugins"); // Adjust the path as necessary
 
   /** If instance is shared loop through all slots to find plugins */
-  if (settings.is_shared) {
-    if (settings.slots) {
-      for (const [key, slot] of Object.entries(settings.slots) ?? []) {
-        for (const pluginConfig of slot.plugins ?? []) {
-          try {
-            // Construct paths
-            const pluginDir = path.join(pluginsBaseDir, pluginConfig.plugin_id);
-            const pluginFile = path.join(pluginDir, "index.js");
+  const pluginSettings = settings.is_shared
+    ? settings.slots ?? {}
+    : { global: { plugins: settings.plugins } };
 
-            // Dynamic import (as we're in an async function)
-            const PluginModule = await import(pathToFileURL(pluginFile));
-            const PluginClass = PluginModule.default;
-
-            // Create a new instance of the plugin for each contextualized install
-            pluginConfig.contexts?.forEach((context) => {
-              let pluginVariables = pluginConfig.variables
-                ? pluginConfig.variables
-                : null;
-              let contextualizedVariables = context.variables;
-
-              /** If any add contextualized variables to the variables using when initializing the plugin */
-              if (contextualizedVariables) {
-                pluginVariables = {
-                  ...pluginVariables,
-                  ...contextualizedVariables,
-                };
-              }
-
-              /** Initialize plugin */
-              const pluginInstance = new PluginClass(pluginVariables);
-
-              /** Assign all variables here instead of using a constructor for all plugins (less error prone for plugin developers) */
-              for (let key in pluginVariables) {
-                pluginInstance[key] = pluginVariables[key];
-              }
-
-              /** Assign plugin's slot dynamically */
-              pluginInstance.slot = key;
-
-              /** Assign slot OrbisDB object to plugin */
-              pluginInstance.orbisdb =
-                global.indexingService.ceramics[key].orbisdb;
-
-              /** Assign plugin's context dynamically */
-              pluginInstance.context = context.context;
-
-              /** Assign plugin's instance unique identifier */
-              pluginInstance.uuid = context.uuid;
-
-              /** Assign plugin's ID automatically */
-              pluginInstance.id = pluginConfig.plugin_id;
-
-              /** Add plugin initialized to the loaded plugins array */
-              loadedPlugins.push(pluginInstance);
-            });
-          } catch (error) {
-            console.error(
-              `Failed to load plugin ${pluginConfig.plugin_id}:`,
-              error
-            );
-            // Handle errors (maybe you want to remove the plugin from the list if it fails)
-          }
-        }
-      }
-    }
-  } else {
-    /** If instance is not shared simply load plugins from global settings */
-    for (const pluginConfig of settings.plugins ?? []) {
+  for (const [key, slot] of Object.entries(pluginSettings) ?? []) {
+    for (const pluginConfig of slot.plugins ?? []) {
       try {
         // Construct paths
         const pluginDir = path.join(pluginsBaseDir, pluginConfig.plugin_id);
@@ -156,11 +94,10 @@ export async function loadAndInitPlugins() {
           }
 
           /** Assign plugin's slot dynamically */
-          pluginInstance.slot = "global";
+          pluginInstance.slot = key;
 
           /** Assign slot OrbisDB object to plugin */
-          pluginInstance.orbisdb =
-            global.indexingService.ceramics["global"].orbisdb;
+          pluginInstance.orbisdb = global.indexingService.ceramics[key].orbisdb;
 
           /** Assign plugin's context dynamically */
           pluginInstance.context = context.context;
