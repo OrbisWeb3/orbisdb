@@ -71,7 +71,7 @@ export default async function (server, opts) {
         updateOrbisDBSettings(settings, slot);
 
         // Restart indexing service
-        restartIndexingService();
+        await restartIndexingService();
 
         // Send the response
         return {
