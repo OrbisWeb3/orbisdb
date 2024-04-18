@@ -1,7 +1,7 @@
 import postgresql from "pg";
 import { snakeCase } from "change-case";
 import { cliColors } from "../utils/cliColors.js";
-const { Pool } = postgresql;
+const { Pool, Client } = postgresql;
 import {
   getOrbisDBSettings,
   updateOrbisDBSettings,
@@ -9,32 +9,107 @@ import {
   getTableModelId,
 } from "../utils/helpers.js";
 
+const pgErrorToCode = (_message) => {
+  const message_to_code = {
+    econnrefused: "CONN_REFUSED",
+    "does not support ssl": "NO_SSL",
+    "already been connected": "NO_REUSE",
+    "connection terminated": "CONN_TERMINATED",
+    "timeout expired": "TIMEOUT",
+  };
+
+  const message = _message.toLowerCase();
+
+  for (const [key, code] of Object.entries(message_to_code)) {
+    if (message.includes(key)) {
+      return code;
+    }
+  }
+
+  return "UNKNOWN";
+};
+
+const checkSSLSupport = async ({ user, database, password, host, port }) => {
+  const connection = new Client({
+    user,
+    database,
+    password,
+    host,
+    port,
+    connectionTimeoutMillis: 2000,
+    ssl: {
+      rejectUnauthorized: false,
+    },
+  });
+
+  try {
+    await connection.connect();
+
+    return true;
+  } catch (err) {
+    const code = pgErrorToCode(err.message);
+
+    if (code === "NO_SSL") {
+      return false;
+    }
+
+    throw `${code}: ${err}`;
+  } finally {
+    await connection.end();
+  }
+};
+
 /**
  * DB implementation to index streams with Postgre
  */
 export default class Postgre {
-  constructor(user, database, password, host, port, slot) {
-    try {
-      this.connection = null;
-      this.slot = slot;
+  constructor(user, database, password, host, port, slot, supportsSSL) {
+    this.connection = null;
+    this.supportsSSL = supportsSSL;
+    this.slot = slot;
 
-      // Instantiate new pool for postgresql database (we skip ssl for local)
-      this.adminPool = new Pool({
+    // Instantiate new pool for postgresql database (we skip ssl for local)
+    this.adminPool = new Pool({
+      user,
+      database,
+      password,
+      host,
+      port,
+      max: 20, // Set pool max size to 20
+      idleTimeoutMillis: 30000, // Set idle timeout to 30 seconds
+      connectionTimeoutMillis: 2000, // Set connection timeout to 2 seconds
+      ssl: this.supportsSSL ? { rejectUnauthorized: false } : false,
+    });
+
+    console.log(
+      cliColors.text.cyan,
+      "🗄️  Initialized PostgreSQL DB with admin user:",
+      cliColors.reset,
+      user
+    );
+  }
+
+  static async initialize(user, database, password, host, port, slot) {
+    try {
+      const supportsSSL = await checkSSLSupport({
         user,
         database,
         password,
         host,
         port,
-        max: 20, // Set pool max size to 20
-        idleTimeoutMillis: 30000, // Set idle timeout to 30 seconds
-        connectionTimeoutMillis: 2000, // Set connection timeout to 2 seconds
-        ssl: {
-          rejectUnauthorized: false, // Or configure a proper SSL certificate if available
-        },
       });
 
-      // Create read only user if needed
-      this.checkReadOnlyUser(database, host, port);
+      const postgre = new Postgre(
+        user,
+        database,
+        password,
+        host,
+        port,
+        slot,
+        supportsSSL
+      );
+
+      await postgre.checkReadOnlyUser(database, host, port);
 
       console.log(
         cliColors.text.cyan,
@@ -42,15 +117,19 @@ export default class Postgre {
         cliColors.reset,
         user
       );
-    } catch (e) {
+
+      return postgre;
+    } catch (err) {
       console.log(
         cliColors.text.red,
         "🗄️  Error initializing PostgreSQL DB with admin user:",
         cliColors.reset,
         user,
         ":",
-        e
+        err
       );
+
+      throw err;
     }
   }
 
@@ -176,9 +255,7 @@ export default class Postgre {
       password: readOnlyPassword,
       host,
       port,
-      ssl: {
-        rejectUnauthorized: false, // Or configure a proper SSL certificate if available
-      },
+      ssl: this.supportsSSL ? { rejectUnauthorized: false } : false,
     });
 
     console.log(

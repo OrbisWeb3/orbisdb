@@ -131,7 +131,7 @@ export async function startIndexing() {
     );
 
     /** Instantiate the global database to use which should be saved in the "orbisdb-settings.json" file */
-    globalDatabase = new Postgre(
+    globalDatabase = await Postgre.initialize(
       globalDbConfig.user,
       globalDbConfig.database,
       globalDbConfig.password,
@@ -147,12 +147,12 @@ export async function startIndexing() {
   if (settings.is_shared) {
     /** Create one postgre and ceramic object per slot */
     if (settings.slots) {
-      Object.entries(settings.slots).forEach(([key, slot]) => {
+      for (const [key, slot] of Object.entries(settings.slots)) {
         console.log("Trying to configure indexing for:", key);
         if (slot.configuration) {
           /** Instantiate the database to use for this slot */
           let slotDbConfig = slot.configuration.db;
-          let database = new Postgre(
+          let database = await Postgre.initialize(
             globalDbConfig.user,
             slotDbConfig.database,
             globalDbConfig.password,
@@ -178,7 +178,7 @@ export async function startIndexing() {
               " because configuration isn't setup yet."
           );
         }
-      });
+      }
     }
   } else {
     // If configuration settings are valid we start the indexing service
