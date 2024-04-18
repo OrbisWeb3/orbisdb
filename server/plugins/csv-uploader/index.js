@@ -44,13 +44,13 @@ export default class CSVUploaderPlugin {
     const authHeader = req.headers["authorization"];
     console.log("authHeader:", authHeader);
 
-    let model_details = await this.orbisdb.ceramic.getModel(this.model_id);
+    const model_details = await this.orbisdb.ceramic.getModel(this.model_id);
     console.log("model_details:", model_details);
-    let properties = model_details.schema.schema.properties;
+    const properties = model_details.schema.schema.properties;
     console.log("properties:", properties);
 
     // Serialize the properties object to a JSON string
-    let propertiesJson = JSON.stringify(properties);
+    const propertiesJson = JSON.stringify(properties);
 
     res.send(`<!DOCTYPE html>
     <html lang="en">
@@ -325,85 +325,90 @@ export default class CSVUploaderPlugin {
 
   /** Will parse the data retrieved from CSV and push it to Ceramic one by one */
   async parseRoute(req, res) {
-    let stream_ids = [];
-    if (req.body) {
-      const { data, sessionId, modelProperties } = req.body;
-      console.log("modelProperties:", modelProperties);
+    if (!req.body) {
+      return res.badRequest("No request body found.");
+    }
 
-      // Update progressStore
-      this.progressStore[sessionId] = {
-        totalRows: data.length,
-        processedRows: 0,
-        failedRows: 0,
-      };
-      console.log("Received CSV Data:", data);
-      let i = 0;
-      let iErrors = 0;
+    const stream_ids = [];
 
-      // Loop through all rows and
-      for (const content of data) {
-        // Optionally, you can check if the content is not empty
-        if (Object.keys(content).length > 0) {
-          try {
-            /** We call the update hook here in order to support hooks able to update data before it's created in Ceramic  */
-            let __content =
-              await global.indexingService.hookHandler.executeHook(
-                "update",
-                content,
-                this.context
-              );
+    const { data, sessionId, modelProperties } = req.body;
+    console.log("modelProperties:", modelProperties);
 
-            // Filter __content and convert numbers to their respective typed objects
-            let filteredContent = Object.keys(__content)
-              .filter((key) => key in modelProperties) // Filter keys based on properties
-              .reduce((obj, key) => {
-                const value = __content[key];
-                obj[key] = this.convertToTypedObject(
-                  key,
-                  value,
-                  modelProperties
-                ); // Convert and assign the value
-                console.log("obj[key]:", obj[key]);
-                return obj;
-              }, {});
-            console.log("filteredContent:", filteredContent);
+    // Update progressStore
+    this.progressStore[sessionId] = {
+      totalRows: data.length,
+      processedRows: 0,
+      failedRows: 0,
+    };
 
-            /** We then create the stream in Ceramic with the updated content */
-            let stream = await this.orbisdb
-              .insert(this.model_id)
-              .value(filteredContent)
-              .context(this.context)
-              .run();
-            let stream_id = stream.id?.toString();
-            console.log("Inserted stream:", stream_id);
-            stream_ids.push(stream_id);
-            i++;
-            /** Update progress store for this session id in order to be displayed in the app */
-            this.progressStore[sessionId] = {
-              totalRows: data.length,
-              processedRows: i,
-              failedRows: iErrors,
-            };
-            console.log("this.progressStore:", this.progressStore);
-            await sleep(100);
-          } catch (error) {
-            iErrors++;
-            this.progressStore[sessionId] = {
-              totalRows: data.length,
-              processedRows: i,
-              failedRows: iErrors,
-            };
-            console.error("Error creating stream:", error);
-          }
+    console.log("Received CSV Data:", data);
+
+    let i = 0;
+    let iErrors = 0;
+
+    // Loop through all rows and
+    for (const content of data) {
+      // Optionally, you can check if the content is not empty
+      if (Object.keys(content).length > 0) {
+        try {
+          /** We call the update hook here in order to support hooks able to update data before it's created in Ceramic  */
+          let __content = await global.indexingService.hookHandler.executeHook(
+            "update",
+            content,
+            this.context
+          );
+
+          // Filter __content and convert numbers to their respective typed objects
+          let filteredContent = Object.keys(__content)
+            .filter((key) => key in modelProperties) // Filter keys based on properties
+            .reduce((obj, key) => {
+              const value = __content[key];
+              obj[key] = this.convertToTypedObject(key, value, modelProperties); // Convert and assign the value
+              console.log("obj[key]:", obj[key]);
+              return obj;
+            }, {});
+
+          console.log("filteredContent:", filteredContent);
+
+          /** We then create the stream in Ceramic with the updated content */
+          let stream = await this.orbisdb
+            .insert(this.model_id)
+            .value(filteredContent)
+            .context(this.context)
+            .run();
+
+          let stream_id = stream.id?.toString();
+          console.log("Inserted stream:", stream_id);
+          stream_ids.push(stream_id);
+          i++;
+
+          /** Update progress store for this session id in order to be displayed in the app */
+          this.progressStore[sessionId] = {
+            totalRows: data.length,
+            processedRows: i,
+            failedRows: iErrors,
+          };
+          console.log("this.progressStore:", this.progressStore);
+
+          await sleep(100);
+        } catch (error) {
+          iErrors++;
+          this.progressStore[sessionId] = {
+            totalRows: data.length,
+            processedRows: i,
+            failedRows: iErrors,
+          };
+
+          console.error("Error creating stream:", error);
         }
       }
-
-      res.send({
-        message: "CSV data uploaded to Ceramic successfully.",
-        count: i,
-        streams: stream_ids,
-      });
     }
+
+    return {
+      message: "CSV data uploaded to Ceramic successfully",
+      count: i,
+      streams: stream_ids,
+    };
   }
 
   // Function to determine if a number should be treated as 'int' or 'float' based on properties
@@ -426,14 +431,11 @@ export default class CSVUploaderPlugin {
   async progressRoute(req, res) {
     const sessionId = req.params.plugin_params; // Adjusted for GET request
     const progress = this.progressStore[sessionId] || null;
-    if (progress) {
-      res.json(progress);
-    } else {
-      res.json({
-        message: "Session not found.",
-        sessionId: sessionId,
-        progressStore: this.progressStore,
-      });
+
+    if (!progress) {
+      return res.notFound(`Session ${sessionId} not found.`);
     }
+
+    return progress;
   }
 }

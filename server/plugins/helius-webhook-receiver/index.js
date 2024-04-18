@@ -130,12 +130,14 @@ export default class HeliusWebhookReceiver {
 
   /** Will retrieve the credentials for a Solana address and mint all of those */
   async receiveWebhook(req, res) {
-    if (req.body) {
-      // Try to interpret the transaction
-      await this.interpretWebhookTransaction(req.body);
-      res.json({ status: 200, result: "Received webhook" });
-    } else {
-      res.json({ status: 300 });
+    if (!req.body) {
+      return res.badRequest("No request body found.");
     }
+
+    // Try to interpret the transaction
+    await this.interpretWebhookTransaction(req.body);
+    return {
+      result: "Received webhook",
+    };
   }
 }

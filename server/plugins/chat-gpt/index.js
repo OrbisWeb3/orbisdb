@@ -209,19 +209,23 @@ export default class ChatGPTPlugin {
   }
 
   async chatSubmit(req, res) {
-    if (req.body) {
-      const { content } = req.body;
-      console.log("Question asked:", content);
-      const result = await this.fetchFromOpenAI({
-        role: "user",
-        content: content,
-      });
-      console.log("Answer:", result);
-
-      res.send({ data: result });
-    } else {
-      res.send({ data: null });
+    if (!req.body) {
+      return {
+        data: null,
+      };
     }
+
+    const { content } = req.body;
+    console.log("Question asked:", content);
+    const result = await this.fetchFromOpenAI({
+      role: "user",
+      content: content,
+    });
+    console.log("Answer:", result);
+
+    return {
+      data: result,
+    };
   }
 
   /** Helper function to easily submit question to the OpenAI API */

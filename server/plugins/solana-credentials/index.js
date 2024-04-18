@@ -178,38 +178,38 @@ export default class SolanaCredentials {
 
   /** Will retrieve the credentials for a Solana address and mint all of those */
   async mintCredentials(req, res) {
-    let streams = [];
-    if (req.body) {
-      const { did } = req.body;
-      let address = getAddress(did);
-
-      /** Retrieve credentials from the user */
-      let credentials = await this.getTransactions(address);
-      if (credentials) {
-        let credentialsArr = Object.values(credentials);
-        console.log("credentialsArr:", credentialsArr);
-
-        /** Compute XP score */
-        let xpScore = this.computeXPScore(credentialsArr);
-        console.log("xpScore:", xpScore);
-        await this.upsertScore(did, xpScore);
-
-        /** Mint new credentials */
-        for (const credential of credentialsArr) {
-          let result = await this.upsertCredential(did, credential);
-          streams.push(result);
-        }
-      }
-
-      res.json({
-        status: 200,
-        address: address,
-        credentials: credentials,
-        streams,
-      });
-    } else {
-      res.json({ status: 300 });
+    if (!req.body) {
+      return res.badRequest("No request body found.");
     }
+
+    let streams = [];
+
+    const { did } = req.body;
+    let address = getAddress(did);
+
+    /** Retrieve credentials from the user */
+    let credentials = await this.getTransactions(address);
+    if (credentials) {
+      let credentialsArr = Object.values(credentials);
+      console.log("credentialsArr:", credentialsArr);
+
+      /** Compute XP score */
+      let xpScore = this.computeXPScore(credentialsArr);
+      console.log("xpScore:", xpScore);
+      await this.upsertScore(did, xpScore);
+
+      /** Mint new credentials */
+      for (const credential of credentialsArr) {
+        let result = await this.upsertCredential(did, credential);
+        streams.push(result);
+      }
+    }
+
+    return {
+      address,
+      credentials,
+      streams,
+    };
   }
 
   // Function to compute XP score based on credentials

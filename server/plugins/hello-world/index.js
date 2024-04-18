@@ -83,14 +83,14 @@ export default class HelloWorldPlugin {
   }
 
   /** Example of an API route returning a simple json object. The routes declared by a plugin are automatically exposed by the OrbisDB instance */
-  helloApi(req, res) {
-    res.json({
+  async helloApi(req, res) {
+    return {
       hello: "world",
-    });
+    };
   }
 
   /** Example of an API route returning a simple HTML page. The routes declared by a plugin are automatically exposed by the OrbisDB instance */
-  helloHtmlApi(req, res) {
+  async helloHtmlApi(req, res) {
     res.send(`<!DOCTYPE html>
       <html>
         <head>

@@ -65,29 +65,27 @@ export default class TokenGatingPlugin {
   /** Example of an API route returning a simple json object. The routes declared by a plugin are automatically exposed by the OrbisDB instance */
   async checkOwnershipApi(req, res) {
     //const { address } = req.params;
-    let address = "0x075286D1a22B083ebCAF6B7Fb4CF970cFC4A18F0";
-    let hasAccess = false;
+    const address = "0x075286D1a22B083ebCAF6B7Fb4CF970cFC4A18F0";
 
-    if (!address || address == "") {
-      res.json({
-        hasAccess,
-        address: null,
-        balance: 0,
-        error: "Invalid address",
-      });
-      return;
+    if (!address) {
+      return res.badRequest("No valid address provided.");
     }
-    let userBalance = await this.getBalance(address);
+
+    const userBalance = await this.getBalance(address);
 
     if (userBalance && userBalance >= this.min_balance) {
-      hasAccess = true;
+      return {
+        hasAccess: true,
+        address,
+        userBalance,
+      };
     }
 
-    res.json({
-      hasAccess,
-      address: address,
-      balance: userBalance,
-    });
+    return {
+      hasAccess: false,
+      address,
+      balance,
+    };
   }
 
   /** Will check a user's balance for a specific contract */

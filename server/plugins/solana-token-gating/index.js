@@ -66,13 +66,12 @@ export default class SolanaTokenGating {
       isValid = true;
     }
 
-    res.json({
-      status: 200,
-      address: address,
-      balance: balance,
+    return {
+      address,
+      balance,
       is_valid: isValid,
-      requiredAmount: requiredAmount,
-    });
+      requiredAmount,
+    };
   }
 
   /** Example of an API route returning a simple json object. The routes declared by a plugin are automatically exposed by the OrbisDB instance */
