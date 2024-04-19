@@ -1,6 +1,7 @@
 import logger from "../../../logger/index.js";
 import { adminDidAuthMiddleware } from "../../../middleware/didAuthMiddleware.js";
 import {
+  findContextById,
   getOrbisDBSettings,
   updateContext,
   updateOrbisDBSettings,
