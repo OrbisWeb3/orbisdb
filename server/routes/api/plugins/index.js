@@ -7,6 +7,7 @@ import {
   updateOrbisDBSettings,
 } from "../../../utils/helpers.js";
 import { loadPlugin, loadPlugins } from "../../../utils/plugins.js";
+import logger from "../../../logger/index.js";
 
 /** prefixed with /api/plugins/ */
 export default async function (server, opts) {
@@ -42,7 +43,7 @@ export default async function (server, opts) {
           plugin,
         };
       } catch (error) {
-        console.error(error);
+        logger.error(error);
         return res.internalServerError(
           `Internal server error while loading plugin ${plugin_id}.`
         );
@@ -61,7 +62,7 @@ export default async function (server, opts) {
         // Add the new plugin or update it if already exists
         const updatedSettings = updateOrAddPlugin(settings, plugin);
 
-        console.log("New settings:", updatedSettings);
+        logger.debug("New settings:", updatedSettings);
 
         // Rewrite the settings file
         updateOrbisDBSettings(updatedSettings, adminDid);
@@ -72,7 +73,7 @@ export default async function (server, opts) {
           result: "New plugin added to the settings file.",
         };
       } catch (err) {
-        console.error(err);
+        logger.error(err);
 
         return res.internalServerError("Failed to update settings.");
       }
@@ -82,7 +83,7 @@ export default async function (server, opts) {
     server.post("/:plugin_id/context", async (req, res) => {
       const { plugin_id, path, variables, uuid } = req.body;
 
-      console.log("Enter assign-context with variables:", variables);
+      logger.debug("Enter assign-context with variables:", variables);
 
       // Retrieve global settings
       const globalSettings = getOrbisDBSettings();
@@ -115,7 +116,7 @@ export default async function (server, opts) {
 
         /** Add a new plugin instance if there wasn't any uuid passed, otherwise update the referenced context */
         if (!uuid) {
-          console.log("Assigning plugin to a new context.");
+          logger.debug("Assigning plugin to a new context.");
           let val = {
             path: path,
             slot: adminDid && globalSettings.is_shared ? adminDid : "global",
@@ -154,12 +155,12 @@ export default async function (server, opts) {
               for (let key in variables) {
                 plugin[key] = variables[key];
               }
-              console.log("Plugin " + uuid + " updated with:", variables);
+              logger.debug("Plugin " + uuid + " updated with:", variables);
             }
           }
         }
 
-        console.log("settings:", settings);
+        logger.debug("settings:", settings);
 
         // Write the updated settings back to the file
         updateOrbisDBSettings(settings, adminDid);
@@ -173,7 +174,7 @@ export default async function (server, opts) {
           settings: settings,
         };
       } catch (err) {
-        console.error(err);
+        logger.error(err);
 
         return res.internalServerError("Failed to update settings.");
       }

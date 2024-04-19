@@ -1,3 +1,4 @@
+import logger from "../logger/index.js";
 import { getOrbisDBSettings } from "../utils/helpers.js";
 import { DIDSession } from "did-session";
 
@@ -51,7 +52,7 @@ export const adminDidAuthMiddleware = async (req, res) => {
     let _isAdminsEmpty;
     let resAdminSession = await DIDSession.fromSession(token, null);
     let didId = resAdminSession.did.parent;
-    console.log("didId extracted from header middleware is:", didId);
+    logger.debug("didId extracted from header middleware is:", didId);
 
     /** Perform different verification logic for shared instances and non-shared ones */
     if (globalSettings.is_shared) {
@@ -72,7 +73,7 @@ export const adminDidAuthMiddleware = async (req, res) => {
       return res.unauthorized("This account isn't an admin.");
     }
   } catch (e) {
-    console.log("Error checking session JWT:", e);
+    logger.error("Error checking session JWT:", e);
     return res.unauthorized(`Error checking session JWT with ${token}`);
   }
 };

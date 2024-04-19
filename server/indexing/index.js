@@ -5,6 +5,7 @@ import { EventSource } from "cross-eventsource";
 import { StreamID } from "@ceramicnetwork/streamid";
 import { Type, type, decode } from "codeco";
 import { commitIdAsString } from "@ceramicnetwork/codecs";
+import logger from "../logger/index.js";
 
 /**
  * The indexing service class is responsible for indexing the content stored on the Ceramic node while enabling all of the plugins "installed"
@@ -20,7 +21,7 @@ export default class IndexingService {
     server,
     is_shared
   ) {
-    console.log(
+    logger.info(
       cliColors.text.cyan,
       "🔗 Initialized indexing service.",
       cliColors.reset
@@ -51,7 +52,7 @@ export default class IndexingService {
     // Wait for all the initialization promises to resolve
     await Promise.all(initPromises);
     if (this.plugins && this.plugins.length > 0) {
-      console.log(
+      logger.info(
         cliColors.text.green,
         "🤖 Initialized ",
         cliColors.reset,
@@ -61,7 +62,7 @@ export default class IndexingService {
         cliColors.reset
       );
     } else {
-      console.log(
+      logger.info(
         cliColors.text.yellow,
         "🤖 There wasn't any plugin to initialize.",
         cliColors.reset
@@ -75,7 +76,7 @@ export default class IndexingService {
   /** Will init one plugin */
   async initPlugin(plugin) {
     let { HOOKS } = await plugin.init();
-    console.log(
+    logger.debug(
       cliColors.text.cyan,
       "🤖 Initialized plugin: ",
       cliColors.reset,
@@ -101,7 +102,7 @@ export default class IndexingService {
 
   // Will subscribe to the Ceramic node using server side events
   async subscribe() {
-    console.log(
+    logger.info(
       cliColors.text.cyan,
       "👀 Subscribed to Ceramic node updates: ",
       cliColors.reset,
@@ -119,7 +120,7 @@ export default class IndexingService {
         switch (parsedData.eventType) {
           // Discoverd a new stream
           case 0:
-            console.log(
+            logger.debug(
               cliColors.text.cyan,
               "👀 Discovered new stream:",
               cliColors.reset,
@@ -129,7 +130,7 @@ export default class IndexingService {
             break;
           // Updated a new stream
           case 1:
-            console.log(
+            logger.debug(
               cliColors.text.cyan,
               "👀 Update discovered for stream:",
               cliColors.reset,
@@ -139,7 +140,7 @@ export default class IndexingService {
             break;
           // Detect anchoring
           case 2:
-            console.log(
+            logger.debug(
               cliColors.text.cyan,
               "👀 Detected anchoring for stream:",
               cliColors.reset,
@@ -148,7 +149,7 @@ export default class IndexingService {
             break;
         }
       } catch (e) {
-        console.log(
+        logger.error(
           cliColors.text.red,
           "Error parsing the Ceramic event:",
           e,
@@ -158,7 +159,7 @@ export default class IndexingService {
     });
 
     this.eventSource.addEventListener("error", (error) => {
-      console.log(
+      logger.error(
         cliColors.text.red,
         "🛑 Error received from Ceramic node (double check your settings and that your Ceramic node is alive): ",
         cliColors.reset,
@@ -169,7 +170,7 @@ export default class IndexingService {
 
   // Triggered after a new plugin install
   async resetPlugins() {
-    console.log(
+    logger.info(
       cliColors.text.cyan,
       "🤖 Resetting all plugins.",
       cliColors.reset
@@ -199,7 +200,7 @@ export default class IndexingService {
     if (this.eventSource) {
       this.eventSource.close();
       this.eventSource = null;
-      console.log(
+      logger.debug(
         cliColors.text.cyan,
         "🛑 Unsubscribed from Ceramic node updates.",
         cliColors.reset
@@ -207,7 +208,7 @@ export default class IndexingService {
     }
 
     // Might add additional cleanup logic (if necessary) for example, releasing database connections, resetting internal state, etc.
-    console.log(
+    logger.info(
       cliColors.text.green,
       "Indexing service stopped successfully.",
       cliColors.reset
@@ -217,7 +218,7 @@ export default class IndexingService {
   /** Will parse the stream details, process the plugins and save the stream in DB */
   async indexStream({ stream }) {
     if (!stream) {
-      console.log(
+      logger.error(
         cliColors.text.red,
         "Error indexing a new stream:",
         cliColors.reset,
@@ -231,7 +232,7 @@ export default class IndexingService {
     try {
       streamId = stream.commitId.baseID?.toString();
     } catch (e) {
-      return console.log(
+      return logger.error(
         cliColors.text.red,
         "Error retrieving the StreamID for this stream:",
         cliColors.reset,
@@ -270,7 +271,7 @@ export default class IndexingService {
           context
         );
         if (isValid == false) {
-          return console.log(
+          return logger.debug(
             cliColors.text.red,
             "❌ Stream is not valid, don't index:",
             cliColors.reset,
@@ -296,7 +297,7 @@ export default class IndexingService {
           // Save the stream content and indexing data in the specified database
           if (this.is_shared) {
             let slots = findSlotsWithContext(context);
-            console.log("slots:", slots);
+            logger.debug("slots:", slots);
 
             // Insert in each slot using this context
             for (const slot of slots) {
@@ -307,7 +308,7 @@ export default class IndexingService {
                   pluginsData
                 );
               } else {
-                console.error(`Upsert method not found for slot: ${slot}`);
+                logger.error(`Upsert method not found for slot: ${slot}`);
               }
             }
           } else {
@@ -319,7 +320,7 @@ export default class IndexingService {
         this.hookHandler.executeHook("post_process", processedData, context);
       }
     } catch (e) {
-      console.log(
+      logger.error(
         cliColors.text.red,
         "Error indexing stream:",
         cliColors.reset,

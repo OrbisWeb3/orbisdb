@@ -1,5 +1,6 @@
 import { ModelInstanceDocument } from "@ceramicnetwork/stream-model-instance";
 import { StreamID } from "@ceramicnetwork/streamid";
+import logger from "../../logger/index.js";
 
 export default class SocialPushNotificationPlugin {
   /**
@@ -21,7 +22,7 @@ export default class SocialPushNotificationPlugin {
 
   /** Will process the new stream in order to trigger a push notification if it follows some specific criteria */
   async process(stream) {
-    console.log("Process stream in SocialPushNotificationPlugin:", stream);
+    logger.debug("Process stream in SocialPushNotificationPlugin:", stream);
     if (stream.model == this.social_post_model) {
       this.handleNewPost(stream);
     } else {
@@ -61,9 +62,9 @@ export default class SocialPushNotificationPlugin {
       .first();
     if (mentionedUserArr) {
       mentionedUser = mentionedUserArr[0];
-      console.log("mentionedUser:", mentionedUser);
+      logger.debug("mentionedUser:", mentionedUser);
     } else {
-      console.log("We couldn't find this mentioned user.");
+      logger.error("We couldn't find this mentioned user.");
     }
 
     return [mentionedUser];
@@ -82,7 +83,7 @@ export default class SocialPushNotificationPlugin {
       model: StreamID.fromString(this.social_post_model),
       context: StreamID.fromString(this.context),
     };
-    console.log("metadata:", metadata);
+    logger.debug("metadata:", metadata);
     let content = {
       body: "hello world",
       mention: "did:key:z6MkkauvinSwdvqT6k44GZG6MArjD3qXiiEwfi5sKiHJ3JaE",
@@ -95,9 +96,12 @@ export default class SocialPushNotificationPlugin {
         metadata
       );
       let stream_id = stream.id?.toString();
-      console.log("stream_id:", stream_id);
+      logger.debug("stream_id:", stream_id);
     } catch (e) {
-      console.log("Error creating stream with model:" + this.model_id + ":", e);
+      logger.error(
+        "Error creating stream with model:" + this.model_id + ":",
+        e
+      );
     }
   }
 }

@@ -1,5 +1,6 @@
 import { ethers } from "ethers";
 import { erc20_abi, erc721_abi, erc1155_abi } from "./abis.js";
+import logger from "../../logger/index.js";
 
 export default class TokenGatingPlugin {
   /**
@@ -23,7 +24,7 @@ export default class TokenGatingPlugin {
 
   async setConfig() {
     /** Select correct provider based on the RPC URL added by the user */
-    console.log("this.rpc_url:", this.rpc_url);
+    logger.debug("this.rpc_url:", this.rpc_url);
     this.provider = new ethers.getDefaultProvider(this.rpc_url);
   }
 
@@ -41,7 +42,10 @@ export default class TokenGatingPlugin {
         .context(this.context)
         .run();
     } catch (e) {
-      console.log("Error creating stream with model:" + this.model_id + ":", e);
+      logger.error(
+        "Error creating stream with model:" + this.model_id + ":",
+        e
+      );
     }
   }
 
@@ -108,7 +112,7 @@ export default class TokenGatingPlugin {
         contractAbi = erc1155_abi;
         break;
       default:
-        console.log("Invalid contract type: ", this.contract_type);
+        logger.error("Invalid contract type: ", this.contract_type);
         return 0;
     }
 
@@ -116,7 +120,7 @@ export default class TokenGatingPlugin {
     if (ethers.isAddress(this.contract_address)) {
       isAddressValid = true;
     } else {
-      console.log("Address is not valid:", this.contract_address);
+      logger.error("Address is not valid:", this.contract_address);
       return 0;
     }
 
@@ -129,7 +133,7 @@ export default class TokenGatingPlugin {
       );
       isContractValid = true;
     } catch (e) {
-      console.log("Error creating contract:", e);
+      logger.error("Error creating contract:", e);
       return 0;
     }
 
@@ -148,7 +152,7 @@ export default class TokenGatingPlugin {
           balance = await contract.balanceOf(account, this.token_id);
         }
       } catch (e) {
-        console.log("Error retrieving balance:", e);
+        logger.error("Error retrieving balance:", e);
       }
     }
 

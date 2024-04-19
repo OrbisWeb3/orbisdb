@@ -1,4 +1,5 @@
 import { Connection, PublicKey } from "@solana/web3.js";
+import logger from "../../logger/index.js";
 
 export default class SolanaCredentials {
   /**
@@ -60,7 +61,7 @@ export default class SolanaCredentials {
       await global.indexingService.ceramic.orbisdb.ceramic.createModel(
         modelDefinition
       );
-    console.log("result new model:", result);
+    logger.debug("result new model:", result);
   }
 
   /** Load all transactions from a user */
@@ -72,7 +73,7 @@ export default class SolanaCredentials {
       new PublicKey(address)
     );
     if (transactions) {
-      console.log(address + " had " + transactions.length + " transactions.");
+      logger.debug(address + " had " + transactions.length + " transactions.");
 
       for (const tx of transactions) {
         // Retrieve programs used by this transaction
@@ -105,10 +106,10 @@ export default class SolanaCredentials {
       );
 
       if (!transactionDetails) {
-        console.log("Transaction not found");
+        logger.debug("Transaction not found");
         return [];
       }
-      console.log("transactionDetails:", transactionDetails);
+      logger.debug("transactionDetails:", transactionDetails);
 
       // Retrieve signer
       signer = this.getInitiatingAddress(transactionDetails);
@@ -129,13 +130,13 @@ export default class SolanaCredentials {
             ...programDetails,
           });
         } else {
-          console.log("Unknown program used: ", programId);
+          logger.debug("Unknown program used: ", programId);
         }
 
         // We could add some additional logic here to interpret the instruction data based on the program ID
       });
     } catch (error) {
-      console.error("Error fetching transaction:", error);
+      logger.error("Error fetching transaction:", error);
     }
 
     // Filter for uniqueness
@@ -191,11 +192,11 @@ export default class SolanaCredentials {
     let credentials = await this.getTransactions(address);
     if (credentials) {
       let credentialsArr = Object.values(credentials);
-      console.log("credentialsArr:", credentialsArr);
+      logger.debug("credentialsArr:", credentialsArr);
 
       /** Compute XP score */
       let xpScore = this.computeXPScore(credentialsArr);
-      console.log("xpScore:", xpScore);
+      logger.debug("xpScore:", xpScore);
       await this.upsertScore(did, xpScore);
 
       /** Mint new credentials */
@@ -273,9 +274,9 @@ export default class SolanaCredentials {
         .context(this.context)
         .run();
 
-      console.log("stream:", stream);
+      logger.debug("stream:", stream);
     } catch (e) {
-      console.log("Stream:", e);
+      logger.error("Stream:", e);
     }
   }
 
@@ -297,7 +298,7 @@ export default class SolanaCredentials {
         .limit(1)
         .run();
     } catch (e) {
-      console.log("Error retrieving credential: ", e);
+      logger.error("Error retrieving credential: ", e);
     }
 
     // Build content
@@ -310,15 +311,15 @@ export default class SolanaCredentials {
     if (existingCredential && existingCredential.rows.length > 0) {
       let cred = existingCredential.rows[0];
       // Update existing credential
-      console.log("Should update existing credential:", cred);
+      logger.debug("Should update existing credential:", cred);
       if (credential.count > cred.count) {
-        console.log("Credential has changed, we UPDATE it.");
+        logger.debug("Credential has changed, we UPDATE it.");
         stream = await global.indexingService.ceramic.orbisdb
           .update(cred.stream_id)
           .replace(content)
           .run();
       } else {
-        console.log("Credential hasn't changed, we don't update it.");
+        logger.debug("Credential hasn't changed, we don't update it.");
       }
     } else {
       // Insert a new credential
@@ -329,11 +330,11 @@ export default class SolanaCredentials {
           .context(this.context)
           .run();
       } catch (e) {
-        console.log("error inserting stream:", e);
+        logger.error("error inserting stream:", e);
       }
     }
 
-    console.log("stream:", stream);
+    logger.debug("stream:", stream);
 
     return stream;
   }

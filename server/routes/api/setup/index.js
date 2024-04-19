@@ -1,3 +1,4 @@
+import logger from "../../../logger/index.js";
 import { adminDidAuthMiddleware } from "../../../middleware/didAuthMiddleware.js";
 import {
   getOrbisDBSettings,
@@ -22,7 +23,7 @@ export default async function (server, opts) {
 
     server.post("/shared", async (req, res) => {
       const adminDid = req.adminDid;
-      console.log(
+      logger.debug(
         "adminDid for /api/settings/setup-configuration-shared request:",
         adminDid
       );
@@ -71,7 +72,7 @@ export default async function (server, opts) {
           updatedSettings: slotSettings,
         };
       } catch (e) {
-        console.log("Error setup shared configuration db:", e);
+        logger.error("Error setup shared configuration db:", e);
 
         return res.internalServerError("Error creating database.");
       }
@@ -101,7 +102,7 @@ export default async function (server, opts) {
         is_shared: false,
       };
     } catch (err) {
-      console.error(err);
+      logger.error(err);
 
       return {
         is_shared: false,

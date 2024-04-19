@@ -1,3 +1,5 @@
+import logger from "../logger/index.js";
+
 /**
  * Those are all of the hooks used by OrbisDB (others might be added in the future).
  */
@@ -29,7 +31,7 @@ export default class HookHandler {
       // Execute hook
       return await handler(dataToPass);
     } catch (e) {
-      console.log("Error executing hook:", e);
+      logger.error("Error executing hook:", e);
       return { e };
     }
   }
@@ -61,7 +63,7 @@ export default class HookHandler {
     } else {
       // Retrieve all handlers for global hooks.
       if (!this.hooks[hookName]) {
-        console.warn(`No handlers found for global hook ${hookName}`);
+        logger.warn(`No handlers found for global hook ${hookName}`);
         return data;
       }
       handlers = Object.entries(this.hooks[hookName]);
@@ -76,7 +78,7 @@ export default class HookHandler {
       );
       // Handle hook executed based on its type
       if (result?.error) {
-        console.error(
+        logger.error(
           `[hook:${hookName}/${pluginId}] Handler error.`,
           result.error
         );

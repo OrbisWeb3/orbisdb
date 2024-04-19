@@ -1,4 +1,5 @@
 import Web3 from "web3";
+import logger from "../../logger/index.js";
 
 export default class EthereumEventPlugin {
   async init() {
@@ -45,19 +46,19 @@ export default class EthereumEventPlugin {
       );
 
       provider.on("connect", () => {
-        console.log("Websocket connected.");
+        logger.debug("Websocket connected.");
       });
 
       provider.on("close", (event) => {
-        console.log(event);
-        console.log("Websocket closed.");
+        logger.debug(event);
+        logger.debug("Websocket closed.");
       });
 
       provider.on("error", (error) => {
-        console.error("Error subscribing to websocket:", error.message);
+        logger.error("Error subscribing to websocket:", error.message);
       });
     } catch (e) {
-      console.log("Error setting up web3 provider.");
+      logger.error("Error setting up web3 provider.");
     }
 
     /*const web3 = new Web3(provider);
@@ -76,10 +77,10 @@ export default class EthereumEventPlugin {
     // Event subscription
     // Subscribe to Transfer Events
 
-    console.log("⭐️ Starting to listen to smart contract events.");
+    logger.debug("⭐️ Starting to listen to smart contract events.");
   }
 
   async processEvent(event) {
-    console.log("Received event:", event);
+    logger.debug("Received event:", event);
   }
 }

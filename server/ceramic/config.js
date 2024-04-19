@@ -13,6 +13,7 @@ import { StreamID } from "@ceramicnetwork/streamid";
 import { DID } from "dids";
 import { Ed25519Provider } from "key-did-provider-ed25519";
 import { getResolver } from "key-did-resolver";
+import logger from "../logger/index.js";
 
 export default class Ceramic {
   constructor(node, instance, seed) {
@@ -34,7 +35,7 @@ export default class Ceramic {
       });
 
       this.client = this.orbisdb.ceramic.client;
-      console.log(
+      logger.debug(
         cliColors.text.cyan,
         "📍 Initialized Ceramic client via dbsdk with node:",
         cliColors.reset,
@@ -44,7 +45,7 @@ export default class Ceramic {
       // Connect to Ceramic using seed
       this.connect(seed);
     } catch (e) {
-      console.log(
+      logger.error(
         cliColors.text.red,
         "Error connecting to Ceramic client:",
         cliColors.reset,
@@ -61,14 +62,14 @@ export default class Ceramic {
     try {
       const result = await this.orbisdb.connectUser({ auth });
       this.session = result.session;
-      console.log(
+      logger.debug(
         cliColors.text.cyan,
         "📍 Connected to Ceramic via dbsdk with did:",
         cliColors.reset,
         result.user.did
       );
     } catch (e) {
-      console.log(
+      logger.error(
         cliColors.text.red,
         "Error connecting to OrbisDB:",
         cliColors.reset,

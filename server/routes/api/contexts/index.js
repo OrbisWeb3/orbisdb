@@ -1,3 +1,4 @@
+import logger from "../../../logger/index.js";
 import { adminDidAuthMiddleware } from "../../../middleware/didAuthMiddleware.js";
 import {
   getOrbisDBSettings,
@@ -34,10 +35,10 @@ export default async function (server, opts) {
             if (!parentOrExistingContext.contexts) {
               parentOrExistingContext.contexts = []; // Initialize sub-contexts array if not present
             }
-            console.log("parentOrExistingContext:", parentOrExistingContext);
+            logger.debug("parentOrExistingContext:", parentOrExistingContext);
             if (parentOrExistingContext.stream_id === context.context) {
               // It's a sub-context, update it
-              console.log("It's a sub-context, update it.");
+              logger.debug("It's a sub-context, update it.");
               parentOrExistingContext.contexts = updateContext(
                 parentOrExistingContext.contexts,
                 context
@@ -55,10 +56,10 @@ export default async function (server, opts) {
         } else {
           // If it's not a sub-context, update or add it to the main contexts array
           settings.contexts = updateContext(settings.contexts, context);
-          console.log("Updated contexts with:", settings.contexts);
+          logger.debug("Updated contexts with:", settings.contexts);
         }
 
-        console.log("Updated settings:", settings);
+        logger.debug("Updated settings:", settings);
 
         // Rewrite the settings file
         updateOrbisDBSettings(settings, adminDid);
@@ -70,7 +71,7 @@ export default async function (server, opts) {
           result: "Context updated in the settings file.",
         };
       } catch (err) {
-        console.error(err);
+        logger.error(err);
 
         return res.internalServerError("Failed to update settings.");
       }

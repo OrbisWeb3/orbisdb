@@ -4,6 +4,7 @@ import { extractTokenTransfers, solPrograms } from "./utils.js";
 import { driftRawTx } from "./interfaces/drift.js";
 import { jupiterRawTx } from "./interfaces/jupiter.js";
 import { orcaRawTx } from "./interfaces/orca.js";
+import logger from "../../logger/index.js";
 export default class HeliusWebhookReceiver {
   /**
    * This will initialize all of the hooks used by this plugin.
@@ -28,7 +29,7 @@ export default class HeliusWebhookReceiver {
     let transaction = transactions[0];
 
     if (debug) {
-      console.log("Enter interpretWebhookTransaction with:", transactions);
+      logger.debug("Enter interpretWebhookTransaction with:", transactions);
     }
 
     // Retrieve transaction signer
@@ -36,12 +37,12 @@ export default class HeliusWebhookReceiver {
       ? transaction.transaction.message.accountKeys[0]
       : "";
     if (debug) {
-      console.log("signer:", signer);
+      logger.debug("signer:", signer);
     }
 
     // Retrieve token transfers for this transactions
     let token_transfers = extractTokenTransfers(transaction);
-    console.log("token_transfers:", token_transfers);
+    logger.debug("token_transfers:", token_transfers);
 
     // Loop each instruction to retrieve and interpret the corresponding data
     for (const [
@@ -59,8 +60,8 @@ export default class HeliusWebhookReceiver {
         let program = solPrograms[programUsed];
 
         if (debug) {
-          console.log("programUsed:", programUsed);
-          console.log("program:", program);
+          logger.debug("programUsed:", programUsed);
+          logger.debug("program:", program);
         }
 
         // Only interpret transaction if it's linked to one of the supported protocol
@@ -81,11 +82,11 @@ export default class HeliusWebhookReceiver {
             try {
               const ix = coder.instruction.decode(dataBuffer, "base58");
               if (debug) {
-                console.log("ix:", ix);
+                logger.debug("ix:", ix);
               }
               if (ix && ix.data) {
                 let cleanedIx;
-                console.log("ix.data:", ix.data);
+                logger.debug("ix.data:", ix.data);
 
                 // If program has a custom cleaning function we use it otherwise we default to the original ix
                 if (program.interface.clean) {
@@ -104,14 +105,14 @@ export default class HeliusWebhookReceiver {
                   signer: signer,
                   signature: transaction.transaction.signatures[0],
                 };
-                console.log("Trying to insert:", stream);
+                logger.debug("Trying to insert:", stream);
 
                 // Push stream to Ceramic
                 //let streamPushed = await global.indexingService.ceramic.orbisdb.insert("kjzl6hvfrbw6c8r024bfgihyx15jf4yj56ebb1n7tl7yflycyeoaw0ug9ay4vpl").value(stream).context(this.context).run();
                 streams.push(stream);
               }
             } catch (e) {
-              console.log(
+              logger.error(
                 "ix Error decoding data:" + instruction.data + ":",
                 e
               );
@@ -121,7 +122,7 @@ export default class HeliusWebhookReceiver {
           //console.log("This program is not yet supported by our plugin:", programUsed);
         }
       } else {
-        console.log("There wasn't any instruction data to decode.");
+        logger.debug("There wasn't any instruction data to decode.");
       }
     }
 

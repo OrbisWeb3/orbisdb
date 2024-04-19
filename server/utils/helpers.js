@@ -4,6 +4,7 @@ import { fileURLToPath } from "url";
 import { dirname } from "path";
 import { DIDSession } from "did-session";
 import { startIndexing } from "../index.js";
+import logger from "../logger/index.js";
 
 /** Initialize dirname */
 const __filename = fileURLToPath(import.meta.url);
@@ -34,7 +35,7 @@ export async function getAdminDid(authHeader) {
       let didId = resAdminSession.did.parent;
       return didId;
     } catch (e) {
-      console.log("Error auth admin:", e);
+      logger.error("Error auth admin:", e);
       return null;
     }
   } else {
@@ -50,7 +51,7 @@ export function getOrbisDBSettings(slot) {
     const settingsData = fs.readFileSync(_path);
     orbisdbSettings = settingsData.length ? JSON.parse(settingsData) : {};
   } catch (error) {
-    console.error(
+    logger.error(
       "Error reading or parsing orbisdb-settings.json, returning empty settings:",
       error
     );
@@ -77,13 +78,13 @@ export function updateOrbisDBSettings(updatedSettings, slot) {
     }
     oldSettings.slots[slot] = updatedSettings;
     settingsToSave = oldSettings;
-    console.log(
+    logger.debug(
       "Trying to update settings for " + slot + " with:",
       settingsToSave
     );
   } else {
     settingsToSave = updatedSettings;
-    console.log("Trying to update global settings with:", settingsToSave);
+    logger.debug("Trying to update global settings with:", settingsToSave);
   }
 
   /** Save updated settings */
@@ -91,7 +92,7 @@ export function updateOrbisDBSettings(updatedSettings, slot) {
     let _path = path.resolve(__dirname, "../../orbisdb-settings.json");
     fs.writeFileSync(_path, JSON.stringify(settingsToSave, null, 2));
   } catch (e) {
-    console.log("Error updating orbisdb settings:", e);
+    logger.error("Error updating orbisdb settings:", e);
   }
 }
 
@@ -195,7 +196,7 @@ export const updateContext = (contexts, newContext) => {
     contexts = [newContext];
   }
 
-  console.log("contexts:", contexts);
+  logger.debug("contexts:", contexts);
   return contexts;
 };
 

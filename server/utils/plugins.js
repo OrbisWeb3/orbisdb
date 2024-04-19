@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath, pathToFileURL } from "url";
 import { getOrbisDBSettings } from "./helpers.js";
+import logger from "../logger/index.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -30,12 +31,12 @@ export async function loadPlugins() {
         // Add the loaded settings to the plugins array
         plugins.push(settings);
       } else {
-        console.error(
+        logger.error(
           `No settings.json found for plugin in folder "${folder}".`
         );
       }
     } catch (error) {
-      console.error(
+      logger.error(
         `Failed to load settings for plugin in folder "${folder}":`,
         error
       );
@@ -111,16 +112,13 @@ export async function loadAndInitPlugins() {
           loadedPlugins.push(pluginInstance);
         });
       } catch (error) {
-        console.error(
-          `Failed to load plugin ${pluginConfig.plugin_id}:`,
-          error
-        );
+        logger.error(`Failed to load plugin ${pluginConfig.plugin_id}:`, error);
         // Handle errors (maybe you want to remove the plugin from the list if it fails)
       }
     }
   }
 
-  console.log("loadedPlugins:", loadedPlugins);
+  logger.debug("loadedPlugins:", loadedPlugins);
   return loadedPlugins;
 }
 

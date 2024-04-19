@@ -1,4 +1,5 @@
 import { startIndexing } from "../../../index.js";
+import logger from "../../../logger/index.js";
 import { adminDidAuthMiddleware } from "../../../middleware/didAuthMiddleware.js";
 import {
   getOrbisDBSettings,
@@ -14,7 +15,7 @@ export default async function (server, opts) {
 
     // Returns OrbisDB settings
     server.get("/", async (req, res) => {
-      console.log("adminDid for /api/settings/get request:", req.adminDid);
+      logger.debug("adminDid for /api/settings/get request:", req.adminDid);
 
       try {
         const settings = getOrbisDBSettings(req.adminDid);
@@ -23,13 +24,13 @@ export default async function (server, opts) {
           settings,
         };
       } catch (err) {
-        console.error(err);
+        logger.error(err);
         return res.internalServerError("Failed to read settings.");
       }
     });
 
     server.post("/restart", async (req, res) => {
-      console.log(
+      logger.debug(
         cliColors.text.cyan,
         "⚰️ Restarting indexing service...",
         cliColors.reset
@@ -57,12 +58,12 @@ export default async function (server, opts) {
         );
       }
 
-      console.log("Trying to save:", configuration);
+      logger.debug("Trying to save:", configuration);
 
       try {
         // Retrieve current settings
         const settings = getOrbisDBSettings(slot);
-        console.log("settings:", settings);
+        logger.debug("settings:", settings);
 
         // Assign new configuration values
         settings.configuration = configuration;
@@ -79,7 +80,7 @@ export default async function (server, opts) {
           result: "New configuration saved.",
         };
       } catch (err) {
-        console.error(err);
+        logger.error(err);
 
         return res.internalServerError("Failed to update settings.");
       }
@@ -107,7 +108,7 @@ export default async function (server, opts) {
         admins: globalSettings?.configuration?.admins,
       };
     } catch (err) {
-      console.error(err);
+      logger.error(err);
       return res.internalServerError("Failed to read settings.");
     }
   });

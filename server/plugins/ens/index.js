@@ -1,4 +1,5 @@
 import { ethers } from "ethers";
+import logger from "../../logger/index.js";
 
 export default class ENSPlugin {
   /**
@@ -16,8 +17,8 @@ export default class ENSPlugin {
   }
 
   async add_metadata(stream) {
-    console.log("In add_metadata stream:", stream);
-    console.log("In add_metadata field:", this.field);
+    logger.debug("In add_metadata stream:", stream);
+    logger.debug("In add_metadata field:", this.field);
     let field;
 
     /** Will convert the field to the actual value and make an exception for controller to use the address instead of the full did */
@@ -28,13 +29,13 @@ export default class ENSPlugin {
       field = this.getValueByPath(stream, this.field);
     }
 
-    console.log("field:", field);
+    logger.debug("field:", field);
     if (field) {
       switch (this.action) {
         // Will converrt an ENS name to an address
         case "name_to_address":
           const address = await this.getAddress(field);
-          console.log("address is: ", address);
+          logger.debug("address is: ", address);
           return {
             address: address,
           };
@@ -42,7 +43,7 @@ export default class ENSPlugin {
         // Will convert an address to an ENS name
         case "address_to_name":
           const ensName = await this.getName(field);
-          console.log("ensName is: ", ensName);
+          logger.debug("ensName is: ", ensName);
           return {
             ensName: ensName,
           };
@@ -60,10 +61,10 @@ export default class ENSPlugin {
   async getName(address) {
     try {
       const ensName = await this.provider.lookupAddress(address);
-      console.log("ensName is: ", ensName);
+      logger.debug("ensName is: ", ensName);
       return ensName;
     } catch (e) {
-      console.log("Error retrieving ens name:", e);
+      logger.error("Error retrieving ens name:", e);
       return null;
     }
   }
@@ -72,10 +73,10 @@ export default class ENSPlugin {
   async getAddress(ensName) {
     try {
       const address = await this.provider.resolveName(ensName);
-      console.log("address is: ", address);
+      logger.debug("address is: ", address);
       return address;
     } catch (e) {
-      console.log("Error retrieving address:", e);
+      logger.error("Error retrieving address:", e);
       return null;
     }
   }

@@ -23,6 +23,7 @@ import Postgre from "./db/postgre.js";
 import HookHandler from "./utils/hookHandler.js";
 
 import { getOrbisDBSettings } from "./utils/helpers.js";
+import logger from "./logger/index.js";
 
 /** Initialize dirname */
 const __filename = fileURLToPath(import.meta.url);
@@ -59,7 +60,7 @@ async function startServer() {
 
   if (!dev) {
     // Serve static files from Next.js production build
-    console.log("Using production build.");
+    logger.debug("Using production build.");
     server.register(fastifyStatic, {
       prefix: "/public/",
       root: path.join(__dirname, "../client/public"),
@@ -88,7 +89,7 @@ async function startServer() {
     port: PORT,
   });
 
-  console.log(
+  logger.info(
     cliColors.text.cyan,
     "📞 OrbisDB UI ready on",
     cliColors.reset,
@@ -102,7 +103,7 @@ export async function startIndexing() {
   let settings = getOrbisDBSettings();
   let globalDbConfig = settings?.configuration?.db;
   let globalCeramicConfig = settings?.configuration?.ceramic;
-  console.log("In startIndexing:", settings);
+  logger.debug("In startIndexing:", settings);
 
   // Initialize some objects
   let ceramics = {};
@@ -129,7 +130,9 @@ export async function startIndexing() {
       null
     );
   } else {
-    console.log("Couldn't init OrbisDB because configuration isn't setup yet.");
+    logger.error(
+      "Couldn't init OrbisDB because configuration isn't setup yet."
+    );
     return;
   }
 
@@ -137,7 +140,7 @@ export async function startIndexing() {
     /** Create one postgre and ceramic object per slot */
     if (settings.slots) {
       for (const [key, slot] of Object.entries(settings.slots)) {
-        console.log("Trying to configure indexing for:", key);
+        logger.debug("Trying to configure indexing for:", key);
         if (slot.configuration) {
           /** Instantiate the database to use for this slot */
           let slotDbConfig = slot.configuration.db;
@@ -161,7 +164,7 @@ export async function startIndexing() {
           );
           ceramics[key] = ceramic;
         } else {
-          console.log(
+          logger.error(
             "Couldn't init IndexingService for " +
               key +
               " because configuration isn't setup yet."
@@ -196,7 +199,7 @@ export async function startIndexing() {
 }
 
 /** Start server */
-startServer().catch(console.error);
+startServer().catch(logger.error);
 
 /** Initialize indexing service */
 startIndexing();

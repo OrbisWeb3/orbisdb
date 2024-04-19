@@ -1,10 +1,11 @@
+import logger from "../../logger/index.js";
 import { sleep } from "../../utils/helpers.js";
 import { v4 as uuidv4 } from "uuid";
 
 export default class CSVUploaderPlugin {
   constructor() {
     this.progressStore = {};
-    console.log("Enter init(à for CSVUploaderPlugin and uuid:" + this.uuid);
+    logger.debug("Enter init(à for CSVUploaderPlugin and uuid:" + this.uuid);
     this.progressStoreTestInterval();
   }
 
@@ -30,7 +31,7 @@ export default class CSVUploaderPlugin {
   async progressStoreTestInterval() {
     // Start the interval function
     this.interval = setInterval(() => {
-      console.log(
+      logger.debug(
         "In progressStoreTestInterval for id " + this.uuid + ":",
         this.progressStore
       );
@@ -42,12 +43,12 @@ export default class CSVUploaderPlugin {
     const sessionId = uuidv4(); // Assign a unique identifier to this session (used for upload progress tracking)
     this.progressStore[sessionId] = { totalRows: 0, processedRows: 0 };
     const authHeader = req.headers["authorization"];
-    console.log("authHeader:", authHeader);
+    logger.debug("authHeader:", authHeader);
 
     const model_details = await this.orbisdb.ceramic.getModel(this.model_id);
-    console.log("model_details:", model_details);
+    logger.debug("model_details:", model_details);
     const properties = model_details.schema.schema.properties;
-    console.log("properties:", properties);
+    logger.debug("properties:", properties);
 
     // Serialize the properties object to a JSON string
     const propertiesJson = JSON.stringify(properties);
@@ -333,7 +334,7 @@ export default class CSVUploaderPlugin {
     const stream_ids = [];
 
     const { data, sessionId, modelProperties } = req.body;
-    console.log("modelProperties:", modelProperties);
+    logger.debug("modelProperties:", modelProperties);
 
     // Update progressStore
     this.progressStore[sessionId] = {
@@ -342,7 +343,7 @@ export default class CSVUploaderPlugin {
       failedRows: 0,
     };
 
-    console.log("Received CSV Data:", data);
+    logger.debug("Received CSV Data:", data);
 
     let i = 0;
     let iErrors = 0;
@@ -365,11 +366,11 @@ export default class CSVUploaderPlugin {
             .reduce((obj, key) => {
               const value = __content[key];
               obj[key] = this.convertToTypedObject(key, value, modelProperties); // Convert and assign the value
-              console.log("obj[key]:", obj[key]);
+              logger.debug("obj[key]:", obj[key]);
               return obj;
             }, {});
 
-          console.log("filteredContent:", filteredContent);
+          logger.debug("filteredContent:", filteredContent);
 
           /** We then create the stream in Ceramic with the updated content */
           let stream = await this.orbisdb
@@ -379,7 +380,7 @@ export default class CSVUploaderPlugin {
             .run();
 
           let stream_id = stream.id?.toString();
-          console.log("Inserted stream:", stream_id);
+          logger.debug("Inserted stream:", stream_id);
           stream_ids.push(stream_id);
           i++;
 
@@ -389,7 +390,7 @@ export default class CSVUploaderPlugin {
             processedRows: i,
             failedRows: iErrors,
           };
-          console.log("this.progressStore:", this.progressStore);
+          logger.debug("this.progressStore:", this.progressStore);
 
           await sleep(100);
         } catch (error) {
@@ -400,7 +401,7 @@ export default class CSVUploaderPlugin {
             failedRows: iErrors,
           };
 
-          console.error("Error creating stream:", error);
+          logger.error("Error creating stream:", error);
         }
       }
     }
@@ -415,7 +416,7 @@ export default class CSVUploaderPlugin {
   // Function to determine if a number should be treated as 'int' or 'float' based on properties
   convertToTypedObject(key, value, properties) {
     const type = properties[key]?.type;
-    console.log("type in convertToTypedObject for:" + key, type);
+    logger.debug("type in convertToTypedObject for:" + key, type);
 
     if (type.includes("integer")) {
       return parseInt(value, 10);

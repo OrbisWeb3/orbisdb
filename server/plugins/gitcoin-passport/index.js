@@ -1,3 +1,5 @@
+import logger from "../../logger/index.js";
+
 export default class GitcoinPassportPlugin {
   /**
    * This will initialize all of the hooks used by this plugin.
@@ -19,12 +21,12 @@ export default class GitcoinPassportPlugin {
 
     // Get address and network from did
     let { address } = getAddressFromDid(stream.controller);
-    console.log("address:", address);
+    logger.debug("address:", address);
 
     if (address) {
       /** Will submit passport to make sure we retrieve the latest score */
       let res = await this.submitPassport(address);
-      console.log("res:", res);
+      logger.debug("res:", res);
 
       // Check if passport was already submitted recently
       let isRecent = isTimestampRecent(res.last_score_timestamp);
@@ -40,7 +42,7 @@ export default class GitcoinPassportPlugin {
         let passportScore = await this.getPassportScore(address);
         score = Number(passportScore.score);
       }
-      console.log("score:", score);
+      logger.debug("score:", score);
       /** Make sure the user's score is above the minimum score required by the developer */
       if (score > this.min_score) {
         return true;
@@ -48,7 +50,7 @@ export default class GitcoinPassportPlugin {
         return false;
       }
     } else {
-      console.log(
+      logger.debug(
         "Stream " + stream.stream_id + " rejected by Gitcoin Passport."
       );
       return false;
@@ -76,7 +78,7 @@ export default class GitcoinPassportPlugin {
       );
       passport_details = await res.json();
     } catch (e) {
-      console.log("Error submitting passport for this scorer: ", e);
+      logger.error("Error submitting passport for this scorer: ", e);
     }
     return passport_details;
   }
@@ -100,7 +102,7 @@ export default class GitcoinPassportPlugin {
       );
       res_score_details = await res_score.json();
     } catch (e) {
-      console.log("Error retrieving passport score for this scorer: ", e);
+      logger.error("Error retrieving passport score for this scorer: ", e);
     }
 
     return res_score_details;
@@ -127,14 +129,14 @@ function isTimestampRecent(timestampStr) {
 
     // Calculating the time difference in milliseconds.
     const timeDifference = currentTime.getTime() - timestamp.getTime();
-    console.log("timeDifference:", timeDifference);
+    logger.debug("timeDifference:", timeDifference);
 
     // Checking if the time difference is less than 1 hour (3600000 milliseconds).
     const isRecent = timeDifference < 3600000;
 
     return isRecent;
   } catch (error) {
-    console.error("An error occurred while processing the timestamp:", error);
+    logger.error("An error occurred while processing the timestamp:", error);
     return false; // You can handle the error as appropriate for your case.
   }
 }

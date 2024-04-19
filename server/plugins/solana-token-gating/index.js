@@ -1,4 +1,5 @@
 import { Connection, PublicKey, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import logger from "../../logger/index.js";
 
 export default class SolanaTokenGating {
   /**
@@ -21,7 +22,7 @@ export default class SolanaTokenGating {
   async getSolBalance(did) {
     // Get address and network from did
     let address = getAddress(did);
-    console.log("address:", address);
+    logger.debug("address:", address);
 
     // The public key of the account you want to check the balance of
     // Replace 'YourAccountPublicKeyHere' with the actual public key
@@ -34,10 +35,10 @@ export default class SolanaTokenGating {
       // Convert the balance from lamports to SOL
       const balanceInSol = balance / LAMPORTS_PER_SOL;
 
-      console.log(`Balance: ${balanceInSol}`);
+      logger.debug(`Balance: ${balanceInSol}`);
       return balanceInSol;
     } catch (error) {
-      console.error("Error fetching balance:", error);
+      logger.error("Error fetching balance:", error);
       return 0;
     }
   }
@@ -46,7 +47,7 @@ export default class SolanaTokenGating {
   async isValid(stream) {
     let balance = await this.getSolBalance(stream.controller);
     let requiredAmount = parseFloat(this.min_amount);
-    console.log("requiredAmount:", requiredAmount);
+    logger.debug("requiredAmount:", requiredAmount);
     if (balance >= requiredAmount) {
       return true;
     } else {
@@ -56,7 +57,7 @@ export default class SolanaTokenGating {
 
   /** Returns a simple hello:world key value pair which will be added to the plugins_data field */
   async getBalance(req, res) {
-    console.log("Params in getBalance:", req.params);
+    logger.debug("Params in getBalance:", req.params);
     let did = req.params.plugin_params;
     let address = getAddress(did);
     let balance = await this.getSolBalance(did);
@@ -220,7 +221,7 @@ const solPrograms = {
 export function getAddress(did) {
   // Split the DID string into an array using ':' as the delimiter
   const parts = did.split(":");
-  console.log("In parts:", parts);
+  logger.debug("In parts:", parts);
 
   // Return the last element of the array
   return parts[parts.length - 1];

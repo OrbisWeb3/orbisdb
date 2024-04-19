@@ -1,3 +1,5 @@
+import logger from "../../logger/index.js";
+
 export default class HelloWorldPlugin {
   /**
    * This will initialize all of the hooks used by this plugin.
@@ -21,7 +23,7 @@ export default class HelloWorldPlugin {
 
   /** Will kickstart the generation of a new stream */
   async start() {
-    console.log(
+    logger.debug(
       "Start subscription in HelloWorld plugin to generate a new stream every " +
         this.secs_interval +
         " seconds"
@@ -31,7 +33,7 @@ export default class HelloWorldPlugin {
     this.createStream();
 
     if (!this.secs_interval) {
-      return console.log("The interval hasn't been specified");
+      return logger.error("The interval hasn't been specified");
     }
 
     // Start the interval function
@@ -46,7 +48,7 @@ export default class HelloWorldPlugin {
 
   /** Will stop the plugin's interval */
   async stop() {
-    console.log("Stopping plugin:", this.uuid);
+    logger.debug("Stopping plugin:", this.uuid);
     if (this.interval) {
       clearInterval(this.interval);
       this.interval = null; // Clear the stored interval ID
@@ -54,7 +56,7 @@ export default class HelloWorldPlugin {
   }
 
   async createStream() {
-    console.log("Enter createStream in HelloWorld plugin.");
+    logger.debug("Enter createStream in HelloWorld plugin.");
     this.model_id =
       "kjzl6hvfrbw6c646f9as8ecl9ni6l5qh06hxnx1gbectvymjwjiz48dtlkadyrp";
 
@@ -68,9 +70,12 @@ export default class HelloWorldPlugin {
         })
         .context(this.context)
         .run();
-      console.log("Stream created in HelloWorld plugin.");
+      logger.debug("Stream created in HelloWorld plugin.");
     } catch (e) {
-      console.log("Error creating stream with model:" + this.model_id + ":", e);
+      logger.error(
+        "Error creating stream with model:" + this.model_id + ":",
+        e
+      );
     }
   }
 

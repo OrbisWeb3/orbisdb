@@ -1,3 +1,5 @@
+import logger from "../../logger/index.js";
+
 export default class ChatGPTPlugin {
   async init() {
     let HOOKS = {};
@@ -38,7 +40,7 @@ export default class ChatGPTPlugin {
 
   /** Will stop the plugin's interval */
   async stop() {
-    console.log("Stopping plugin:", this.uuid);
+    logger.debug("Stopping plugin:", this.uuid);
     if (this.interval) {
       clearInterval(this.interval);
       this.interval = null; // Clear the stored interval ID
@@ -61,13 +63,13 @@ export default class ChatGPTPlugin {
           .context(this.context)
           .run();
       } catch (e) {
-        console.log(
+        logger.error(
           "Error creating stream with model:" + this.model_id + ":",
           e
         );
       }
     } else {
-      console.log("Couldn't create stream as `result` is undefined.");
+      logger.error("Couldn't create stream as `result` is undefined.");
     }
   }
 
@@ -122,7 +124,7 @@ export default class ChatGPTPlugin {
               replacement = JSON.stringify(response.data?.rows || "");
             }
           } catch (e) {
-            console.log(
+            logger.error(
               "There was an error replacing query.results with the actual OrbisDB results."
             );
           }
@@ -217,12 +219,12 @@ export default class ChatGPTPlugin {
     }
 
     const { content } = req.body;
-    console.log("Question asked:", content);
+    logger.debug("Question asked:", content);
     const result = await this.fetchFromOpenAI({
       role: "user",
       content: content,
     });
-    console.log("Answer:", result);
+    logger.debug("Answer:", result);
 
     return {
       data: result,
@@ -257,7 +259,7 @@ export default class ChatGPTPlugin {
     });
 
     if (!response.ok) {
-      console.error(
+      logger.error(
         "Error with ChatGPTPlugin  " + response.statusText + ": ",
         response.status
       );

@@ -8,6 +8,7 @@ import {
   getTableName,
   getTableModelId,
 } from "../utils/helpers.js";
+import logger from "../logger/index.js";
 
 const pgErrorToCode = (_message) => {
   const message_to_code = {
@@ -81,7 +82,7 @@ export default class Postgre {
       ssl: this.supportsSSL ? { rejectUnauthorized: false } : false,
     });
 
-    console.log(
+    logger.debug(
       cliColors.text.cyan,
       "🗄️  Initialized PostgreSQL DB with admin user:",
       cliColors.reset,
@@ -111,7 +112,7 @@ export default class Postgre {
 
       await postgre.checkReadOnlyUser(database, host, port);
 
-      console.log(
+      logger.debug(
         cliColors.text.cyan,
         "🗄️  Initialized PostgreSQL DB with admin user:",
         cliColors.reset,
@@ -120,7 +121,7 @@ export default class Postgre {
 
       return postgre;
     } catch (err) {
-      console.log(
+      logger.error(
         cliColors.text.red,
         "🗄️  Error initializing PostgreSQL DB with admin user:",
         cliColors.reset,
@@ -150,14 +151,14 @@ export default class Postgre {
         await client.query(
           `CREATE USER ${readOnlyUsername} WITH PASSWORD '${readOnlyPassword}';`
         );
-        console.log(
+        logger.debug(
           cliColors.text.cyan,
           "👁️  Read-only user created with:",
           cliColors.reset,
           readOnlyUsername
         );
       } catch (e) {
-        console.error(
+        logger.error(
           cliColors.text.red,
           "👁️  Error creating read-only user:",
           cliColors.reset,
@@ -171,14 +172,14 @@ export default class Postgre {
       await client.query(
         `GRANT CONNECT ON DATABASE ${database} TO ${readOnlyUsername};`
       );
-      console.log(
+      logger.debug(
         cliColors.text.cyan,
         "👁️  Granting connect permission to read-only user:",
         cliColors.reset,
         readOnlyUsername
       );
     } catch (e) {
-      console.error(
+      logger.error(
         cliColors.text.red,
         "👁️  Error granting connect to read-only user:",
         cliColors.reset,
@@ -191,14 +192,14 @@ export default class Postgre {
       await client.query(
         `GRANT USAGE ON SCHEMA public TO ${readOnlyUsername};`
       );
-      console.log(
+      logger.debug(
         cliColors.text.cyan,
         "👁️  Granting usage permission on schema to read-only user:",
         cliColors.reset,
         readOnlyUsername
       );
     } catch (e) {
-      console.error(
+      logger.error(
         cliColors.text.red,
         "👁️  Error granting usage permission on schema to read-only user:",
         cliColors.reset,
@@ -211,14 +212,14 @@ export default class Postgre {
       await client.query(
         `GRANT SELECT ON ALL TABLES IN SCHEMA public TO ${readOnlyUsername};`
       );
-      console.log(
+      logger.debug(
         cliColors.text.cyan,
         "👁️  Granting select permission on all tables to read-only user:",
         cliColors.reset,
         readOnlyUsername
       );
     } catch (e) {
-      console.error(
+      logger.error(
         cliColors.text.red,
         "👁️  Error granting select permission on all tables to read-only user:",
         cliColors.reset,
@@ -231,14 +232,14 @@ export default class Postgre {
       await client.query(
         `ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO ${readOnlyUsername};`
       );
-      console.log(
+      logger.debug(
         cliColors.text.cyan,
         "👁️  Applying privileges to read-only user:",
         cliColors.reset,
         readOnlyUsername
       );
     } catch (e) {
-      console.error(
+      logger.error(
         cliColors.text.red,
         "👁️  Error applying privileges to read-only user:",
         cliColors.reset,
@@ -258,7 +259,7 @@ export default class Postgre {
       ssl: this.supportsSSL ? { rejectUnauthorized: false } : false,
     });
 
-    console.log(
+    logger.debug(
       cliColors.text.cyan,
       "🗄️  Initialized read-only db pool with: ",
       cliColors.reset,
@@ -274,7 +275,7 @@ export default class Postgre {
       const res = await client.query(queryText, [username]);
       return res.rowCount > 0;
     } catch (err) {
-      console.error("Error querying the database:", err.stack);
+      logger.error("Error querying the database:", err.stack);
       return false;
     } finally {
       client.release();
@@ -333,7 +334,7 @@ export default class Postgre {
     const client = await this.adminPool.connect();
     try {
       res = await client.query(queryText, values);
-      console.log(
+      logger.debug(
         cliColors.text.green,
         `✅ Upserted stream `,
         cliColors.reset,
@@ -348,7 +349,7 @@ export default class Postgre {
         // Trigger indexing of new model with a callback to retry indexing this stream
         this.indexModel(model, () => this.upsert(model, content, pluginsData));
       } else {
-        console.error(
+        logger.error(
           cliColors.text.red,
           `Error inserting stream ${variables.stream_id}:`,
           cliColors.reset,
@@ -373,13 +374,13 @@ export default class Postgre {
     try {
       // SQL query to create a new database with the user id name
       await client.query(`CREATE DATABASE "${name}"`);
-      console.log(`Database ${name} created successfully`);
+      logger.debug(`Database ${name} created successfully`);
     } catch (error) {
-      console.error(`Could not create database ${name}`, error);
+      logger.error(`Could not create database ${name}`, error);
     } finally {
       // Make sure to close the client connection
       await client.release();
-      console.log("Disconnected from PostgreSQL");
+      logger.debug("Disconnected from PostgreSQL (released the connection)");
     }
   }
 
@@ -414,7 +415,7 @@ export default class Postgre {
           { name: "indexed_at", type: "TIMESTAMP DEFAULT CURRENT_TIMESTAMP" }, // Added automatically
         ];
       } else {
-        console.log(
+        logger.debug(
           "This stream is either not valid or not a supported model:",
           content
         );
@@ -474,7 +475,7 @@ export default class Postgre {
       // Keep track of new table name
       this.mapTableName(model, uniqueFormattedTitle);
 
-      console.log(
+      logger.debug(
         cliColors.text.cyan,
         `🧩 Created table:`,
         cliColors.reset,
@@ -486,7 +487,7 @@ export default class Postgre {
         callback();
       }
     } catch (err) {
-      console.error(
+      logger.error(
         cliColors.text.red,
         "Error creating new table.",
         cliColors.reset,
@@ -530,7 +531,7 @@ export default class Postgre {
       }
       return false; // Table not found in models_mapping
     } catch (e) {
-      console.log(
+      logger.error(
         cliColors.text.red,
         "❌ Error checking table existence:",
         cliColors.reset,
@@ -587,7 +588,7 @@ export default class Postgre {
       const res = await client.query(query);
       return { data: res };
     } catch (e) {
-      console.error(
+      logger.error(
         cliColors.text.red,
         `❌ Error executing schema query:`,
         cliColors.reset,
@@ -615,7 +616,7 @@ export default class Postgre {
     try {
       res = await client.query(modifiedQuery, params);
     } catch (e) {
-      console.error(
+      logger.error(
         cliColors.text.red,
         `❌ Error executing query:`,
         cliColors.reset,
@@ -647,7 +648,7 @@ export default class Postgre {
       if (!replacementValue) {
         replacementValue = originalTableName;
       }
-      console.log(
+      logger.debug(
         "Switching " + originalTableName + " with " + replacementValue
       );
       const regex = new RegExp(`\\b${originalTableName}\\b`, "g");
@@ -669,7 +670,7 @@ export default class Postgre {
     } else {
       queryText = `SELECT * FROM ${table} LIMIT ${records} OFFSET ${offset}`;
     }
-    console.log("In queryGlobal", queryText);
+    logger.debug("In queryGlobal", queryText);
 
     // Query for total count
     const countQuery = `SELECT COUNT(*) FROM ${table}`;
@@ -694,7 +695,7 @@ export default class Postgre {
 
       return { data: res, totalCount, title };
     } catch (e) {
-      console.error(`Error querying data from ${table}:`, e.message);
+      logger.error(`Error querying data from ${table}:`, e.message);
       return false;
     } finally {
       // Release the client back to the pool

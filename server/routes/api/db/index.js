@@ -2,6 +2,7 @@ import { adminDidAuthMiddleware } from "../../../middleware/didAuthMiddleware.js
 
 import { SelectStatement } from "@useorbis/db-sdk/query";
 import { getOrbisDBSettings } from "../../../utils/helpers.js";
+import logger from "../../../logger/index.js";
 
 // Prefixed with /api/db/
 export default async function (server, opts) {
@@ -45,7 +46,7 @@ export default async function (server, opts) {
           };
         }
       } catch (error) {
-        console.error(error);
+        logger.error(error);
         return res.internalServerError(
           `Internal server error while querying table ${table}.`
         );
@@ -85,7 +86,7 @@ export default async function (server, opts) {
           title: response.title,
         };
       } catch (error) {
-        console.error(error);
+        logger.error(error);
         return res.internalServerError(
           "Internal server error while querying table."
         );
@@ -122,7 +123,7 @@ export default async function (server, opts) {
           title: response.title,
         };
       } catch (error) {
-        console.error(error);
+        logger.error(error);
         return res.internalServerError(
           `Internal server error while querying table schemas.`
         );
@@ -139,8 +140,8 @@ export default async function (server, opts) {
 
     // Retrieve global settings
     const settings = getOrbisDBSettings();
-    console.log("slot:", slot);
-    console.log("env:", env);
+    logger.debug("slot:", slot);
+    logger.debug("env:", env);
 
     // If this is a shared instance we select the right db to query or use the global one
     let database = global.indexingService.databases["global"];
@@ -164,7 +165,7 @@ export default async function (server, opts) {
         title: response.title,
       };
     } catch (error) {
-      console.error(error);
+      logger.error(error);
 
       res.internalServerError("Internal server error while querying table.");
     }

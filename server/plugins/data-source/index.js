@@ -1,3 +1,5 @@
+import logger from "../../logger/index.js";
+
 export default class DataSourcePlugin {
   /**
    * This will initialize all of the hooks used by this plugin.
@@ -32,13 +34,13 @@ export default class DataSourcePlugin {
         this.fetchApi();
       }, this.secs_interval * 1000);
     } catch (e) {
-      console.log("Couldn't connect to Ceramic, check the seed again:", e);
+      logger.error("Couldn't connect to Ceramic, check the seed again:", e);
     }
   }
 
   /** Will stop the plugin's interval */
   async stop() {
-    console.log("Stopping plugin:", this.uuid);
+    logger.debug("Stopping plugin:", this.uuid);
     if (this.interval) {
       clearInterval(this.interval);
       this.interval = null; // Clear the stored interval ID
@@ -66,7 +68,7 @@ export default class DataSourcePlugin {
                 content,
                 this.context
               );
-            console.log("content:", __content);
+            logger.debug("content:", __content);
 
             /** We then create the stream with the updated content */
             let stream = await global.indexingService.ceramic.orbisdb
@@ -75,9 +77,9 @@ export default class DataSourcePlugin {
               .context(this.context)
               .run();
 
-            console.log("Stream created:", stream);
+            logger.debug("Stream created:", stream);
           } catch (e) {
-            console.log("Error creating model stream:", e);
+            logger.error("Error creating model stream:", e);
           }
         }
       }
@@ -115,7 +117,7 @@ export default class DataSourcePlugin {
                     result[item.key] = value.toString();
                 }
               } else {
-                console.log("value is undefined for: ", item.path);
+                logger.debug("value is undefined for: ", item.path);
                 result[item.key] = null;
               }
             }
@@ -128,7 +130,7 @@ export default class DataSourcePlugin {
         results.push(result);
       }
     } catch (e) {
-      console.log("Error fetching URL:" + this.url + ": ", e);
+      logger.error("Error fetching URL:" + this.url + ": ", e);
     }
 
     return results;
