@@ -13,6 +13,7 @@ export default function Header({ showItems }) {
     { title: "Plugins", path: "/plugins", type: "includes" },
     { title: "Data", path: "/data", type: "includes" },
     { title: "Playground", path: "/playground", type: "equal" },
+    { title: "Logs", path: "/logs", type: "equal" },
   ];
 
   async function restart() {

@@ -6,7 +6,7 @@ import HealthcheckRoutes from "./healthcheck/index.js";
 import DbRoutes from "./db/index.js";
 import CeramicRoutes from "./ceramic/index.js";
 import ContextsRoutes from "./contexts/index.js";
-import LogsRoutes from "./log/index.js";
+import LogsRoutes from "./logs/index.js";
 
 export default async function (server, opts) {
   await server.register(CeramicRoutes, { prefix: "/ceramic" });
