@@ -60,7 +60,7 @@ export default function Settings() {
       <div className="w-1/3 flex flex-col mt-12 bg-white border border-slate-200 p-6 rounded-md">
         {showJson ? (
           <div className="flex flex-col">
-            <AceEditor
+            <AceEditor.default
               id="editor"
               aria-label="editor"
               mode="json" // Set mode to JSON

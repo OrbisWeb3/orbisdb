@@ -45,6 +45,7 @@
     "@solana/web3.js": "^1.90.1",
     "@supabase/supabase-js": "^2.38.1",
     "@useorbis/db-sdk": "^0.0.29-alpha",
+    "ace-builds": "^1.33.1",
     "better-sqlite3": "^9.3.0",
     "bs58": "^5.0.0",
     "change-case": "^5.4.2",

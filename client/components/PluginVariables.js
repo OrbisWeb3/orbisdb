@@ -136,7 +136,7 @@ const VariableInput = ({ variable, val, handleVariableChange }) => {
     case "query":
       input = (
         <div className="sql_editor bg-white overflow-hidden rounded-md border border-slate-300 text-base text-slate-900 mt-1">
-          <AceEditor
+          <AceEditor.default
             id="editor"
             aria-label="editor"
             mode="mysql"

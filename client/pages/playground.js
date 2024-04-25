@@ -853,7 +853,7 @@ const CodeEditor = ({ code, className = "w-7/12" }) => {
     <div
       className={`text-white flex overflow-y-scroll sql_editor rounded-md py-3 bg-[#2e3440] ${className}`}
     >
-      <AceEditor
+      <AceEditor.default
         id="editor"
         aria-label="editor"
         mode="javascript"

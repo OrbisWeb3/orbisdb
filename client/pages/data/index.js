@@ -431,7 +431,7 @@ const SqlEditor = (props) => {
       />
       <div className="flex flex-col w-full h-full font-mono text-[12px]">
         <div className="flex flex-1 w-full overflow-y-scroll sql_editor">
-          <AceEditor
+          <AceEditor.default
             id="editor"
             aria-label="editor"
             mode="mysql"
