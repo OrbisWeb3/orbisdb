@@ -82,15 +82,12 @@ export const _logger = winston.createLogger({
     errorFileRotate,
     debugFileRotate,
     infoFileRotate,
-    ...((process.env.NODE_ENV !== "production" && [
-      new winston.transports.Console({
-        level: process.env.LOG_LEVEL || "info",
-        format: winston.format.printf(({ level, message, label }) => {
-          return `[${level.toUpperCase()}${label ? `:${label}` : ""}] ${util.format(...message)}`;
-        }),
+    new winston.transports.Console({
+      level: process.env.LOG_LEVEL || "info",
+      format: winston.format.printf(({ level, message, label }) => {
+        return `[${level.toUpperCase()}${label ? `:${label}` : ""}] ${util.format(...message)}`;
       }),
-    ]) ||
-      []),
+    }),
   ],
 });
 
