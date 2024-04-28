@@ -31,10 +31,11 @@ export default class CSVUploaderPlugin {
   async progressStoreTestInterval() {
     // Start the interval function
     this.interval = setInterval(() => {
-      logger.debug(
-        "In progressStoreTestInterval for id " + this.uuid + ":",
-        this.progressStore
-      );
+      // TODO: See why this debug was important - remove due to clutter
+      // logger.debug(
+      //   "In progressStoreTestInterval for id " + this.uuid + ":",
+      //   this.progressStore
+      // );
     }, 1 * 3000);
   }
 
