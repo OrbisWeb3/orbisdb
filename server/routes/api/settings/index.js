@@ -48,6 +48,46 @@ export default async function (server, opts) {
       };
     });
 
+    server.put("/", async (req, res) => {
+      if (!req.isNodeOwner) {
+        return res.unauthorized(
+          "Only the node's owner can modify the entire settings file."
+        );
+      }
+
+      const newSettings = req.body;
+      if (!newSettings.configuration) {
+        return res.badRequest(
+          `New settings are missing a required field: "configuration"`
+        );
+      }
+
+      logger.debug("Trying to replace settings with:", newSettings);
+
+      try {
+        // Retrieve current settings
+        const settings = getOrbisDBSettings();
+        logger.debug("Current settings:", settings);
+        logger.debug("New settings:", newSettings);
+
+        // Rewrite the settings file
+        updateOrbisDBSettings(newSettings);
+
+        // Restart indexing service
+        await restartIndexingService();
+
+        // Send the response
+        return {
+          updatedSettings: settings,
+          result: "New configuration saved.",
+        };
+      } catch (err) {
+        logger.error(err);
+
+        return res.internalServerError("Failed to replace settings.");
+      }
+    });
+
     server.patch("/:slot?", async (req, res) => {
       const { slot } = req.params;
       const { configuration } = req.body;
