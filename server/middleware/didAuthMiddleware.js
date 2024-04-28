@@ -68,6 +68,10 @@ export const adminDidAuthMiddleware = async (req, res) => {
 
     if (didId && (_isAdmin || _isAdminsEmpty)) {
       req.adminDid = didId;
+      // Initial node setup is done by the "owner" (assumption)
+      req.isNodeOwner = (globalSettings.configuration?.admins || []).includes(
+        didId
+      );
       return;
     } else {
       return res.unauthorized("This account isn't an admin.");
