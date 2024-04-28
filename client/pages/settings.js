@@ -21,7 +21,7 @@ export default function Settings() {
     setStatus(STATUS.LOADING);
     try {
       // TODO: Check the value of this and security implications
-      let rawResponse = await fetch("/api/settings", {
+      const rawResponse = await fetch("/api/settings", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -30,7 +30,7 @@ export default function Settings() {
         body: jsonValue,
       });
 
-      response = await rawResponse.json();
+      const response = await rawResponse.json();
       console.log("Configuration saved:", response);
 
       if (rawResponse.status == 200) {

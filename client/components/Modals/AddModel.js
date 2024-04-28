@@ -103,7 +103,7 @@ const AddModelSteps = ({ step, setStep, setAddModalVis }) => {
   async function startIndexing() {
     setStatus(STATUS.LOADING);
     try {
-      let rawResponse = await fetch("/api/settings/index-model", {
+      const rawResponse = await fetch("/api/settings/index-model", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -112,7 +112,7 @@ const AddModelSteps = ({ step, setStep, setAddModalVis }) => {
           modelId,
         }),
       });
-      response = await rawResponse.json();
+      const response = await rawResponse.json();
       console.log("response in startIndexing:", response);
       if (rawResponse.status == 200) {
         setSettings(response.settings);

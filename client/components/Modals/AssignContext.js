@@ -98,7 +98,7 @@ export default function AssignContextModal({
     console.log("requestBody:", requestBody);
 
     /** Submit assign context form */
-    let response = await fetch(`/api/plugins/${plugin_id}/context`, {
+    const rawResponse = await fetch(`/api/plugins/${plugin_id}/context`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -106,7 +106,7 @@ export default function AssignContextModal({
       },
       body: JSON.stringify(requestBody),
     });
-    response = await response.json();
+    const response = await rawResponse.json();
     console.log("response:", response);
     setStatus(STATUS.SUCCESS);
     setSettings(response.settings);
