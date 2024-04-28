@@ -10,12 +10,15 @@ import fastifyMultipart from "@fastify/multipart";
 import ServerRoutes from "./routes/index.js";
 
 import path from "path";
+import fs from "fs";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 
 import { cliColors } from "./utils/cliColors.js";
 
+// NextJS and its APIs
 import next from "next";
+import buildNextApp from "next/dist/build/index.js";
 
 import IndexingService from "./indexing/index.js";
 import Ceramic from "./ceramic/config.js";
@@ -45,6 +48,24 @@ const server = new Fastify({
 const PORT = process.env.PORT || 7008;
 
 async function startServer() {
+  // We're running in production and there's no NextJS build output
+  if (!dev && !fs.existsSync("../client/.next")) {
+    logger.warn(
+      "Running in production mode with no NextJS build. Running the build..."
+    );
+
+    try {
+      await buildNextApp.default(path.resolve(__dirname, "../client"));
+    } catch (e) {
+      logger.error("Unable to start the app, NextJS build failed", e);
+      process.exit(1);
+    }
+
+    logger.info(
+      "Successfully built the NextJS app and ready to serve in production."
+    );
+  }
+
   await nextJs.prepare();
   const nextRequestHandler = nextJs.getRequestHandler();
 
