@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import CryptoLibCheck from "../components/CryptoLibCheck.js";
 import Header from "../components/Header";
 import Alert from "../components/Alert";
 import ConfigurationSettings from "../components/ConfigurationSettings";
@@ -15,6 +16,7 @@ import { OrbisDBLogo } from "../components/Icons";
 export default function App({ Component, pageProps }) {
   return (
     <GlobalProvider>
+      <CryptoLibCheck />
       <AppContent Component={Component} pageProps={pageProps} />
     </GlobalProvider>
   );
