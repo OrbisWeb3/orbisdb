@@ -18,7 +18,7 @@ import { cliColors } from "./utils/cliColors.js";
 
 // NextJS and its APIs
 import next from "next";
-import buildNextApp from "next/dist/build/index.js";
+import buildNextApp from "../scripts/nextBuild.js";
 
 import IndexingService from "./indexing/index.js";
 import Ceramic from "./ceramic/config.js";
@@ -49,15 +49,18 @@ const PORT = process.env.PORT || 7008;
 
 async function startServer() {
   // We're running in production and there's no NextJS build output
-  if (!dev && !fs.existsSync("../client/.next")) {
+  if (
+    !dev &&
+    !fs.existsSync(path.resolve(__dirname, "../client/.next/BUILD_ID"))
+  ) {
     logger.warn(
       "Running in production mode with no NextJS build. Running the build..."
     );
 
     try {
-      await buildNextApp.default(path.resolve(__dirname, "../client"));
+      await buildNextApp();
     } catch (e) {
-      logger.error("Unable to start the app, NextJS build failed", e);
+      logger.error("Unable to start the app, NextJS build failed:", e);
       process.exit(1);
     }
 
