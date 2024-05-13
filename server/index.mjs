@@ -22,6 +22,7 @@ import {
 } from "./utils/plugins.mjs";
 import { findContextById, findSlotsWithContext, getAdminDid, getOrbisDBSettings, toValidDbName, updateContext, updateOrAddPlugin, updateOrbisDBSettings } from "./utils/helpers.mjs";
 import { SelectStatement } from "@useorbis/db-sdk/query";
+import { enablePreset } from "./presets/config.mjs";
 
 /** Initialize dirname */
 const __filename = fileURLToPath(import.meta.url);
@@ -45,17 +46,16 @@ const packageJson = JSON.parse(
 const authMiddleware = async (req, res, next) => {
   let globalSettings = getOrbisDBSettings();
   const authHeader = req.headers['authorization'];
+  console.log("authHeader:", authHeader);
 
   if(authHeader) {
     const token = authHeader.split(' ')[1]; // Split 'Bearer <token>'
-    console.log("token:", token);
     if(token) {
       try {
         let _isAdmin;
         let _isAdminsEmpty;
         let resAdminSession = await DIDSession.fromSession(token, null);
         let didId = resAdminSession.did.parent;
-        console.log("didId extracted from header middleware is:", didId);
 
         /** Perform different verification logic for shared instances and non-shared ones */
         if(globalSettings.is_shared) {
@@ -148,7 +148,8 @@ async function startServer() {
   });
 
   // Returns instance admin
-  server.get("/api/settings/setup-configuration-shared", async (req, res) => {
+  server.post("/api/settings/setup-configuration-shared", async (req, res) => {
+    const { presets } = req.body;
     const authHeader = req.headers['authorization'];
     let adminDid = await getAdminDid(authHeader);
     console.log("adminDid for /api/settings/setup-configuration-shared request:", adminDid);
@@ -193,6 +194,12 @@ async function startServer() {
 
       // Step 6: Restart indexing service
       restartIndexingService(settings);
+
+      // If user enabled some presets we run those
+      if(presets && presets.length > 0) {
+        await Promise.all(presets.map(preset => enablePreset(preset, adminDid)));
+        console.log("Presets enabled for shared instance:", presets);
+      }
 
       // Return results
       res.json({
@@ -244,6 +251,7 @@ async function startServer() {
         if(settings.is_shared) {
           res.json({
             status: "200",
+            is_configured: settings.configuration ? true : false,
             is_shared: true
           });
         } else {
@@ -288,7 +296,7 @@ async function startServer() {
       console.log("New settings:", updatedSettings);
 
       // Rewrite the settings file
-      await updateOrbisDBSettings(updatedSettings, adminDid);
+      updateOrbisDBSettings(updatedSettings, adminDid);
 
       // Send the response
       res.status(200).json({
@@ -377,7 +385,7 @@ async function startServer() {
       console.log("settings:", settings)
 
       // Write the updated settings back to the file
-      await updateOrbisDBSettings(settings, adminDid);
+      updateOrbisDBSettings(settings, adminDid);
 
       // Reset plugins
       global.indexingService.resetPlugins();
@@ -434,7 +442,7 @@ async function startServer() {
       console.log("Updated settings:", settings);
 
       // Rewrite the settings file
-      await updateOrbisDBSettings(settings, adminDid);
+      updateOrbisDBSettings(settings, adminDid);
 
       // Send the response
       res.status(200).json({
@@ -452,22 +460,28 @@ async function startServer() {
 
   // Update settings after configuration setup or update
   server.post("/api/settings/update-configuration", async (req, res) => {
-    const { configuration, slot } = req.body;
+    const { configuration, slot, presets } = req.body;
     console.log("Trying to save:", configuration);
+    console.log("Trying to enable presets:", presets);
 
     try {
       // Retrieve current settings
       let settings = getOrbisDBSettings(slot);
-      console.log("settings:", settings);
 
       // Assign new configuration values
       settings.configuration = configuration;
 
       // Rewrite the settings file
-      await updateOrbisDBSettings(settings, slot);
+      updateOrbisDBSettings(settings, slot);
 
       // Restart indexing service
       restartIndexingService();
+
+      // If user enabled some presets we run those
+      if(presets && presets.length > 0) {
+        await Promise.all(presets.map(preset => enablePreset(preset, slot)));
+        console.log("Presets enabled:", presets);
+      }
 
       // Send the response
       res.status(200).json({
@@ -496,7 +510,7 @@ async function startServer() {
       */
 
       // Rewrite the settings file
-      await updateOrbisDBSettings(settings);
+      updateOrbisDBSettings(settings);
 
       // Close previous indexing service
       if(global.indexingService) {
@@ -944,7 +958,7 @@ export async function startIndexing() {
   /** Initialize the mainnet indexing service while specifying the plugins to use and database type */
   global.indexingService = new IndexingService(
     globalCeramic, // The global ceramic object will be used to subscribe to SSE
-    globalDatabase, // The global database (used for example to create other slot's db)
+    globalDatabase, // The global database (used for example to create other slot's db or for non shared instances)
     ceramics, // The slots individual Ceramic object will be used by plugins installed on the corresponding slot and in the UI
     databases, // Database instance to use
     hookHandler, // Hookhandler

@@ -37,7 +37,12 @@ export const copyToClipboard = async (text) => {
 
 /** Will fint the context using the stream id in the contexts and sub-contexts */
 export function findContextById(contexts, streamId) {
-  if(contexts && Array.isArray(contexts)) {
+  if(streamId == "global") {
+    return({
+      name: "Global",
+      stream_id: "global"
+    })
+  } else if(contexts && Array.isArray(contexts)) {
     for (let context of contexts) {
         // Check if the current context's stream_id matches the target
         if (context.stream_id === streamId) {

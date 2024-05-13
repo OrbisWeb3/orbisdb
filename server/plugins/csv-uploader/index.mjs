@@ -5,7 +5,6 @@ export default class CSVUploaderPlugin {
   constructor() {
     this.progressStore = {};
     console.log("Enter init(à for CSVUploaderPlugin and uuid:" + this.uuid);
-    this.progressStoreTestInterval();
   }
   
   /**
@@ -25,13 +24,6 @@ export default class CSVUploaderPlugin {
         }
       },
     };
-  }
-
-  async progressStoreTestInterval() {
-    // Start the interval function
-    this.interval = setInterval(() => {
-       console.log("In progressStoreTestInterval for id " + this.uuid + ":", this.progressStore)
-    }, 1 * 3000);
   }
 
   /** Example of an API route returning a simple HTML page. The routes declared by a plugin are automatically exposed by the OrbisDB instance */

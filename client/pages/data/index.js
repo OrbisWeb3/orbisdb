@@ -431,7 +431,7 @@ const TableData = ({ sqlResult, showSuccessIfEmpty }) => {
                 const cellValue = item[header];
                 const displayValue = isObjectOrArray(cellValue) ? JSON.stringify(cellValue) : cellValue;
                 return (
-                  <td className="hover:bg-slate-50 cursor-pointer" onClick={() => copyToClipboard(displayValue)} key={columnIndex}>{displayValue}</td>
+                  <td className="hover:bg-slate-50 cursor-pointer" onClick={() => copyToClipboard(displayValue?.toString())} key={columnIndex}>{displayValue?.toString()}</td>
                 );
               })}
             </tr>

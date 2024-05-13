@@ -3,18 +3,19 @@ import { STATUS, sleep } from "../utils";
 import StepsProgress from "./StepsProgress";
 import { useGlobal } from "../contexts/Global";
 import Button from "./Button";
-import { CheckIcon } from "./Icons";
+import { CheckIcon, SocialIcon } from "./Icons";
 import { OrbisDB } from "@useorbis/db-sdk";
 import { OrbisEVMAuth } from "@useorbis/db-sdk/auth";
+import ConfigurationPreset from "./ConfigurationPreset";
 
-export default function ConfigurationSettings() {
+export default function ConfigurationSettings({showPresets}) {
     return(
-        <ConfigurationSetup />
+        <ConfigurationSetup showPresets={showPresets} />
     )
 }
 
-export function ConfigurationSetup() {
-  const { settings, setSettings, sessionJwt, setSessionJwt, setIsAdmin, setIsConfigured, adminSession } = useGlobal();
+export function ConfigurationSetup({showPresets}) {
+  const { settings, setSettings, sessionJwt, setSessionJwt, setIsAdmin, setIsConfigured, adminSession, setIsConnected } = useGlobal();
   const [status, setStatus] = useState(STATUS.ACTIVE);
   const [statusConnect, setStatusConnect] = useState(STATUS.ACTIVE);
   const [hasLocalNode, setHasLocalNode] = useState(false);
@@ -27,6 +28,7 @@ export function ConfigurationSetup() {
   const [dbPort, setDbPort] = useState(settings?.configuration?.db?.port);
   const [adminAccount, setAdminAccount] = useState(settings?.configuration?.admins?.[0] || null);
   const [step, setStep] = useState(1);
+  const [presets, setPresets] = useState([]);
 
   useEffect(() => {
     // Check if a local node exists only if there isn't already one saved in settings
@@ -82,12 +84,17 @@ export function ConfigurationSetup() {
   }
 
   async function goStep3() {
+    console.log("In goStep3, showPresets:", showPresets);
     if((!dbDatabase || dbDatabase == "") || (!dbUser || dbUser == "") || (!dbPassword || dbPassword == "")) {
       alert("The database credentials are required.");
       return;
     } 
     setStatus(STATUS.ACTIVE);
-    setStep(3);
+    if(showPresets) {
+      setStep(3);
+    } else {
+      setStep(4);
+    }
   }
 
   async function saveSettings() {
@@ -119,7 +126,8 @@ export function ConfigurationSetup() {
               host: dbHost,
               port: parseInt(dbPort)
             }
-          }
+          },
+          presets: presets
         })
       });
 
@@ -127,10 +135,11 @@ export function ConfigurationSetup() {
       console.log("Configuration saved:", response);
 
       if(response.status == 200) {
-        console.log("Success updating configutation with:", response.updatedSettings);
+        console.log("Success updating configuration with:", response.updatedSettings);
         setStatus(STATUS.SUCCESS);
         setSettings(response.updatedSettings);
         setIsConfigured(true);
+        setIsConnected(true);
       } else {
         alert("Error updating configuration.");
         console.log("response:", response);
@@ -182,7 +191,7 @@ export function ConfigurationSetup() {
   return(
     <>
         {/** Stepper to show progress */}
-        <StepsProgress steps={["Ceramic Settings", "Database", "Admins"]} currentStep={step} />
+        <StepsProgress steps={showPresets ? ["Ceramic Settings", "Database", "Presets", "Admins"] : ["Ceramic Settings", "Database", "Presets", "Admins"] } currentStep={step} />
         
         {/** Step 1: Ceramic node */}
         {step == 1 &&
@@ -227,9 +236,14 @@ export function ConfigurationSetup() {
             </div>
           </>
         }
-        
-        {/** Step 3: Add admins */}
+
+        {/** Step 3: Enable presets */}
         {step == 3 &&
+          <ConfigurationPreset presets={presets} setPresets={setPresets} status={status} save={() => setStep(4)} />
+        }
+        
+        {/** Step 4: Add admins */}
+        {step == 4 &&
           <>
             <div className="mt-2">
               <label className="text-base font-medium text-center">Add your OrbisDB admin:</label>

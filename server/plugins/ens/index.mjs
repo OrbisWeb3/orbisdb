@@ -16,45 +16,50 @@ export default class ENSPlugin {
   }
 
   async add_metadata(stream) {
-    console.log("In add_metadata stream:", stream);
-    console.log("In add_metadata field:", this.field);
-    let field;
+    console.log("In add_metadata this.only_model:", this.only_model);
+    console.log("In add_metadata this.model:", this.model_id);
+    console.log("In add_metadata stream.model:", stream.model);
 
-    /** Will convert the field to the actual value and make an exception for controller to use the address instead of the full did */
-    if(this.field == "controller") {
-      let { address } = getAddressFromDid(stream.controller);
-      field = address;
-    } else {
-      field = this.getValueByPath(stream, this.field);
-    }
-    
-    console.log("field:", field)
-    if(field) {
-      switch(this.action) {
-        // Will converrt an ENS name to an address
-        case "name_to_address":
-          const address = await this.getAddress(field);
-          console.log("address is: ", address );
-          return {
-            address: address
-          };
-        
-          // Will convert an address to an ENS name
-        case "address_to_name":
-          const ensName = await this.getName(field);
-          console.log("ensName is: ", ensName);
-          return {
-            ensName: ensName
-          };
-        default :
-          return null;
+    if(this.only_model == "no" || (this.only_model == "yes" && stream.model == this.model_id)) {
+      let field;
+
+      /** Will convert the field to the actual value and make an exception for controller to use the address instead of the full did */
+      if(this.field == "controller") {
+        let { address } = getAddressFromDid(stream.controller);
+        field = address;
+      } else {
+        field = this.getValueByPath(stream, this.field);
+      }
+      
+      console.log("field:", field)
+      if(field) {
+        switch(this.action) {
+          // Will converrt an ENS name to an address
+          case "name_to_address":
+            const address = await this.getAddress(field);
+            console.log("address is: ", address );
+            return {
+              address: address
+            };
+          
+            // Will convert an address to an ENS name
+          case "address_to_name":
+            const ensName = await this.getName(field);
+            console.log("ensName is: ", ensName);
+            return {
+              ensName: ensName
+            };
+          default :
+            return null;
+        }
+      } else {
+        return {
+          error: "Couldn't retrieve the correct field with " + this.field
+        };
       }
     } else {
-      return {
-        error: "Couldn't retrieve the correct field with " + this.field
-      };
-    }
-    
+      console.log("ENS Plugin shouldn't be used on this model.");
+    }    
   }
 
   /** Will convert an ens name into an address */

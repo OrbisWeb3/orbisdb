@@ -26,6 +26,22 @@
       "id": "field",
       "type": "string",
       "per_context": true
+    },
+    {
+      "name": "Apply only on a specific model?",
+      "description": "Should this plugin be used only on a specific model?",
+      "id": "only_model",
+      "type": "select",
+      "options": [{"value": "no", "label": "No"}, {"value": "yes", "label": "Yes"}],
+      "per_context": true
+    },
+    {
+      "name": "Model ID",
+      "description": "Paste the model ID on which this plugin should be used.",
+      "id": "model_id",
+      "type": "string",
+      "conditions": [{"id": "only_model", "value": "yes"}],
+      "per_context": true
     }
   ]
 }

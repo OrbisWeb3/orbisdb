@@ -59,7 +59,7 @@ export default class Ceramic {
 
         /** Create social models 
         try {
-            let model = await this.orbisdb.ceramic.createModel(discoursePostsModelDefinition);
+            let model = await this.orbisdb.ceramic.createModel(privateMessageModelDefinition);
             console.log("model:", model); 
         } catch(e) {
             console.log(cliColors.text.red, "Error creating model:", cliColors.reset, e);
@@ -83,8 +83,8 @@ const orbisdbContextModelDefinition = {
     "accountRelation": {
         "type": "list"
     },
-    "interface": false, // Assuming this field is part of your ModelDefinitionV2
-    "implements": [], // Example field for ModelDefinitionV2
+    "interface": false, 
+    "implements": [], 
     "schema": {
         "type": "object",
         "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -120,8 +120,8 @@ const discoursePostsModelDefinition = {
     "accountRelation": {
         "type": "list"
     },
-    "interface": false, // Assuming this field is part of your ModelDefinitionV2
-    "implements": [], // Example field for ModelDefinitionV2
+    "interface": false, 
+    "implements": [], 
     "schema": {
         "type": "object",
         "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -275,7 +275,7 @@ const fullPostModelDefinition = {
             "type": ["string", "null"]
             },
             "mentions": {
-            "type": ["array", "null"],
+                "type": ["array", "null"],
                 "items": {
                     "type": "object",
                     "additionalProperties": false,
@@ -309,8 +309,8 @@ const profileModelDefinition = {
     "accountRelation": {
         "type": "single"
     },
-    "interface": false, // Assuming this field is part of your ModelDefinitionV2
-    "implements": [], // Example field for ModelDefinitionV2
+    "interface": false, 
+    "implements": [], 
     "schema": {
         "type": "object",
         "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -365,8 +365,8 @@ const reactionsModelDefinition = {
             "post_id"
         ]
     },
-    "interface": false, // Assuming this field is part of your ModelDefinitionV2
-    "implements": [], // Example field for ModelDefinitionV2
+    "interface": false, 
+    "implements": [], 
     "schema": {
         "type": "object",
         "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -394,8 +394,8 @@ const followModelDefinition = {
             "did"
         ]
     },
-    "interface": false, // Assuming this field is part of your ModelDefinitionV2
-    "implements": [], // Example field for ModelDefinitionV2
+    "interface": false, 
+    "implements": [], 
     "schema": {
         "type": "object",
         "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -408,6 +408,139 @@ const followModelDefinition = {
             },
             },
         "required": ["did", "active"],
+        "additionalProperties": false
+    }
+};
+
+/** 
+ * Model for the user's encrypted email posts 
+ * StreamID: kjzl6hvfrbw6c7i887rh9a3kieykdfai4k5lc95wv9nbgzphijmrcqm1885at63
+ * */
+const encryptedEmailModelDefinition = {
+    "name": "SocialEncryptedEmail",
+    "version": "2.0",
+    "accountRelation": {
+        "type": "single"
+    },
+    "interface": false, 
+    "implements": [], 
+    "schema": {
+        "type": "object",
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "properties": {
+            "encryptedEmail": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "encryptedString": {
+                        "type": "string",
+                    },
+                    "encryptedSymmetricKey": {
+                        "type": "string",
+                    },
+                    "accessControlConditions": {
+                        "type": "string",
+                    }
+                }
+            }
+        },
+        "additionalProperties": false
+    }
+};
+
+/** Model for conversations
+ * StreamID: kjzl6hvfrbw6c8ynorxt2tp766711479zupiaq6ai80wgsgbr256hbap4mpspt3
+ */
+
+const conversationModelDefinition = {
+    "name": "SocialConversation",
+    "version": "2.0",
+    "accountRelation": {
+        "type": "list"
+    },
+    "interface": false, 
+    "implements": [], 
+    "schema": {
+        "type": "object",
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "properties": {
+            "name": {
+                "type": ["string", "null"]
+            },
+            "description": {
+                "type": ["string", "null"]
+            },
+            "context": {
+                "type": ["string", "null"]
+            },
+            "recipients": {
+                "type": "array",
+                "items": {
+                    "type": "string",
+                }
+            }
+        },
+        "required": ["recipients"],
+        "additionalProperties": false
+    }
+};
+
+/** Model for private messages
+ * StreamID: kjzl6hvfrbw6cav5vj5fmqxxt95gjlkuxroafdl4elues1il176flbixrcaq9bv
+ */
+const privateMessageModelDefinition = {
+    "name": "SocialPrivateMessage",
+    "version": "2.0",
+    "accountRelation": {
+        "type": "list"
+    },
+    "interface": false, 
+    "implements": [], 
+    "schema": {
+        "type": "object",
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "properties": {
+            "conversation_id": {
+                "type": "string"
+            },
+            "master": {
+                "type": ["string", "null"]
+            },
+            "reply_to": {
+                "type": ["string", "null"]
+            },
+            "encryptedMessage": {
+                "type": ["object", "null"],
+                "properties": {
+                    "encryptedString": {
+                        "type": "string",
+                    },
+                    "encryptedSymmetricKey": {
+                        "type": "string",
+                    },
+                    "accessControlConditions": {
+                        "type": "string",
+                    }
+                },
+                "additionalProperties": false
+            },
+            "encryptedMessageSolana": {
+                "type": ["object", "null"],
+                "properties": {
+                    "encryptedString": {
+                        "type": "string",
+                    },
+                    "encryptedSymmetricKey": {
+                        "type": "string",
+                    },
+                    "solRpcConditions": {
+                        "type": "string",
+                    }
+                },
+                "additionalProperties": false
+            }
+        },
+        "required": ["conversation_id"],
         "additionalProperties": false
     }
 };
@@ -473,8 +606,8 @@ const voteModelDefinition = {
             "proposal_id"
         ]
     },
-    "interface": false, // Assuming this field is part of your ModelDefinitionV2
-    "implements": [], // Example field for ModelDefinitionV2
+    "interface": false, 
+    "implements": [], 
     "schema": {
         "type": "object",
         "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -493,101 +626,12 @@ const voteModelDefinition = {
 
 
 /**** NOT IMPLEMENTED YET ****/
-/** Schema for the user's encrypted email posts */
-export const socialEncryptedEmailSchema = {
-	"$schema": "http://json-schema.org/draft-07/schema#",
-	"title": "SocialEncryptedEmail",
-	"type": "object",
-  "properties": {
-		"encryptedEmail": {
-      "type": ["object", "null"],
-      "properties": {
-				"encryptedString": {
-					"type": "string",
-				},
-        "encryptedSymmetricKey": {
-					"type": "string",
-				},
-        "accessControlConditions": {
-					"type": "string",
-				}
-      }
-    }
-	}
-}
 
 /** Schema for the Orbis conversations */
-export const socialConversationSchema = {
-	"$schema": "http://json-schema.org/draft-07/schema#",
-	"title": "SocialConversation",
-	"type": "object",
-  "properties": {
-    "name": {
-      "type": ["string", "null"]
-    },
-    "description": {
-      "type": ["string", "null"]
-    },
-    "context": {
-      "type": ["string", "null"]
-    },
-    "recipients": {
-      "type": "array",
-      "items": {
-				"type": "string"
-      }
-    },
-	},
-  "required": ["recipients"]
-};
+
 
 /** Schema for the Orbis messages */
-export const socialPrivateMessageSchema = {
-	"$schema": "http://json-schema.org/draft-07/schema#",
-	"title": "SocialPrivateMessage",
-	"type": "object",
-  "properties": {
-    "conversation_id": {
-      "type": "string"
-    },
-		"master": {
-      "type": ["string", "null"]
-    },
 
-		"reply_to": {
-      "type": ["string", "null"]
-    },
-    "encryptedMessage": {
-      "type": ["object", "null"],
-      "properties": {
-				"encryptedString": {
-					"type": "string",
-				},
-        "encryptedSymmetricKey": {
-					"type": "string",
-				},
-        "accessControlConditions": {
-					"type": "string",
-				}
-      }
-    },
-		"encryptedMessageSolana": {
-      "type": ["object", "null"],
-      "properties": {
-				"encryptedString": {
-					"type": "string",
-				},
-        "encryptedSymmetricKey": {
-					"type": "string",
-				},
-        "solRpcConditions": {
-					"type": "string",
-				}
-      }
-    }
-	},
-  "required": ["conversation_id"]
-};
 
 /** Schema for the Orbis settings notifications */
 export const socialSettingsNotificationsRead = {

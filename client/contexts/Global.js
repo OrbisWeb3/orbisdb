@@ -175,7 +175,7 @@ export const GlobalProvider = ({ children }) => {
         }
     }
   
-    return <GlobalContext.Provider value={{ settings, setSettings, settingsLoading, loadSettings, isAdmin, setIsAdmin, user, setUser, orbisdb, setOrbisdb, sessionJwt, setSessionJwt, adminLoading, setAdminLoading, isConnected, init, getAdmin, isConfigured, setIsConfigured, isShared, adminSession }}>{children}</GlobalContext.Provider>;
+    return <GlobalContext.Provider value={{ settings, setSettings, settingsLoading, loadSettings, isAdmin, setIsAdmin, user, setUser, orbisdb, setOrbisdb, sessionJwt, setSessionJwt, adminLoading, setAdminLoading, isConnected, setIsConnected, init, getAdmin, isConfigured, setIsConfigured, isShared, adminSession }}>{children}</GlobalContext.Provider>;
   };
   
   export const useGlobal = () => useContext(GlobalContext);

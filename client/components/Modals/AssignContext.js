@@ -107,7 +107,6 @@ export default function AssignContextModal({hide, plugin_id, selectedContext}) {
 
   function getLastContext() {
     let last_context = selectedContextIds[selectedContextIds.length - 1];
-    console.log("last_context:", last_context);
     return last_context;
   }
 
@@ -201,6 +200,7 @@ const ContextDropdown = ({ selectedContext, selectedContextIds, setSelectedConte
   const currentContext = findContextById(settings.contexts, selectedContext);
 
   function selectContext(context) {
+    console.log("In selectContext() context:", context);
     setListVis(false);
     let newContexts = [];
     if(!selectedContext) {
@@ -214,6 +214,7 @@ const ContextDropdown = ({ selectedContext, selectedContextIds, setSelectedConte
       // Make sure context saved one level under the updated one are removed from the array
       newContexts.splice(index + 1);
     }
+    console.log("newContexts:", newContexts);
 
     setSelectedContextIds(newContexts);
   }
@@ -243,25 +244,33 @@ const ContextDropdown = ({ selectedContext, selectedContextIds, setSelectedConte
       {/* Dropdown list content */}
       {listVis &&
         <>
-        {(_contexts && _contexts.length > 0) ?
           <ul className="absolute z-10 mt-1 max-h-56 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm"
             tabIndex="-1"
             role="listbox"
             aria-labelledby="listbox-label">
-          {_contexts.map((context, index) => (
-            <li
-              className={`relative select-none py-2 pl-3 pr-9 text-gray-900 hover:bg-slate-50 cursor-pointer`}
-              role="option"
-              key={index}
-              onClick={() => selectContext(context)}>
-              <SmContextDetails context={context} />
-            </li>
-          ))}
-        </ul>
-        :
-            <Alert title="You haven't created any context yet." className="text-xs mt-2" />
-        }
-          
+              <li
+                className={`relative select-none py-2 pl-3 pr-9 text-gray-900 hover:bg-slate-50 cursor-pointer`}
+                role="option"
+                key={999}
+                onClick={() => selectContext({name: "Global", stream_id: "global"})}>
+                  <SmContextDetails context={{name: "Global", stream_id: "global"}} />
+                </li>
+              {(_contexts && _contexts.length > 0) ?
+                <>
+                  {_contexts.map((context, index) => (
+                    <li
+                      className={`relative select-none py-2 pl-3 pr-9 text-gray-900 hover:bg-slate-50 cursor-pointer`}
+                      role="option"
+                      key={index}
+                      onClick={() => selectContext(context)}>
+                      <SmContextDetails context={context} />
+                    </li>
+                  ))}
+                </>
+                :
+                  <Alert title="You haven't created any context yet." className="text-xs mt-2" />
+              }
+          </ul>
         </>
       }
     </div>

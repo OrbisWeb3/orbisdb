@@ -266,7 +266,8 @@ export default class Postgre {
         content: content
       }, null);
     }
-   
+
+    return true;
   }
 
   /** 

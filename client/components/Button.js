@@ -33,7 +33,7 @@ export default function Button({type = "primary", status = 0, onClick, title, su
         // Disabled state
         case 4:
           return (
-            <button className={"bg-[#8fc1ff] text-white cursor-not-allowed " + + classes}>{title}</button>
+            <button className={"bg-[#8fc1ff] text-white cursor-not-allowed " + classes}>{title}</button>
           );
         default:
 

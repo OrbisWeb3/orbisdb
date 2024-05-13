@@ -24,6 +24,7 @@ export default class HookHandler {
 
   // Execute the hook or returns an error
   async safeExecute(handler, data, contextId) {
+    console.log("Enter safeExecute()");
     try {
       const { pluginsData, ...dataToPass } = data;
       // Execute hook
@@ -36,7 +37,16 @@ export default class HookHandler {
 
   // TODO: handle hooks that are able to return early (next())
   // TODO: figure our why having the same plugin installed on the same context with the same hook isn't working well (especially for update and add_metadata)
+  /**
+   * 
+   * @param {*} hookName 
+   * @param {*} data 
+   * @param {*} contextId : Context ID used by the stream on which the hook is executed. Can be a stream id or null
+   * @returns 
+   */
   async executeHook(hookName, data = {}, contextId) {
+    console.log("Enter executeHook with context:", contextId);
+
     // Retrieve options for the hook to be about to be executed.
     const hookOpts = this.registeredHooks[hookName];
     if (!hookOpts) {
@@ -50,14 +60,22 @@ export default class HookHandler {
 
     // Determine if the hook is contextualized and get the relevant contextId.
     const isContextualized = hookOpts.isContextualized;
+    console.log("hookOpts:", hookOpts);
     let handlers;
 
     if (isContextualized) {
       // Retrieve handlers specific to the context if the hook is contextualized.
-      if (!this.hooks[hookName] || !this.hooks[hookName][contextId]) {
+      console.log("this.hooks[hookName][global]:", this.hooks[hookName]["global"]);
+      if (!this.hooks[hookName] || (!this.hooks[hookName][contextId] && !this.hooks[hookName]["global"])) {
+        console.warn(`No handlers found for contextualized hook ${hookName}`);
         return data;
       }
-      handlers = Object.entries(this.hooks[hookName][contextId]);
+      const contextHandlers = this.hooks[hookName][contextId] ? Object.entries(this.hooks[hookName][contextId]) : [];
+      const globalHandlers = this.hooks[hookName]["global"] ? Object.entries(this.hooks[hookName]["global"]) : [];
+
+      // We are using both the contextualized hook handlers as well as the global ones
+      handlers = [...contextHandlers, ...globalHandlers];
+
     } else {
       // Retrieve all handlers for global hooks.
       if (!this.hooks[hookName]) {
@@ -66,6 +84,9 @@ export default class HookHandler {
       }
       handlers = Object.entries(this.hooks[hookName]);
     }
+
+    console.log("In executeHook(): handlers:", handlers);
+
 
     // Loop through all handlers to execute them.
     for (const [pluginId, handler] of handlers) {

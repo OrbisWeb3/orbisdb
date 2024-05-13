@@ -77,7 +77,7 @@ export default function Settings() {
                         </div>
                     </div>
                 :
-                    <ConfigurationSettings />
+                    <ConfigurationSettings showPresets={false} />
                 }
                 
             </div>

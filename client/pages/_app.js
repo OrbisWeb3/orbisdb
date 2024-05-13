@@ -11,6 +11,7 @@ import Auth from "./auth";
 import Button from "../components/Button";
 import { STATUS } from "../utils";
 import { OrbisDBLogo } from "../components/Icons";
+import ConfigurationPreset from "../components/ConfigurationPreset";
 
 export default function App({ Component, pageProps }) {
   return(
@@ -166,6 +167,7 @@ const LoopSlots = ({slots}) => {
 const ConfigurationSharedSetup = () => {
   const { isShared, adminSession, sessionJwt, setSettings } = useGlobal();
   const [status, setStatus] = useState(STATUS.ACTIVE);
+  const [presets, setPresets] = useState([]);
 
   useEffect(() => {
     console.log("sessionJwt:", sessionJwt);
@@ -175,10 +177,14 @@ const ConfigurationSharedSetup = () => {
     setStatus(STATUS.LOADING);
     try {
       let response = await fetch('/api/settings/setup-configuration-shared', {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${sessionJwt}`
-        }
+        },
+        body: JSON.stringify({
+          presets: presets
+        })
       });
 
       response = await response.json();
@@ -199,16 +205,15 @@ const ConfigurationSharedSetup = () => {
       </div>
       <div className="w-1/3 flex flex-col mt-6 bg-white border border-slate-200 p-6 rounded-md">
         <p className="font-medium text-center">You are new here!</p>
-        <p className="text-base text-slate-600 mb-1 text-center">To get started, let's configure your personal OrbisDB instance.</p>
+        <p className="text-base text-slate-600 mb-1 text-center">To get started, let's configure your personal OrbisDB instance by selecting the preset you want to use. Select none to start from scratch.</p>
 
-        {/** If shared instance we display the user's did */}
-        {isShared &&
-          <span className="bg-slate-100 rounded-full text-xxs px-3 py-1 mb-2">{adminSession}</span>
-        }
+        {/** Display the user's did */}
+        <span className="bg-slate-100 rounded-full text-xxs px-3 py-1 mb-2">{adminSession}</span>
 
-        {isShared &&
-          <Alert className="text-xs mt-1 mb-3" title={<><b>Note:</b> This will create your own slot in this OrbisDB instance which will give you the ability to write and query data from Ceramic easily.</>}/>
-        }
+        {/** Display presets available */}
+        <ConfigurationPreset presets={presets} setPresets={setPresets} />
+
+        <Alert className="text-xs mt-1 mb-3" title={<><b>Note:</b> This will create your own slot in this OrbisDB instance which will give you the ability to write and query data from Ceramic easily.</>}/>
         <Button onClick={() => configure()} title="Configure instance" status={status} />
       </div>
     </div>
@@ -222,7 +227,7 @@ function ConfigurationSetup() {
       <div className="w-1/3 flex flex-col mt-12 bg-white border border-slate-200 p-6 rounded-md">
         <p className="font-medium text-center">Welcome to OrbisDB</p>
         <p className="text-base text-slate-600 mb-4 text-center">To get started, let's configure your OrbisDB instance.</p>
-        <ConfigurationSettings />
+        <ConfigurationSettings showPresets={true} />
       </div>
     </div>
   )

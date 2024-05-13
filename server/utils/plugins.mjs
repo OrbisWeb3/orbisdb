@@ -169,7 +169,6 @@ export async function loadAndInitPlugins() {
     }
   }
 
-  console.log("loadedPlugins:", loadedPlugins);
   return loadedPlugins;
 }
 
