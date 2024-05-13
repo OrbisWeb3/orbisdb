@@ -3,12 +3,24 @@ import Button from "./Button";
 import { GlobalContext } from "../contexts/Global";
 import { STATUS, sleep } from "../utils";
 
-export default function ContextSettings ({context, setContext, callback, parentContext}) {
-  const { orbisdb, settings, setSettings, slot, sessionJwt } = useContext(GlobalContext);
+export default function ContextSettings({
+  context,
+  setContext,
+  callback,
+  parentContext,
+}) {
+  const { orbisdb, settings, setSettings, slot, sessionJwt } =
+    useContext(GlobalContext);
   const [status, setStatus] = useState(STATUS.ACTIVE);
-  const [contextName, setContextName] = useState(context?.name ? context.name : "" );
-  const [contextLogoImg, setContextLogoImg] = useState(context?.logo ? context.logo : null);
-  const [contextDescription, setContextDescription] = useState(context?.description ? context.description : "");
+  const [contextName, setContextName] = useState(
+    context?.name ? context.name : ""
+  );
+  const [contextLogoImg, setContextLogoImg] = useState(
+    context?.logo ? context.logo : null
+  );
+  const [contextDescription, setContextDescription] = useState(
+    context?.description ? context.description : ""
+  );
 
   /** Will update the context stream on Ceramic and save it locally */
   const uploadToServer = async (event) => {
@@ -19,43 +31,47 @@ export default function ContextSettings ({context, setContext, callback, parentC
     content.name = contextName;
     content.description = contextDescription ? contextDescription : "";
     console.log("New context:", content);
-    if(parentContext) {
+    if (parentContext) {
       content.context = parentContext;
     }
     let res;
 
     /** Update if existing or create new context */
-    if(context) {
+    if (context) {
       delete content.stream_id;
       res = await orbisdb.update(context.stream_id).replace(content).run();
     } else {
-      res = await orbisdb.insert("kjzl6hvfrbw6c52v85swdm53yzahr8k9zojf0w7krz18f3gzk9ppyz11bx0plar").value(content).run();
+      res = await orbisdb
+        .insert(
+          "kjzl6hvfrbw6c52v85swdm53yzahr8k9zojf0w7krz18f3gzk9ppyz11bx0plar"
+        )
+        .value(content)
+        .run();
     }
     console.log("res:", res);
     content.stream_id = res?.id;
     console.log("res:", res);
 
     /** If successful update in local settings */
-    if(res.id) {
-
+    if (res.id) {
       // Update settings to add new context
-      const response = await fetch("/api/settings/add-context", {
-        method: 'POST',
+      const response = await fetch("/api/contexts", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${sessionJwt}`
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${sessionJwt}`,
         },
         body: JSON.stringify({
-          context: JSON.stringify(content)
-        })
+          context: JSON.stringify(content),
+        }),
       });
 
       const data = await response.json();
       console.log("data:", data);
 
-      if(data.status == 200) {
+      if (response.status == 200) {
         /** Update context state */
-        if(setContext) {
+        if (setContext) {
           setContext(data.context);
         }
 
@@ -64,7 +80,7 @@ export default function ContextSettings ({context, setContext, callback, parentC
         await sleep(500);
 
         /** Run callback if available (can be used to hide modal) */
-        if(callback) {
+        if (callback) {
           callback(content);
         }
       } else {
@@ -76,15 +92,28 @@ export default function ContextSettings ({context, setContext, callback, parentC
     }
   };
 
-  return(
+  return (
     <div className="flex flex-col">
-      <input type="text" placeholder="Context name" className="bg-white w-full mt-2 px-2 py-1 rounded-md border border-slate-300 text-base text-slate-900 mb-1.5" onChange={(e) => setContextName(e.target.value)} value={contextName} />
-      <textarea type="text" placeholder="Context description" rows="2" className="bg-white w-full px-2 py-1 rounded-md border border-slate-300 text-base text-slate-900 mb-2" onChange={(e) => setContextDescription(e.target.value)} value={contextDescription} />
+      <input
+        type="text"
+        placeholder="Context name"
+        className="bg-white w-full mt-2 px-2 py-1 rounded-md border border-slate-300 text-base text-slate-900 mb-1.5"
+        onChange={(e) => setContextName(e.target.value)}
+        value={contextName}
+      />
+      <textarea
+        type="text"
+        placeholder="Context description"
+        rows="2"
+        className="bg-white w-full px-2 py-1 rounded-md border border-slate-300 text-base text-slate-900 mb-2"
+        onChange={(e) => setContextDescription(e.target.value)}
+        value={contextDescription}
+      />
 
       {/** CTA to save updated context */}
       <div className="flex w-full justify-center mt-2">
         <Button title="Save" status={status} onClick={() => uploadToServer()} />
       </div>
     </div>
-  )
+  );
 }

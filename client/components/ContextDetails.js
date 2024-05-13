@@ -1,48 +1,57 @@
-import Link from 'next/link';
+import Link from "next/link";
 import { useContext } from "react";
 import { GlobalContext, useGlobal } from "../contexts/Global";
-import { getPluginsByContext } from "../utils"
+import { getPluginsByContext } from "../utils";
 
-export default function ContextDetails({context}) {
+export default function ContextDetails({ context }) {
   const { slot } = useGlobal();
-  return(
+  return (
     <div className="flex flex-row bg-white px-4 py-3 border border-slate-200 rounded-md items-center">
       {/** Show context logo if any */}
-      {context.logo &&
+      {context.logo && (
         <img
           src={context.logo}
           alt={context.name}
-          className="h-14 w-14 flex-shrink-0 mr-3 rounded-md" />
-        }
+          className="h-14 w-14 flex-shrink-0 mr-3 rounded-md"
+        />
+      )}
       <div className="flex flex-col space-y-1">
-        <Link className="text-[#4483FD] font-medium text-base hover:underline" href={"/contexts/" + context.stream_id}>{context.name}</Link>
+        <Link
+          className="text-[#4483FD] font-medium text-base hover:underline"
+          href={"/contexts/" + context.stream_id}
+        >
+          {context.name}
+        </Link>
         <SubContextsCountTag context_id={context.stream_id} />
       </div>
     </div>
-  )
+  );
 }
 
-
-export const ContextTags = ({context}) => {
-  return(
+export const ContextTags = ({ context }) => {
+  return (
     <div className="flex flex-row">
       <SubContextsCountTag context_id={context.stream_id} />
       <PluginsCountTag context_id={context.stream_id} />
     </div>
-  )
-}
+  );
+};
 
-export const SubContextsCountTag = ({context_id}) => {
-  return(
-    <div className="bg-slate-100 rounded-full px-3 py-1 text-xs font-medium text-slate-800 mr-1">{countSubContexts(context_id) } sub-context(s)</div>
-  )
-}
+export const SubContextsCountTag = ({ context_id }) => {
+  return (
+    <div className="bg-slate-100 rounded-full px-3 py-1 text-xs font-medium text-slate-800 mr-1">
+      {countSubContexts(context_id)} sub-context(s)
+    </div>
+  );
+};
 
-export const PluginsCountTag = ({context_id}) => {
-  return(
-    <div className="bg-slate-100 rounded-full px-3 py-1 text-xs font-medium text-slate-800">{countPluginsByContext(context_id) } plugin(s)</div>
-  )
-}
+export const PluginsCountTag = ({ context_id }) => {
+  return (
+    <div className="bg-slate-100 rounded-full px-3 py-1 text-xs font-medium text-slate-800">
+      {countPluginsByContext(context_id)} plugin(s)
+    </div>
+  );
+};
 
 /** Count all of the plugins being used by a context */
 export const countPluginsByContext = (contextId) => {
@@ -55,15 +64,14 @@ export const countPluginsByContext = (contextId) => {
   let countTotal = countDirect + countParent;
 
   return countTotal;
-}
-
+};
 
 /** Count all of the child of a context including the nested ones */
 export const countSubContexts = (stream_id, contexts) => {
   const { settings } = useContext(GlobalContext);
 
   let _contexts;
-  if(contexts) {
+  if (contexts) {
     _contexts = contexts;
   } else {
     _contexts = settings.contexts;
@@ -71,7 +79,7 @@ export const countSubContexts = (stream_id, contexts) => {
 
   // Recursive function to find a context by its stream_id
   const findContext = (id, ctxs) => {
-    if(ctxs) {
+    if (ctxs) {
       for (let ctx of ctxs) {
         if (ctx.stream_id === id) return ctx;
         if (ctx.contexts) {
@@ -80,9 +88,9 @@ export const countSubContexts = (stream_id, contexts) => {
         }
       }
     }
-    
+
     return null;
-  }
+  };
 
   // Use the recursive function to find the context with the given stream_id
   const context = findContext(stream_id, _contexts);

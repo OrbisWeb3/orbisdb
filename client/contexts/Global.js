@@ -1,181 +1,217 @@
 import React, { useState, useEffect, useContext } from "react";
-import { useRouter } from 'next/router';
+import { useRouter } from "next/router";
 
 /** Import OrbisDB libraries */
 import { OrbisDB } from "@useorbis/db-sdk";
 import { OrbisKeyDidAuth } from "@useorbis/db-sdk/auth";
-import { DIDSession } from 'did-session'
+import { DIDSession } from "did-session";
 
 export const GlobalContext = React.createContext();
 
 export const GlobalProvider = ({ children }) => {
-    const router = useRouter();
-    const [isConfigured, setIsConfigured] = useState(null);
-    const [isShared, setIsShared] = useState(null);
-    const [settings, setSettings] = useState();
-    const [settingsLoading, setSettingsLoading] = useState();
-    const [adminLoading, setAdminLoading] = useState(true);
-    const [isAdmin, setIsAdmin] = useState(false);
-    const [isConnected, setIsConnected] = useState(false);
-    const [sessionJwt, setSessionJwt] = useState();
-    const [user, setUser] = useState();
-    const [adminSession, setAdminSession] = useState();
-    const [orbisdb, setOrbisdb] = useState();
+  const router = useRouter();
+  const [isConfigured, setIsConfigured] = useState(null);
+  const [isShared, setIsShared] = useState(null);
+  const [settings, setSettings] = useState();
+  const [settingsLoading, setSettingsLoading] = useState();
+  const [adminLoading, setAdminLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isConnected, setIsConnected] = useState(false);
+  const [sessionJwt, setSessionJwt] = useState();
+  const [user, setUser] = useState();
+  const [adminSession, setAdminSession] = useState();
+  const [orbisdb, setOrbisdb] = useState();
 
-    useEffect(() => {
-        setSettingsLoading(true);
-        getIsConfigured();
-        loadSettings();
-    }, [])
+  useEffect(() => {
+    setSettingsLoading(true);
+    getIsConfigured();
+    loadSettings();
+  }, []);
 
-    /** If user isn't connected after check we redirect to the auth page */
-    useEffect(() => {
-        if(!adminLoading && !isAdmin && router.asPath != '/auth') {
-            console.log("Redirecting to auth page");
-            router.push('/auth');
-        }
-    }, [adminLoading, isAdmin, router])
+  /** If user isn't connected after check we redirect to the auth page */
+  useEffect(() => {
+    if (!adminLoading && !isAdmin && router.asPath != "/auth") {
+      console.log("Redirecting to auth page");
+      router.push("/auth");
+    }
+  }, [adminLoading, isAdmin, router]);
 
-    /** Load settings and check for admin account right after */
-    useEffect(() => {
-        init();
-    }, [adminSession]);
+  /** Load settings and check for admin account right after */
+  useEffect(() => {
+    init();
+  }, [adminSession]);
 
-    
-    /** Will connect to Ceramic using the seed in the config */
-    useEffect(() => {
-        if(settings?.configuration?.ceramic?.seed) {
-            connectSeed();
-        }
-
-        /** Will connect the front-end to the seed saved in configuration */
-        async function connectSeed() {
-        try {
-            let seed = settings.configuration.ceramic.seed
-            let _orbisdb = new OrbisDB({
-                ceramic: {
-                    gateway: settings.configuration.ceramic.node,
-                },
-                nodes: [
-                    {
-                        gateway: "http://localhost:3000",
-                    },
-                ],
-            });
-    
-            let _seed = new Uint8Array(JSON.parse(seed));
-            const auth = await OrbisKeyDidAuth.fromSeed(_seed);
-    
-            try {
-                const result = await _orbisdb.connectUser({ auth });
-                setOrbisdb(_orbisdb);
-                setUser(result.user);
-                console.log("Connected to OrbisDB SDK with did:", result.user.did);
-            } catch(e) {
-                console.log(cliColors.text.red, "Error connecting to OrbisDB:", cliColors.reset, e);
-            }
-        } catch(e) {
-            console.log("Error initiaiting OrbisDB object:", e);
-        }
-        
-        }
-    }, [settings]);
-
-    /** Load settings from file */
-    async function init() {
-        console.log("Enter init()");
-        try {
-            let admins = await getAdmin(adminSession);
-            console.log("admins:", admins);
-            if(admins) {
-                checkAdmin(admins); 
-            } else {
-                setAdminLoading(false);
-            }
-        } catch(e) {
-            setAdminLoading(false);
-            console.log("Error retrieving local settings, loading default one instead.");
-        }
+  /** Will connect to Ceramic using the seed in the config */
+  useEffect(() => {
+    if (settings?.configuration?.ceramic?.seed) {
+      connectSeed();
     }
 
-    /** Check if there is an existing user connected */
-    async function checkAdmin(admins) {
-        console.log("Enter checkAdmin");
-        // Retrieve admin session from local storage
-        let adminSessionJwt = localStorage.getItem("orbisdb-admin-session");
-        // Convert session string to the parent DID using Ceramic library
-        if(adminSessionJwt) {
-            setIsConnected(true);
-            try {
-                let resAdminSession = await DIDSession.fromSession(adminSessionJwt, null);
-                let didId = resAdminSession.did.parent;
-                setAdminSession(didId);
-
-                // If user connected is included in the admins array in configuration we give admin access and save the session token to be used in API calls
-                let _isAdmin = admins?.includes(didId);
-                if(didId && _isAdmin) {
-                    console.log("User is admin.");
-                    setIsAdmin(true);
-                    setSessionJwt(adminSessionJwt);
-                    loadSettings(adminSessionJwt);
-                } else {
-                    console.log("User is NOT an admin: ", didId);
-                }
-            } catch(e) {
-                console.log("Error checking admin account:", e);
-            }
-        } else {
-            setIsConnected(false);
-        }
-        setAdminLoading(false);
-    }
-
-
-    async function getAdmin(adminSession) {
-        let result = await fetch("/api/settings/get-admin/" + adminSession);
-        let resultJson = await result.json();
-        console.log("In getAdmin:", resultJson);
-        return resultJson.admins;
-    }
-
-    async function loadSettings(_jwt) {
-        let adminSession = _jwt ? _jwt : localStorage.getItem("orbisdb-admin-session");
-        let result = await fetch("/api/settings/get", {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${adminSession}`
-            }
+    /** Will connect the front-end to the seed saved in configuration */
+    async function connectSeed() {
+      try {
+        let seed = settings.configuration.ceramic.seed;
+        let _orbisdb = new OrbisDB({
+          ceramic: {
+            gateway: settings.configuration.ceramic.node,
+          },
+          nodes: [
+            {
+              gateway: "http://localhost:3000",
+            },
+          ],
         });
 
-        let resultJson = await result.json();
-        console.log("In load settings:", resultJson);
-        if(resultJson?.status == 200) {
-            setSettings(resultJson?.settings);
-        } else {
-            setSettings({});
-        }
-        setSettingsLoading(false);
-        
-        
-        return resultJson;
-    }
+        let _seed = new Uint8Array(JSON.parse(seed));
+        const auth = await OrbisKeyDidAuth.fromSeed(_seed);
 
-    /** Will check if node has been configured or not */
-    async function getIsConfigured() {
-        let result = await fetch("/api/settings/is-configured");
-        let resultJson = await result.json();
-        console.log("In isConfigured:", resultJson);
-        if(resultJson) {
-            setIsConfigured(resultJson.is_configured ? true : false);
-            setIsShared(resultJson.is_shared ? true : false);
-        } else {
-            setIsConfigured(false);
-            setIsShared(false);
+        try {
+          const result = await _orbisdb.connectUser({ auth });
+          setOrbisdb(_orbisdb);
+          setUser(result.user);
+          console.log("Connected to OrbisDB SDK with did:", result.user.did);
+        } catch (e) {
+          console.log(
+            cliColors.text.red,
+            "Error connecting to OrbisDB:",
+            cliColors.reset,
+            e
+          );
         }
+      } catch (e) {
+        console.log("Error initiaiting OrbisDB object:", e);
+      }
     }
-  
-    return <GlobalContext.Provider value={{ settings, setSettings, settingsLoading, loadSettings, isAdmin, setIsAdmin, user, setUser, orbisdb, setOrbisdb, sessionJwt, setSessionJwt, adminLoading, setAdminLoading, isConnected, setIsConnected, init, getAdmin, isConfigured, setIsConfigured, isShared, adminSession }}>{children}</GlobalContext.Provider>;
-  };
-  
-  export const useGlobal = () => useContext(GlobalContext);
+  }, [settings]);
+
+  /** Load settings from file */
+  async function init() {
+    console.log("Enter init()");
+    try {
+      let admins = await getAdmin(adminSession);
+      console.log("admins:", admins);
+      if (admins) {
+        checkAdmin(admins);
+      } else {
+        setAdminLoading(false);
+      }
+    } catch (e) {
+      setAdminLoading(false);
+      console.log(
+        "Error retrieving local settings, loading default one instead."
+      );
+    }
+  }
+
+  /** Check if there is an existing user connected */
+  async function checkAdmin(admins) {
+    console.log("Enter checkAdmin");
+    // Retrieve admin session from local storage
+    let adminSessionJwt = localStorage.getItem("orbisdb-admin-session");
+    // Convert session string to the parent DID using Ceramic library
+    if (adminSessionJwt) {
+      setIsConnected(true);
+      try {
+        let resAdminSession = await DIDSession.fromSession(
+          adminSessionJwt,
+          null
+        );
+        let didId = resAdminSession.did.parent;
+        setAdminSession(didId);
+
+        // If user connected is included in the admins array in configuration we give admin access and save the session token to be used in API calls
+        let _isAdmin = admins?.includes(didId);
+        if (didId && _isAdmin) {
+          console.log("User is admin.");
+          setIsAdmin(true);
+          setSessionJwt(adminSessionJwt);
+          loadSettings(adminSessionJwt);
+        } else {
+          console.log("User is NOT an admin: ", didId);
+        }
+      } catch (e) {
+        console.log("Error checking admin account:", e);
+      }
+    } else {
+      setIsConnected(false);
+    }
+    setAdminLoading(false);
+  }
+
+  async function getAdmin(adminSession) {
+    let result = await fetch(`/api/settings/admins/${adminSession}`);
+    let resultJson = await result.json();
+    console.log("In getAdmin:", resultJson);
+    return resultJson.admins;
+  }
+
+  async function loadSettings(_jwt) {
+    let adminSession = _jwt
+      ? _jwt
+      : localStorage.getItem("orbisdb-admin-session");
+    let result = await fetch("/api/settings", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${adminSession}`,
+      },
+    });
+
+    let resultJson = await result.json();
+    console.log("In load settings:", resultJson);
+    if (result.status == 200) {
+      setSettings(resultJson?.settings);
+    } else {
+      setSettings({});
+    }
+    setSettingsLoading(false);
+
+    return resultJson;
+  }
+
+  /** Will check if node has been configured or not */
+  async function getIsConfigured() {
+    let result = await fetch("/api/setup/status");
+    let resultJson = await result.json();
+    console.log("In isConfigured:", resultJson);
+    if (resultJson) {
+      setIsConfigured(resultJson.is_configured ? true : false);
+      setIsShared(resultJson.is_shared ? true : false);
+    } else {
+      setIsConfigured(false);
+      setIsShared(false);
+    }
+  }
+
+  return (
+    <GlobalContext.Provider
+      value={{
+        settings,
+        setSettings,
+        settingsLoading,
+        loadSettings,
+        isAdmin,
+        setIsAdmin,
+        user,
+        setUser,
+        orbisdb,
+        setOrbisdb,
+        sessionJwt,
+        setSessionJwt,
+        adminLoading,
+        setAdminLoading,
+        isConnected,
+        init,
+        getAdmin,
+        isConfigured,
+        setIsConfigured,
+        isShared,
+        adminSession,
+      }}
+    >
+      {children}
+    </GlobalContext.Provider>
+  );
+};
+
+export const useGlobal = () => useContext(GlobalContext);

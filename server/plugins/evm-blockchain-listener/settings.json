@@ -1,35 +1,38 @@
 {
-    "id": "evm-blockchain-listener",
-    "name": "EVM Blockchain Listener",
-    "description": "Listen to any smart contract event on EVM chains and create or update a Ceramic stream following the event.",
-    "hooks": ["generate"],
-    "visible": false,
-    "variables": [
-      {
-        "name": "Infura API key",
-        "description": "Your Infura API key.",
-        "id": "infura_key"
-      },
-      {
-        "name": "EVM Chain",
-        "description": "The EVM chain you smart contract is on.",
-        "id": "chain",
-        "type": "select",
-        "options": [{"value": "mainnet", "label": "Mainnet"}, {"value": "optimism", "label": "Optimism"}],
-        "per_context": true
-      },
-      {
-        "name": "Contract Address",
-        "description": "The address of your smart contract.",
-        "id": "contract",
-        "per_context": true
-      },
-      {
-        "name": "ABI",
-        "description": "Your smart contract ABI.",
-        "id": "abi",
-        "type": "textarea",
-        "per_context": true
-      }
-    ]
-  }
+  "id": "evm-blockchain-listener",
+  "name": "EVM Blockchain Listener",
+  "description": "Listen to any smart contract event on EVM chains and create or update a Ceramic stream following the event.",
+  "hooks": ["generate"],
+  "visible": false,
+  "variables": [
+    {
+      "name": "Infura API key",
+      "description": "Your Infura API key.",
+      "id": "infura_key"
+    },
+    {
+      "name": "EVM Chain",
+      "description": "The EVM chain you smart contract is on.",
+      "id": "chain",
+      "type": "select",
+      "options": [
+        { "value": "mainnet", "label": "Mainnet" },
+        { "value": "optimism", "label": "Optimism" }
+      ],
+      "per_context": true
+    },
+    {
+      "name": "Contract Address",
+      "description": "The address of your smart contract.",
+      "id": "contract",
+      "per_context": true
+    },
+    {
+      "name": "ABI",
+      "description": "Your smart contract ABI.",
+      "id": "abi",
+      "type": "textarea",
+      "per_context": true
+    }
+  ]
+}

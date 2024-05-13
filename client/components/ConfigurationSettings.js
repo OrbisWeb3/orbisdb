@@ -15,50 +15,68 @@ export default function ConfigurationSettings({showPresets}) {
 }
 
 export function ConfigurationSetup({showPresets}) {
-  const { settings, setSettings, sessionJwt, setSessionJwt, setIsAdmin, setIsConfigured, adminSession, setIsConnected } = useGlobal();
+  const { 
+    settings,
+    setSettings,
+    sessionJwt,
+    setSessionJwt,
+    setIsAdmin,
+    setIsConfigured,
+    adminSession,
+    setIsConnected
+  } = useGlobal();
   const [status, setStatus] = useState(STATUS.ACTIVE);
   const [statusConnect, setStatusConnect] = useState(STATUS.ACTIVE);
   const [hasLocalNode, setHasLocalNode] = useState(false);
-  const [ceramicNode, setCeramicNode] = useState(settings?.configuration?.ceramic?.node);
-  const [ceramicSeed, setCeramicSeed] = useState(settings?.configuration?.ceramic?.seed);
+  const [ceramicNode, setCeramicNode] = useState(
+    settings?.configuration?.ceramic?.node
+  );
+  const [ceramicSeed, setCeramicSeed] = useState(
+    settings?.configuration?.ceramic?.seed
+  );
   const [dbUser, setDbUser] = useState(settings?.configuration?.db?.user);
-  const [dbDatabase, setDbDatabase] = useState(settings?.configuration?.db?.database);
-  const [dbPassword, setDbPassword] = useState(settings?.configuration?.db?.password);
+  const [dbDatabase, setDbDatabase] = useState(
+    settings?.configuration?.db?.database
+  );
+  const [dbPassword, setDbPassword] = useState(
+    settings?.configuration?.db?.password
+  );
   const [dbHost, setDbHost] = useState(settings?.configuration?.db?.host);
   const [dbPort, setDbPort] = useState(settings?.configuration?.db?.port);
-  const [adminAccount, setAdminAccount] = useState(settings?.configuration?.admins?.[0] || null);
+  const [adminAccount, setAdminAccount] = useState(
+    settings?.configuration?.admins?.[0] || null
+  );
   const [step, setStep] = useState(1);
   const [presets, setPresets] = useState([]);
 
   useEffect(() => {
     // Check if a local node exists only if there isn't already one saved in settings
-    if(!settings?.configuration?.ceramic?.node) {
+    if (!settings?.configuration?.ceramic?.node) {
       hasLocalNode();
     }
-    
+
     async function hasLocalNode() {
       let isValid = await checkLocalCeramicNode();
-      if(isValid) {
+      if (isValid) {
         setCeramicNode("http://localhost:7007/");
         setHasLocalNode(true);
       }
     }
-  }, [])
+  }, []);
 
   async function checkLocalCeramicNode() {
     let isValid;
     try {
-      let response = await fetch("/api/local-ceramic-node");
-      let res = await response.json();
+      const response = await fetch("/api/ceramic/local/status");
+      const res = await response.json();
       console.log("checkLocalCeramicNode res:", res);
 
-      if(res.status == 200) {
+      if (response.status == 200) {
         isValid = true;
       } else {
         isValid = false;
       }
-      
-    } catch(e) {
+    } catch (e) {
       console.log("Couldn't connect to Ceramic node.");
       isValid = false;
     }
@@ -66,29 +84,33 @@ export function ConfigurationSetup({showPresets}) {
     return isValid;
   }
 
-   // Check if the last character of the node URL is a "/", add it if it's not
+  // Check if the last character of the node URL is a "/", add it if it's not
   function cleanCeramicNode(node) {
-    if (node.charAt(node.length - 1) !== '/') {
-      node += '/'; // Add a "/" to the end of the URL
+    if (node.charAt(node.length - 1) !== "/") {
+      node += "/"; // Add a "/" to the end of the URL
     }
     return node;
   }
 
   async function goStep2() {
-    if((!ceramicNode || ceramicNode == "") || (!ceramicSeed || ceramicSeed == "")) {
+    if (
+      !ceramicNode ||
+      ceramicNode == "" ||
+      !ceramicSeed ||
+      ceramicSeed == ""
+    ) {
       alert("The node URL and Ceramic seed are required.");
       return;
-    } 
+    }
     setStatus(STATUS.ACTIVE);
     setStep(2);
   }
 
   async function goStep3() {
-    console.log("In goStep3, showPresets:", showPresets);
     if((!dbDatabase || dbDatabase == "") || (!dbUser || dbUser == "") || (!dbPassword || dbPassword == "")) {
       alert("The database credentials are required.");
       return;
-    } 
+    }
     setStatus(STATUS.ACTIVE);
     if(showPresets) {
       setStep(3);
@@ -99,17 +121,17 @@ export function ConfigurationSetup({showPresets}) {
 
   async function saveSettings() {
     console.log("Enter saveSettings()");
-    if((!adminAccount || adminAccount == "")) {
+    if (!adminAccount || adminAccount == "") {
       alert("Having at least one admin is required.");
       return;
     }
     setStatus(STATUS.LOADING);
     try {
-      let response = await fetch('/api/settings/update-configuration', {
-        method: 'POST',
+      const rawResponse = await fetch("/api/settings", {
+        method: "PATCH",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${sessionJwt}`
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${sessionJwt}`,
         },
         body: JSON.stringify({
           slot: adminSession,
@@ -117,7 +139,7 @@ export function ConfigurationSetup({showPresets}) {
             admins: [adminAccount.toLowerCase()],
             ceramic: {
               node: cleanCeramicNode(ceramicNode),
-              seed: ceramicSeed
+              seed: ceramicSeed,
             },
             db: {
               user: dbUser,
@@ -126,16 +148,15 @@ export function ConfigurationSetup({showPresets}) {
               host: dbHost,
               port: parseInt(dbPort)
             }
-          },
-          presets: presets
+          }
         })
       });
 
-      response = await response.json();
+      const response = await rawResponse.json();
       console.log("Configuration saved:", response);
 
       if(response.status == 200) {
-        console.log("Success updating configuration with:", response.updatedSettings);
+        console.log("Success updating configutation with:", response.updatedSettings);
         setStatus(STATUS.SUCCESS);
         setSettings(response.updatedSettings);
         setIsConfigured(true);
@@ -147,7 +168,7 @@ export function ConfigurationSetup({showPresets}) {
         await sleep(1500);
         setStatus(STATUS.ACTIVE);
       }
-    } catch(e) {
+    } catch (e) {
       setStatus(STATUS.ERROR);
       await sleep(1500);
       setStatus(STATUS.ACTIVE);
@@ -167,20 +188,20 @@ export function ConfigurationSetup({showPresets}) {
   async function connectMM() {
     setStatusConnect(STATUS.LOADING);
     let adminOrbisDB = new OrbisDB({
-        ceramic: {
-            gateway: settings?.configuration?.ceramic?.node,
+      ceramic: {
+        gateway: settings?.configuration?.ceramic?.node,
+      },
+      nodes: [
+        {
+          gateway: "http://localhost:7008",
+          key: "<YOUR_API_KEY>",
         },
-        nodes: [
-          {
-              gateway: "http://localhost:7008",
-              key: "<YOUR_API_KEY>",
-          },
-        ],
+      ],
     });
     const auth = new OrbisEVMAuth(window.ethereum);
     const result = await adminOrbisDB.connectUser({ auth, saveSession: false });
     localStorage.setItem("orbisdb-admin-session", result.session.session);
-    if(result?.user) {
+    if (result?.user) {
       setAdminAccount(result.user.did);
       setIsAdmin(true);
       setSessionJwt(result.session.session);
@@ -188,10 +209,10 @@ export function ConfigurationSetup({showPresets}) {
     setStatusConnect(STATUS.SUCCESS);
   }
 
-  return(
+  return (
     <>
         {/** Stepper to show progress */}
-        <StepsProgress steps={showPresets ? ["Ceramic Settings", "Database", "Presets", "Admins"] : ["Ceramic Settings", "Database", "Presets", "Admins"] } currentStep={step} />
+        <StepsProgress steps={["Ceramic Settings", "Database", "Admins"]} currentStep={step} />
         
         {/** Step 1: Ceramic node */}
         {step == 1 &&
@@ -204,18 +225,34 @@ export function ConfigurationSetup({showPresets}) {
               }
             </div>
 
-            <div className="mt-3">
-              <label className="text-base font-medium mb-2">Ceramic Seed:</label>
-              <p className="text-sm mb-2 text-slate-500">This seed will be used to create streams from the OrbisDB UI as well as by plugins creating streams. You can also <span className="hover:underline text-blue-600 cursor-pointer" onClick={() => generateSeed()}>generate a new one</span>. Make sure to back it up somewhere.</p>
-              <textarea type="text" placeholder="Your Ceramic admin seed" className="bg-white w-full px-2 py-1 rounded-md border border-slate-300 text-base text-slate-900 mb-1.5" onChange={(e) => setCeramicSeed(e.target.value)} value={ceramicSeed} />
-            </div>
-            
-            {/** CTA to save updated context */}
-            <div className="flex w-full justify-center mt-2">
-              <Button title="Next" onClick={() => goStep2()} />
-            </div>
-          </>
-        }
+          <div className="mt-3">
+            <label className="text-base font-medium mb-2">Ceramic Seed:</label>
+            <p className="text-sm mb-2 text-slate-500">
+              This seed will be used to create streams from the OrbisDB UI as
+              well as by plugins creating streams. You can also{" "}
+              <span
+                className="hover:underline text-blue-600 cursor-pointer"
+                onClick={() => generateSeed()}
+              >
+                generate a new one
+              </span>
+              . Make sure to back it up somewhere.
+            </p>
+            <textarea
+              type="text"
+              placeholder="Your Ceramic admin seed"
+              className="bg-white w-full px-2 py-1 rounded-md border border-slate-300 text-base text-slate-900 mb-1.5"
+              onChange={(e) => setCeramicSeed(e.target.value)}
+              value={ceramicSeed}
+            />
+          </div>
+
+          {/** CTA to save updated context */}
+          <div className="flex w-full justify-center mt-2">
+            <Button title="Next" onClick={() => goStep2()} />
+          </div>
+        </>
+      )}
 
         {/** Step 2: Database configuration */}
         {step == 2 &&
@@ -236,14 +273,9 @@ export function ConfigurationSetup({showPresets}) {
             </div>
           </>
         }
-
-        {/** Step 3: Enable presets */}
-        {step == 3 &&
-          <ConfigurationPreset presets={presets} setPresets={setPresets} status={status} save={() => setStep(4)} />
-        }
         
-        {/** Step 4: Add admins */}
-        {step == 4 &&
+        {/** Step 3: Add admins */}
+        {step == 3 &&
           <>
             <div className="mt-2">
               <label className="text-base font-medium text-center">Add your OrbisDB admin:</label>
@@ -263,5 +295,5 @@ export function ConfigurationSetup({showPresets}) {
           </>
         }
     </>
-  )
+  );
 }

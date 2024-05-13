@@ -1,74 +1,80 @@
 {
-    "id": "chat-gpt",
-    "name": "Chat GPT",
-    "logo": "/img/chat-gpt-logo.png",
-    "description": "A plugin to query OpenAI's Chat GPT API in order to enhance existing streams or create new ones.",
-    "hooks": ["add_metadata", "update"],
-    "routes": ["chat"],
-    "visible": false,
-    "variables": [
-      {
-        "name": "Organization ID",
-        "description": "The organization ID for OpenAI.",
-        "id": "organization_id"
-      },
-      {
-        "name": "Secret Key",
-        "description": "The secret key for OpenAI.",
-        "id": "secret_key"
-      },
-      {
-        "name": "Action",
-        "description": "Which action should the plugin perform?",
-        "id": "action",
-        "type": "select",
-        "options": [{"value": "add_metadata", "label": "Add metadata to a stream"}, {"value": "generate", "label": "Create new streams"}],
-        "per_context": true
-      },
-      {
-        "name": "Interval",
-        "description": "Interval in seconds to perform the OpenAI call.",
-        "id": "secs_interval",
-        "type": "integer",
-        "conditions": [{"id": "action", "value": "generate"}],
-        "per_context": true
-      },
-      {
-        "name": "Model",
-        "type": "model",
-        "description": "The model used by the streams created by the plugin. It must fit the results returned by the OpenAI API.",
-        "id": "model_id",
-        "per_context": true
-      },
-      {
-        "name": "Prompt",
-        "description": "The question to ask the AI. You can use your stream's variables by using ${<FIELD>} in the prompt.",
-        "type": "textarea",
-        "id": "prompt",
-        "per_context": true
-      },
-      {
-        "name": "Result is a JSON Object",
-        "description": "Should the OpenAI response be returned as a JSON Object? If yes your prompt MUST include the word JSON.",
-        "id": "is_json",
-        "type": "select",
-        "options": [{"value": "no", "label": "No"}, {"value": "yes", "label": "Yes"}],
-        "per_context": true
-      },
-      {
-        "name": "Field",
-        "description": "The field that will be updated in your content object.",
-        "id": "field",
-        "conditions": [{"id": "action", "value": "update"}],
-        "per_context": true
-      },
-      {
-        "name": "Query (optional)",
-        "description": "You can perform dynamic query to pass additional data to your prompt by querying your OrbisDB instance. Results can be used in the prompt with ${query.results}.",
-        "id": "query",
-        "conditions": [{"id": "action", "value": "generate"}],
-        "type": "query",
-        "per_context": true
-      }
-    ]
-  }
+  "id": "chat-gpt",
+  "name": "Chat GPT",
+  "logo": "/img/chat-gpt-logo.png",
+  "description": "A plugin to query OpenAI's Chat GPT API in order to enhance existing streams or create new ones.",
+  "hooks": ["add_metadata", "update"],
+  "routes": ["chat"],
+  "visible": false,
+  "variables": [
+    {
+      "name": "Organization ID",
+      "description": "The organization ID for OpenAI.",
+      "id": "organization_id"
+    },
+    {
+      "name": "Secret Key",
+      "description": "The secret key for OpenAI.",
+      "id": "secret_key"
+    },
+    {
+      "name": "Action",
+      "description": "Which action should the plugin perform?",
+      "id": "action",
+      "type": "select",
+      "options": [
+        { "value": "add_metadata", "label": "Add metadata to a stream" },
+        { "value": "generate", "label": "Create new streams" }
+      ],
+      "per_context": true
+    },
+    {
+      "name": "Interval",
+      "description": "Interval in seconds to perform the OpenAI call.",
+      "id": "secs_interval",
+      "type": "integer",
+      "conditions": [{ "id": "action", "value": "generate" }],
+      "per_context": true
+    },
+    {
+      "name": "Model",
+      "type": "model",
+      "description": "The model used by the streams created by the plugin. It must fit the results returned by the OpenAI API.",
+      "id": "model_id",
+      "per_context": true
+    },
+    {
+      "name": "Prompt",
+      "description": "The question to ask the AI. You can use your stream's variables by using ${<FIELD>} in the prompt.",
+      "type": "textarea",
+      "id": "prompt",
+      "per_context": true
+    },
+    {
+      "name": "Result is a JSON Object",
+      "description": "Should the OpenAI response be returned as a JSON Object? If yes your prompt MUST include the word JSON.",
+      "id": "is_json",
+      "type": "select",
+      "options": [
+        { "value": "no", "label": "No" },
+        { "value": "yes", "label": "Yes" }
+      ],
+      "per_context": true
+    },
+    {
+      "name": "Field",
+      "description": "The field that will be updated in your content object.",
+      "id": "field",
+      "conditions": [{ "id": "action", "value": "update" }],
+      "per_context": true
+    },
+    {
+      "name": "Query (optional)",
+      "description": "You can perform dynamic query to pass additional data to your prompt by querying your OrbisDB instance. Results can be used in the prompt with ${query.results}.",
+      "id": "query",
+      "conditions": [{ "id": "action", "value": "generate" }],
+      "type": "query",
+      "per_context": true
+    }
+  ]
+}

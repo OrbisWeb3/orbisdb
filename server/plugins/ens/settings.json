@@ -17,7 +17,10 @@
       "description": "Which action should the plugin perform?",
       "id": "action",
       "type": "select",
-      "options": [{"value": "name_to_address", "label": "Name to Address"}, {"value": "address_to_name", "label": "Address to Name"}],
+      "options": [
+        { "value": "name_to_address", "label": "Name to Address" },
+        { "value": "address_to_name", "label": "Address to Name" }
+      ],
       "per_context": true
     },
     {
