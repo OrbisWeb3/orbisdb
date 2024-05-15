@@ -488,7 +488,7 @@ const TableData = ({ sqlResult, showSuccessIfEmpty }) => {
   };
 
   // Generate table headers
-  const headers = getHeaders(sqlResult?.data);
+  const headers = getHeaders(sqlResult);
 
   // Function to check if the item is an object or an array
   const isObjectOrArray = (item) => {
@@ -541,36 +541,32 @@ const TableData = ({ sqlResult, showSuccessIfEmpty }) => {
         </thead>
         <tbody>
           {sqlResult?.data?.length > 0 ?
-            <>
-              {sqlResult?.data.map((item, rowIndex) => (
-                <tr key={rowIndex}>
-                  {headers.map((header, columnIndex) => {
-                    const cellValue = item[header];
-                    const displayValue = isObjectOrArray(cellValue)
-                      ? JSON.stringify(cellValue)
-                      : cellValue;
-                    return (
-                      <td
-                        className="hover:bg-slate-50 cursor-pointer"
-                        onClick={() => copyToClipboard(displayValue)}
-                        key={columnIndex}
-                      >
-                        {displayValue}
-                      </td>
-                    );
-                  })}
-                </tr>
-              ))}
-            </>
+            sqlResult.data.map((item, rowIndex) => (
+              <tr key={rowIndex}>
+                {headers.map((header, columnIndex) => {
+                  const cellValue = item[header];
+                  const displayValue = isObjectOrArray(cellValue)
+                    ? JSON.stringify(cellValue)
+                    : cellValue;
+                  return (
+                    <td
+                      className="hover:bg-slate-50 cursor-pointer"
+                      onClick={() => copyToClipboard(displayValue)}
+                      key={columnIndex}
+                    >
+                      {displayValue}
+                    </td>
+                  );
+                })}
+              </tr>
+            ))
           :
-            <div className="pt-4 w-full justify-center items-start flex border-t border-slate-200">
-              <Alert
-                title={"There isn't any data in this table."}
-                className="font-mono text-[12px]"
-              />
-            </div>
-          }
-          
+          <div className="pt-4 w-full justify-center items-start flex border-t border-slate-200">
+            <Alert
+              title={"There isn't any data in this table."}
+              className="font-mono text-[12px]"
+            />
+          </div>}
         </tbody>
       </table>
     </>
