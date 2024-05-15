@@ -118,7 +118,6 @@ export async function loadAndInitPlugins() {
     }
   }
 
-  logger.debug("loadedPlugins:", loadedPlugins);
   return loadedPlugins;
 }
 

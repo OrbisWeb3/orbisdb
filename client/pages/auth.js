@@ -11,8 +11,6 @@ import { OrbisDBLogo } from "../components/Icons";
 export default function Auth() {
   const {
     settings,
-    setIsAdmin,
-    setSessionJwt,
     isAdmin,
     getAdmin,
     init,

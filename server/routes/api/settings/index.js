@@ -6,6 +6,7 @@ import {
   restartIndexingService,
   updateOrbisDBSettings,
 } from "../../../utils/helpers.js";
+import { enablePreset } from "../../../presets/config.js";
 
 /** Prefixed with /api/settings/ */
 export default async function (server, opts) {
@@ -15,8 +16,6 @@ export default async function (server, opts) {
 
     // Returns OrbisDB settings
     server.get("/", async (req, res) => {
-      logger.debug("adminDid for /api/settings/get request:", req.adminDid);
-
       try {
         const settings = getOrbisDBSettings(req.adminDid);
 
@@ -90,7 +89,7 @@ export default async function (server, opts) {
 
     server.patch("/:slot?", async (req, res) => {
       const { slot } = req.params;
-      const { configuration } = req.body;
+      const { configuration, presets } = req.body;
 
       if (slot && slot !== req.adminDid) {
         return res.unauthorized(
@@ -99,6 +98,7 @@ export default async function (server, opts) {
       }
 
       logger.debug("Trying to save:", configuration);
+      logger.debug("Trying to enable presets:", presets);
 
       try {
         // Retrieve current settings
@@ -113,6 +113,12 @@ export default async function (server, opts) {
 
         // Restart indexing service
         await restartIndexingService();
+
+        // If user enabled some presets we run those
+        if(presets && presets.length > 0) {
+          await Promise.all(presets.map(preset => enablePreset(preset, slot)));
+          console.log("Presets enabled:", presets);
+        }
 
         // Send the response
         return {
@@ -134,9 +140,9 @@ export default async function (server, opts) {
     try {
       const globalSettings = getOrbisDBSettings();
       if (globalSettings.is_shared) {
-        if (!(slot in (globalSettings.slots || {}))) {
+        /*if (!(slot in (globalSettings.slots || {}))) {
           return res.notFound(`Slot ${slot} not found.`);
-        }
+        }*/
 
         // (slot === adminDid for the slot)
         return {

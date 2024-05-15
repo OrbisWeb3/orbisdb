@@ -30,9 +30,13 @@ code {
 }
 .text-xs {
   font-size: 0.825rem !important;
+  line-height: 1.17rem  !important;
 }
 .text-xxs {
   font-size: 0.75rem !important;
+}
+.text-xxxs {
+  font-size: 0.70rem !important;
 }
 
 /** Data table custom CSS */

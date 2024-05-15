@@ -62,12 +62,10 @@ export default class HookHandler {
 
     // Determine if the hook is contextualized and get the relevant contextId.
     const isContextualized = hookOpts.isContextualized;
-    console.log("hookOpts:", hookOpts);
     let handlers;
 
     if (isContextualized) {
       // Retrieve handlers specific to the context if the hook is contextualized.
-      console.log("this.hooks[hookName][global]:", this.hooks[hookName]["global"]);
       if (!this.hooks[hookName] || (!this.hooks[hookName][contextId] && !this.hooks[hookName]["global"])) {
         console.warn(`No handlers found for contextualized hook ${hookName}`);
         return data;

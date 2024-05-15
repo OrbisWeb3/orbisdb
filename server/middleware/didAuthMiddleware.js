@@ -52,7 +52,6 @@ export const adminDidAuthMiddleware = async (req, res) => {
     let _isAdminsEmpty;
     let resAdminSession = await DIDSession.fromSession(token, null);
     let didId = resAdminSession.did.parent;
-    logger.debug("didId extracted from header middleware is:", didId);
 
     /** Perform different verification logic for shared instances and non-shared ones */
     if (globalSettings.is_shared) {
@@ -74,6 +73,7 @@ export const adminDidAuthMiddleware = async (req, res) => {
       );
       return;
     } else {
+      logger.error("This account isn't an admin: " + didId);
       return res.unauthorized("This account isn't an admin.");
     }
   } catch (e) {

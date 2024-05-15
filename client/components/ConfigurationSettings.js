@@ -6,7 +6,6 @@ import Button from "./Button";
 import { CheckIcon, SocialIcon } from "./Icons";
 import { OrbisDB } from "@useorbis/db-sdk";
 import { OrbisEVMAuth } from "@useorbis/db-sdk/auth";
-import ConfigurationPreset from "./ConfigurationPreset";
 
 export default function ConfigurationSettings({showPresets}) {
     return(
@@ -225,34 +224,34 @@ export function ConfigurationSetup({showPresets}) {
               }
             </div>
 
-          <div className="mt-3">
-            <label className="text-base font-medium mb-2">Ceramic Seed:</label>
-            <p className="text-sm mb-2 text-slate-500">
-              This seed will be used to create streams from the OrbisDB UI as
-              well as by plugins creating streams. You can also{" "}
-              <span
-                className="hover:underline text-blue-600 cursor-pointer"
-                onClick={() => generateSeed()}
-              >
-                generate a new one
-              </span>
-              . Make sure to back it up somewhere.
-            </p>
-            <textarea
-              type="text"
-              placeholder="Your Ceramic admin seed"
-              className="bg-white w-full px-2 py-1 rounded-md border border-slate-300 text-base text-slate-900 mb-1.5"
-              onChange={(e) => setCeramicSeed(e.target.value)}
-              value={ceramicSeed}
-            />
-          </div>
+            <div className="mt-3">
+              <label className="text-base font-medium mb-2">Ceramic Seed:</label>
+              <p className="text-sm mb-2 text-slate-500">
+                This seed will be used to create streams from the OrbisDB UI as
+                well as by plugins creating streams. You can also{" "}
+                <span
+                  className="hover:underline text-blue-600 cursor-pointer"
+                  onClick={() => generateSeed()}
+                >
+                  generate a new one
+                </span>
+                . Make sure to back it up somewhere.
+              </p>
+              <textarea
+                type="text"
+                placeholder="Your Ceramic admin seed"
+                className="bg-white w-full px-2 py-1 rounded-md border border-slate-300 text-base text-slate-900 mb-1.5"
+                onChange={(e) => setCeramicSeed(e.target.value)}
+                value={ceramicSeed}
+              />
+            </div>
 
-          {/** CTA to save updated context */}
-          <div className="flex w-full justify-center mt-2">
-            <Button title="Next" onClick={() => goStep2()} />
-          </div>
-        </>
-      )}
+            {/** CTA to save updated context */}
+            <div className="flex w-full justify-center mt-2">
+              <Button title="Next" onClick={() => goStep2()} />
+            </div>
+          </>
+        }
 
         {/** Step 2: Database configuration */}
         {step == 2 &&

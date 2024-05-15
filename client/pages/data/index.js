@@ -112,10 +112,10 @@ export default function Data() {
         body: JSON.stringify(requestBody),
       });
       const result = await rawResponse.json();
-      console.log("data:", result);
+      console.log("data in loadData():", result);
       if (rawResponse.status == 200) {
         setLoading(false);
-        setData(result.data);
+        setData(result);
         setCountTotalResults(result.totalCount); // Assuming you have a state to hold the total count
         setTitle(result.title);
       } else {
@@ -129,7 +129,7 @@ export default function Data() {
   function resetResults(e) {
     console.log("Error retrieving data:", e);
     setLoading(false);
-    setData([]);
+    setData({data: [], columns: []});
     setCountTotalResults(0);
     setTitle(null);
   }
@@ -247,7 +247,7 @@ const Content = (props) => {
       return (
         <>
           <TableCTAs {...props} />
-          <TableData {...props} sqlResult={{ data: props?.data }} />
+          <TableData {...props} sqlResult={{ columns: props?.data?.columns, data: props?.data?.data }} />
         </>
       );
   }
@@ -479,11 +479,12 @@ const SqlEditor = (props) => {
 };
 
 const TableData = ({ sqlResult, showSuccessIfEmpty }) => {
-  console.log("sqlResult:", sqlResult);
-  // Function to extract headers (keys) from the first item in the data array
+  console.log("sqlResult in <TableData />:", sqlResult);
+
+  // Function to extract headers (keys) from the columns in the data object
   const getHeaders = (data) => {
-    if (!data || data.length === 0) return [];
-    return Object.keys(data[0]);
+    if (!data || !data.columns || data.columns.length === 0) return [];
+    return data.columns.map(column => column.name);
   };
 
   // Generate table headers
@@ -495,7 +496,7 @@ const TableData = ({ sqlResult, showSuccessIfEmpty }) => {
   };
 
   // Display empty state if no results available
-  if (sqlResult?.data && sqlResult?.data.length == 0) {
+  if (sqlResult?.data && sqlResult?.data.length === 0) {
     // Show success state if no results are returned (useful after an SQL editor query)
     if (showSuccessIfEmpty) {
       if (sqlResult.error) {
@@ -520,18 +521,6 @@ const TableData = ({ sqlResult, showSuccessIfEmpty }) => {
         );
       }
     }
-
-    // Show empty state if no success are returned
-    else {
-      return (
-        <div className="pt-4 w-full justify-center items-start flex border-t border-slate-200">
-          <Alert
-            title={"There isn't any data in this table."}
-            className="font-mono text-[12px]"
-          />
-        </div>
-      );
-    }
   }
 
   // Display results table with data
@@ -551,25 +540,37 @@ const TableData = ({ sqlResult, showSuccessIfEmpty }) => {
           </tr>
         </thead>
         <tbody>
-          {sqlResult?.data.map((item, rowIndex) => (
-            <tr key={rowIndex}>
-              {headers.map((header, columnIndex) => {
-                const cellValue = item[header];
-                const displayValue = isObjectOrArray(cellValue)
-                  ? JSON.stringify(cellValue)
-                  : cellValue;
-                return (
-                  <td
-                    className="hover:bg-slate-50 cursor-pointer"
-                    onClick={() => copyToClipboard(displayValue)}
-                    key={columnIndex}
-                  >
-                    {displayValue}
-                  </td>
-                );
-              })}
-            </tr>
-          ))}
+          {sqlResult?.data?.length > 0 ?
+            <>
+              {sqlResult?.data.map((item, rowIndex) => (
+                <tr key={rowIndex}>
+                  {headers.map((header, columnIndex) => {
+                    const cellValue = item[header];
+                    const displayValue = isObjectOrArray(cellValue)
+                      ? JSON.stringify(cellValue)
+                      : cellValue;
+                    return (
+                      <td
+                        className="hover:bg-slate-50 cursor-pointer"
+                        onClick={() => copyToClipboard(displayValue)}
+                        key={columnIndex}
+                      >
+                        {displayValue}
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </>
+          :
+            <div className="pt-4 w-full justify-center items-start flex border-t border-slate-200">
+              <Alert
+                title={"There isn't any data in this table."}
+                className="font-mono text-[12px]"
+              />
+            </div>
+          }
+          
         </tbody>
       </table>
     </>

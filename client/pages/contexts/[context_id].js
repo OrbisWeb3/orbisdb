@@ -26,6 +26,7 @@ import {
   ExternalLinkIcon,
   LoadingCircle,
 } from "../../components/Icons";
+import RightSideContainer from "../../components/RightSideContainer";
 
 export default function ContextDetails() {
   const { settings } = useGlobal();
@@ -76,9 +77,9 @@ export default function ContextDetails() {
 
   return (
     <>
-      <div className="flex flex-row space-x-8">
+      <div className="flex flex-row space-x-8 px-16 py-12">
         {/** Context details */}
-        <div className="flex px-16 py-12 md:w-2/3 flex-col">
+        <div className="flex md:w-2/3 flex-col">
           {/** Context details */}
           {parentContext && <Breadcrumbs context_id={context_id} />}
           <div className="flex flex-row items-center">
@@ -155,10 +156,7 @@ export default function ContextDetails() {
           {nav == "Sub-contexts" && (
             <div className="w-full bg-white border border-slate-200 rounded-md px-6 py-6 mt-5 flex flex-col">
               <h2 className="text-lg font-bold text-slate-900">Sub-contexts</h2>
-              <p className="text-base text-slate-600">
-                Create sub-contexts to have a more granular way to manage data
-                in your application.
-              </p>
+              <p className="text-base text-slate-600">Create sub-contexts to manage your data more granularly within your application.</p>
               <div className="flex flex-col mt-3 space-y-2">
                 {context.contexts && context.contexts.length > 0 ? (
                   <Contexts contexts={context.contexts} />
@@ -244,6 +242,9 @@ export default function ContextDetails() {
             </div>
           )}
         </div>
+
+        {/** Show RightSide */}
+        <RightSideContainer showContexts={true} />
       </div>
 
       {/** Will display the add context modal */}

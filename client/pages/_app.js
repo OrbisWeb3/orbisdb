@@ -13,6 +13,17 @@ import Button from "../components/Button";
 import { STATUS } from "../utils";
 import { OrbisDBLogo } from "../components/Icons";
 import ConfigurationPreset from "../components/ConfigurationPreset";
+import TimeAgo from 'javascript-time-ago'
+import en from 'javascript-time-ago/locale/en'
+
+// Customize the locale
+en.long.minute = {
+  current: "now",
+  future: {one: '{0} min.', other: '{0} mins.'},
+  past: {one: '{0} min. ago', other: '{0} mins. ago'}
+}
+
+TimeAgo.addDefaultLocale(en)
 
 export default function App({ Component, pageProps }) {
   return (
@@ -241,18 +252,19 @@ const ConfigurationSharedSetup = () => {
           </span>
         )}
 
-        {isShared && (
-          <Alert
-            className="text-xs mt-1 mb-3"
-            title={
-              <>
-                <b>Note:</b> This will create your own slot in this OrbisDB
-                instance which will give you the ability to write and query data
-                from Ceramic easily.
-              </>
-            }
-          />
-        )}
+        {/** Display presets available */}
+        <ConfigurationPreset presets={presets} setPresets={setPresets} />
+
+        <Alert
+          className="text-xs mt-1 mb-3"
+          title={
+            <>
+              <b>Note:</b> This will create your own slot in this OrbisDB
+              instance which will give you the ability to write and query data
+              from Ceramic easily.
+            </>
+          }
+        />
         <Button
           onClick={() => configure()}
           title="Configure instance"

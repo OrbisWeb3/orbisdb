@@ -2,17 +2,6 @@ import { ModelAccountRelation } from "@ceramicnetwork/stream-model";
 import { cliColors } from "../utils/cliColors.js";
 import { OrbisDB } from "@useorbis/db-sdk";
 import { OrbisKeyDidAuth } from "@useorbis/db-sdk/auth";
-
-/** Import Orbis SDK */
-import { CeramicClient } from "@ceramicnetwork/http-client";
-import { Model } from "@ceramicnetwork/stream-model";
-import { ModelInstanceDocument } from "@ceramicnetwork/stream-model-instance";
-import { StreamID } from "@ceramicnetwork/streamid";
-
-/** To generate dids from a Seed */
-import { DID } from "dids";
-import { Ed25519Provider } from "key-did-provider-ed25519";
-import { getResolver } from "key-did-resolver";
 import logger from "../logger/index.js";
 
 export default class Ceramic {
@@ -78,12 +67,12 @@ export default class Ceramic {
     }
 
     /** Create social models 
-        try {
-            let model = await this.orbisdb.ceramic.createModel(discoursePostsModelDefinition);
-            console.log("model:", model); 
-        } catch(e) {
-            console.log(cliColors.text.red, "Error creating model:", cliColors.reset, e);
-        }*/
+    try {
+        let model = await this.orbisdb.ceramic.createModel(discoursePostsModelDefinition);
+        console.log("model:", model); 
+    } catch(e) {
+        console.log(cliColors.text.red, "Error creating model:", cliColors.reset, e);
+    }*/
   }
 }
 

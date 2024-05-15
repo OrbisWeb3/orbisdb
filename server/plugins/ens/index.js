@@ -1,6 +1,7 @@
 import { ethers } from "ethers";
 import logger from "../../logger/index.js";
 
+
 export default class ENSPlugin {
   /**
    * This will initialize all of the hooks used by this plugin.
@@ -11,50 +12,56 @@ export default class ENSPlugin {
 
     return {
       HOOKS: {
-        add_metadata: (stream) => this.add_metadata(stream),
-      },
+        "add_metadata": (stream) => this.add_metadata(stream),
+      }
     };
   }
 
   async add_metadata(stream) {
-    logger.debug("In add_metadata stream:", stream);
-    logger.debug("In add_metadata field:", this.field);
-    let field;
+    logger.debug("In add_metadata this.only_model:", this.only_model);
+    logger.debug("In add_metadata this.model:", this.model_id);
+    logger.debug("In add_metadata stream.model:", stream.model);
 
-    /** Will convert the field to the actual value and make an exception for controller to use the address instead of the full did */
-    if (this.field == "controller") {
-      let { address } = getAddressFromDid(stream.controller);
-      field = address;
-    } else {
-      field = this.getValueByPath(stream, this.field);
-    }
+    if(this.only_model == "no" || (this.only_model == "yes" && stream.model == this.model_id)) {
+      let field;
 
-    logger.debug("field:", field);
-    if (field) {
-      switch (this.action) {
-        // Will converrt an ENS name to an address
-        case "name_to_address":
-          const address = await this.getAddress(field);
-          logger.debug("address is: ", address);
-          return {
-            address: address,
-          };
-
-        // Will convert an address to an ENS name
-        case "address_to_name":
-          const ensName = await this.getName(field);
-          logger.debug("ensName is: ", ensName);
-          return {
-            ensName: ensName,
-          };
-        default:
-          return null;
+      /** Will convert the field to the actual value and make an exception for controller to use the address instead of the full did */
+      if(this.field == "controller") {
+        let { address } = getAddressFromDid(stream.controller);
+        field = address;
+      } else {
+        field = this.getValueByPath(stream, this.field);
+      }
+      
+      logger.debug("field:", field)
+      if(field) {
+        switch(this.action) {
+          // Will converrt an ENS name to an address
+          case "name_to_address":
+            const address = await this.getAddress(field);
+            logger.debug("address is: ", address );
+            return {
+              address: address
+            };
+          
+            // Will convert an address to an ENS name
+          case "address_to_name":
+            const ensName = await this.getName(field);
+            logger.debug("ensName is: ", ensName);
+            return {
+              ensName: ensName
+            };
+          default :
+            return null;
+        }
+      } else {
+        return {
+          error: "Couldn't retrieve the correct field with " + this.field
+        };
       }
     } else {
-      return {
-        error: "Couldn't retrieve the correct field with " + this.field,
-      };
-    }
+      logger.debug("ENS Plugin shouldn't be used on this model.");
+    }    
   }
 
   /** Will convert an ens name into an address */
@@ -63,8 +70,8 @@ export default class ENSPlugin {
       const ensName = await this.provider.lookupAddress(address);
       logger.debug("ensName is: ", ensName);
       return ensName;
-    } catch (e) {
-      logger.error("Error retrieving ens name:", e);
+    } catch(e) {
+      logger.debug("Error retrieving ens name:", e);
       return null;
     }
   }
@@ -75,8 +82,8 @@ export default class ENSPlugin {
       const address = await this.provider.resolveName(ensName);
       logger.debug("address is: ", address);
       return address;
-    } catch (e) {
-      logger.error("Error retrieving address:", e);
+    } catch(e) {
+      logger.debug("Error retrieving address:", e);
       return null;
     }
   }
@@ -84,27 +91,28 @@ export default class ENSPlugin {
   /** This will convert the path entered by the user into the actual stream key value */
   getValueByPath(obj, path) {
     // Split the path by '.' to get individual keys
-    const keys = path.split(".");
+    const keys = path.split('.');
     // Reduce the keys to access the nested property
     const result = keys.reduce((currentObject, key) => {
-      // Check if the current level is valid to avoid errors
-      if (currentObject && currentObject.hasOwnProperty(key)) {
-        return currentObject[key];
-      }
-      // Return undefined or any fallback value if the path is invalid
-      return undefined;
+        // Check if the current level is valid to avoid errors
+        if (currentObject && currentObject.hasOwnProperty(key)) {
+            return currentObject[key];
+        }
+        // Return undefined or any fallback value if the path is invalid
+        return undefined;
     }, obj);
     return result;
   }
+  
 }
 
 /** Returns a JSON object with the address and network based on the did */
 function getAddressFromDid(did) {
-  if (did) {
+  if(did) {
     let didParts = did.split(":");
-    if (did.substring(0, 7) == "did:pkh") {
+    if(did.substring(0, 7) == "did:pkh") {
       /** Explode address to retrieve did */
-      if (didParts.length >= 4) {
+      if(didParts.length >= 4) {
         let address = didParts[4];
         let network = didParts[2];
         let chain = didParts[2] + ":" + didParts[3];
@@ -113,37 +121,37 @@ function getAddressFromDid(did) {
         return {
           address: address,
           network: network,
-          chain: chain,
-        };
+          chain: chain
+        }
       } else {
         /** Return null object */
         return {
           address: null,
           network: null,
-          chain: null,
-        };
+          chain: null
+        }
       }
-    } else if (did.substring(0, 7) == "did:key") {
+    } else if(did.substring(0, 7) == "did:key") {
       /** Return did object */
       return {
         address: didParts[3],
-        network: "key",
-        chain: "key",
-      };
+        network: 'key',
+        chain: 'key'
+      }
     } else {
       /** Return null object */
       return {
         address: null,
         network: null,
-        chain: null,
-      };
+        chain: null
+      }
     }
   } else {
     /** Return null object */
     return {
       address: null,
       network: null,
-      chain: null,
-    };
+      chain: null
+    }
   }
 }

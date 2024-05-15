@@ -1,4 +1,4 @@
-import { initSocialPreset } from "./social/index.mjs";
+import { initSocialPreset } from "./social/index.js";
 
 /** Will enable the selected preset */
 export async function enablePreset(type, slot) {

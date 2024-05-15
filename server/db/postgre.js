@@ -450,6 +450,8 @@ export default class Postgre {
         null
       );
     }
+
+    return true;
   }
 
   /**

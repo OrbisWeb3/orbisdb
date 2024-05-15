@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useGlobal } from "../../contexts/Global.js";
 import Button from "../../components/Button.js";
+import ReactTimeAgo from 'react-time-ago'
 
 export default function Logs() {
   const [logs, setLogs] = useState(false);
@@ -44,8 +45,13 @@ export default function Logs() {
       }
 
       const { level, logs } = await response.json();
-
+      const selectedLog = logs.find(log => log.level === 'debug');
+      
+      /** Display logs available in dropdown */
       setLogs(logs);
+
+      /** Sellect latest log */
+      viewLog(selectedLog.id);
     } catch (err) {
       setLogs({ error: err });
     }
@@ -134,32 +140,32 @@ export default function Logs() {
 
         {logData && (
           <div className="mt-4">
-            <table className="min-w-full divide-y-2 divide-gray-200 bg-white text-sm">
+            <table className="min-w-full divide-y divide-slate-300 text-sm">
               <thead className="ltr:text-left rtl:text-right">
                 <tr>
-                  <th className="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
+                  <th className="whitespace-nowrap py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-slate-900 sm:pl-3">
                     Type
                   </th>
-                  <th className="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
-                    Timestamp
-                  </th>
-                  <th className="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
+                  <th className="whitespace-nowrap py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-slate-900 sm:pl-3">
                     Message
+                  </th>
+                  <th className="whitespace-nowrap py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-slate-900 sm:pl-3">
+                    Timestamp
                   </th>
                 </tr>
               </thead>
 
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y divide-slate-200 bg-white">
                 {[...logData.logs].splice(0, 50).map((event, i) => (
                   <tr key={i + event.timestamp} className="odd:bg-gray-50">
-                    <td className="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
-                      {event.level.toUpperCase()}
+                    <td className="whitespace-nowrap px-4 py-2 font-semibold text-gray-900">
+                      <EventLevel level={event.level} />
                     </td>
-                    <td className="whitespace-nowrap px-4 py-2 text-gray-700">
-                      {event.timestamp}
-                    </td>
-                    <td className="whitespace-nowrap px-4 py-2 text-gray-700 text-wrap">
+                    <td className="whitespace-nowrap text-xs px-4 py-2 text-gray-900 text-wrap">
                       {event.message}
+                    </td>
+                    <td className="whitespace-nowrap text-xxs px-4 py-2 text-slate-500">
+                      <ReactTimeAgo date={event.timestamp} locale="en-US" />
                     </td>
                   </tr>
                 ))}
@@ -170,4 +176,30 @@ export default function Logs() {
       </div>
     </>
   );
+}
+
+const EventLevel = ({level}) => {
+  switch(level) {
+    case "debug":
+      return(
+        <span class="inline-flex items-center rounded-md bg-gray-50 px-2 py-1 text-xs font-medium text-gray-700 ring-1 ring-inset ring-gray-600/20">{level.toUpperCase()}</span>
+      );
+    case "success":
+      return(
+        <span class="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">{level.toUpperCase()}</span>
+      );
+    case "info":
+      return(
+        <span class="inline-flex items-center rounded-md bg-sky-50 px-2 py-1 text-xs font-medium text-sky-700 ring-1 ring-inset ring-sky-600/20">{level.toUpperCase()}</span>
+      );
+    case "error":
+      return(
+        <span class="inline-flex items-center rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/20">{level.toUpperCase()}</span>
+      );
+    default:
+      return(
+        <span class="inline-flex items-center rounded-md bg-amber-50 px-2 py-1 text-xs font-medium text-amber-700 ring-1 ring-inset ring-amber-600/20">{level.toUpperCase()}</span>
+      );
+  }
+  
 }

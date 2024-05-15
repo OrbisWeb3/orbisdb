@@ -427,6 +427,10 @@ export default class CSVUploaderPlugin {
       return parseFloat(value, 10);
     }
 
+    if (type.includes("array") || type.includes("object")) {
+      return JSON.parse(value);
+    }
+
     return value;
   }
 

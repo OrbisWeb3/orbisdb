@@ -127,7 +127,6 @@ export async function startIndexing() {
   let settings = getOrbisDBSettings();
   let globalDbConfig = settings?.configuration?.db;
   let globalCeramicConfig = settings?.configuration?.ceramic;
-  logger.debug("In startIndexing:", settings);
 
   // Initialize some objects
   let ceramics = {};
@@ -137,7 +136,7 @@ export async function startIndexing() {
 
   // Initiate global Ceramic
   if (settings?.configuration) {
-    let globalSeed = JSON.parse(globalCeramicConfig.seed);
+    let globalSeed = globalCeramicConfig.seed;
     globalCeramic = new Ceramic(
       globalCeramicConfig.node,
       "http://localhost:" + PORT,
@@ -180,7 +179,7 @@ export async function startIndexing() {
           databases[key] = database;
 
           /** Instantiate the Ceramic object with node's url from config's slot */
-          let seed = JSON.parse(slot.configuration.ceramic.seed);
+          let seed = slot.configuration.ceramic.seed;
           let ceramic = new Ceramic(
             globalCeramicConfig.node,
             "http://localhost:" + PORT,
@@ -210,7 +209,7 @@ export async function startIndexing() {
   /** Initialize the mainnet indexing service while specifying the plugins to use and database type */
   global.indexingService = new IndexingService(
     globalCeramic, // The global ceramic object will be used to subscribe to SSE
-    globalDatabase, // The global database (used for example to create other slot's db)
+    globalDatabase, // The global database (used for example to create other slot's db or for non shared instances)
     ceramics, // The slots individual Ceramic object will be used by plugins installed on the corresponding slot and in the UI
     databases, // Database instance to use
     hookHandler, // Hookhandler

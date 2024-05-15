@@ -13,9 +13,9 @@ const CreateModelInstance = ({modelId, tableName, modelDefinition, setStep, orbi
       const type = modelDefinition.schema.properties[key].type;
       let defaultValue = ''; // Default to empty string for basic types
 
-      if (type == 'array' || type.includes("array")) {
+      if (type == 'array' || type?.includes("array")) {
         defaultValue = []; // Default to empty array for array types
-      } else if (type == 'object' || type.includes("object")) {
+      } else if (type == 'object' || type?.includes("object")) {
         defaultValue = {}; // Default to empty object for object types
       }
 
@@ -128,22 +128,10 @@ const PropertiesInput = ({fields, setFields}) => {
   
     // Will render correct input field based on the property's type
     function renderInputField(field, index) {
-  
-      // Handle string
-      if(field.type == "string" || field.type.includes("string")) {
-        return (
-          <input
-            type="text"
-            value={field.value}
-            onChange={(e) => handleInputChange(index, e.target.value)}
-            className="bg-white border border-slate-200 w-full rounded-md shadow-sm px-3 py-1.5 text-sm font-medium text-slate-900 mr-2"
-            placeholder={"Enter the " + field.name + " value here"}
-          />
-        );
-      }
+      // TODO: Handle $ref instead of always defaulting to string
   
       // Handle boolean
-      if(field.type == "boolean" || field.type.includes("boolean")) {
+      if(field.type == "boolean" || field.type?.includes("boolean")) {
         return (
           <select
             value={field.value}
@@ -157,7 +145,7 @@ const PropertiesInput = ({fields, setFields}) => {
       }
   
       // Handle number
-      if(field.type == "number" || field.type.includes("number")) {
+      if(field.type == "number" || field.type?.includes("number")) {
         return (
           <input
             type="number"
@@ -170,16 +158,25 @@ const PropertiesInput = ({fields, setFields}) => {
       }
   
       // Handle object
-      if(field.type == "object" || field.type.includes("object")) {
+      if(field.type == "object" || field.type?.includes("object")) {
         return(<span className="text-xxs font-mono">Objects are not yet supported in the playground.</span>)
       }
 
       // Handle arrays
-      if(field.type == "array" || field.type.includes("array")) {
+      if(field.type == "array" || field.type?.includes("array")) {
         return(<span className="text-xxs font-mono">Arrays are not yet supported in the playground.</span>)
       }
-  
-      return null;
+
+      // Default render string
+      return (
+        <input
+          type="text"
+          value={field.value}
+          onChange={(e) => handleInputChange(index, e.target.value)}
+          className="bg-white border border-slate-200 w-full rounded-md shadow-sm px-3 py-1.5 text-sm font-medium text-slate-900 mr-2"
+          placeholder={"Enter the " + field.name + " value here"}
+        />
+      );  
     }
   
     return (

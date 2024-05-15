@@ -6,6 +6,7 @@ import {
   updateOrbisDBSettings,
   restartIndexingService,
 } from "../../../utils/helpers.js";
+import { enablePreset } from "../../../presets/config.js";
 
 const generateSeed = async () => {
   const buffer = new Uint8Array(32);
@@ -15,6 +16,7 @@ const generateSeed = async () => {
   return array;
 };
 
+
 /** Prefixed with /api/setup/ */
 export default async function (server, opts) {
   /** Authenticated scope */
@@ -22,9 +24,10 @@ export default async function (server, opts) {
     await server.addHook("onRequest", adminDidAuthMiddleware);
 
     server.post("/shared", async (req, res) => {
+      const { presets } = req.body;
       const adminDid = req.adminDid;
       logger.debug(
-        "adminDid for /api/settings/setup-configuration-shared request:",
+        "adminDid for /api/settings/shared request:",
         adminDid
       );
 
@@ -66,6 +69,12 @@ export default async function (server, opts) {
         // Step 6: Restart indexing service
         await restartIndexingService(settings);
 
+        // If user enabled some presets we run those
+        if(presets && presets.length > 0) {
+          await Promise.all(presets.map(preset => enablePreset(preset, adminDid)));
+          console.log("Presets enabled for shared instance:", presets);
+        }
+
         // Return results
         return {
           result: "New database created in the shared instance.",
@@ -93,6 +102,7 @@ export default async function (server, opts) {
       // Map over the slots array to include only the id and title of each slot
       if (settings.is_shared) {
         return {
+          is_configured: settings.configuration ? true : false,
           is_shared: true,
         };
       }

@@ -75,6 +75,20 @@ const Demo = () => {
     "name": "MyCustomModel",
     "schema": {
       "type": "object",
+      "$defs": {
+        "DID": {
+          "type": "string",
+          "title": "DID",
+          "pattern": "^did:[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+:[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]*:?[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]*:?[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]*$",
+          "maxLength": 100
+        },
+        "DateTime": {
+          "type": "string",
+          "title": "DateTime",
+          "format": "date-time",
+          "maxLength": 100
+        }
+      },
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "properties": {
         "custom_bool": {
@@ -83,7 +97,10 @@ const Demo = () => {
       },
       "additionalProperties": false
     },
-    "version": "1.0",
+    "version": "2.0",
+    "interface": false,
+    "immutableFields": [],
+    "implements": [],
     "accountRelation": {
       "type": "list"
     }
@@ -152,7 +169,7 @@ export const Instructions = ({ showBack, backAction, title, description, buttons
 export const CodeEditor = ({code, className = "w-7/12"}) => {
   return(
     <div className={`text-white flex overflow-y-scroll sql_editor rounded-md py-3 bg-[#2e3440] ${className}`}>
-      <AceEditor
+      <AceEditor.default
         id="editor"
         aria-label="editor"
         mode="javascript"

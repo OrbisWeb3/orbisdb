@@ -31,8 +31,10 @@ export default async function (server, opts) {
           parseInt(page, 10),
           order_by_indexed_at === "true"
         );
+        console.log("response in query/all:", response);
         if (response && response.data) {
           return {
+            columns: response.data.fields,
             data: response.data.rows,
             totalCount: response.totalCount,
             title: response.title,
@@ -41,6 +43,7 @@ export default async function (server, opts) {
           // TODO: Check where used, use appropriate res.notFound
           res.status(404);
           return {
+            columns: response?.data?.fields ? response.data.fields : [],
             data: [],
             error: `There wasn't any results returned from table ${table}.`,
           };

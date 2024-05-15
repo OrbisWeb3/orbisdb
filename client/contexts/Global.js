@@ -21,11 +21,28 @@ export const GlobalProvider = ({ children }) => {
   const [user, setUser] = useState();
   const [adminSession, setAdminSession] = useState();
   const [orbisdb, setOrbisdb] = useState();
+  const [baseUrl, setBaseUrl] = useState();
 
   useEffect(() => {
     setSettingsLoading(true);
     getIsConfigured();
     loadSettings();
+    getBaseUrl();
+
+    function getBaseUrl() {
+          // Get the protocol (http or https)
+      const protocol = window.location.protocol;
+
+      // Get the hostname (domain or IP)
+      const hostname = window.location.hostname;
+
+      // Get the port if specified
+      const port = window.location.port;
+
+      // Construct the base URL
+      const _baseUrl = `${protocol}//${hostname}${port ? `:${port}` : ''}`;
+      setBaseUrl(_baseUrl);
+    }
   }, []);
 
   /** If user isn't connected after check we redirect to the auth page */
@@ -62,7 +79,7 @@ export const GlobalProvider = ({ children }) => {
           ],
         });
 
-        let _seed = new Uint8Array(JSON.parse(seed));
+        let _seed = new Uint8Array(seed);
         const auth = await OrbisKeyDidAuth.fromSeed(_seed);
 
         try {
@@ -86,10 +103,8 @@ export const GlobalProvider = ({ children }) => {
 
   /** Load settings from file */
   async function init() {
-    console.log("Enter init()");
     try {
       let admins = await getAdmin(adminSession);
-      console.log("admins:", admins);
       if (admins) {
         checkAdmin(admins);
       } else {
@@ -105,7 +120,6 @@ export const GlobalProvider = ({ children }) => {
 
   /** Check if there is an existing user connected */
   async function checkAdmin(admins) {
-    console.log("Enter checkAdmin");
     // Retrieve admin session from local storage
     let adminSessionJwt = localStorage.getItem("orbisdb-admin-session");
     // Convert session string to the parent DID using Ceramic library
@@ -139,6 +153,7 @@ export const GlobalProvider = ({ children }) => {
   }
 
   async function getAdmin(adminSession) {
+    console.log("getAdmin:", adminSession);
     let result = await fetch(`/api/settings/admins/${adminSession}`);
     let resultJson = await result.json();
     console.log("In getAdmin:", resultJson);
@@ -207,6 +222,7 @@ export const GlobalProvider = ({ children }) => {
         setIsConfigured,
         isShared,
         adminSession,
+        baseUrl
       }}
     >
       {children}
