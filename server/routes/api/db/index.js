@@ -77,12 +77,14 @@ export default async function (server, opts) {
         if (!response) {
           res.status(404);
           return {
+            columns: response?.data?.fields ? response.data.fields : [],
             data: [],
             error: `There wasn't any results returned from table.`,
           };
         }
 
         return {
+          columns: response?.data?.fields ? response.data.fields : [],
           data: response.data?.rows ? response.data.rows : [],
           error: response.error,
           totalCount: response.totalCount,
