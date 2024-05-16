@@ -39,6 +39,97 @@ code {
   font-size: 0.70rem !important;
 }
 
+.markdown-body h1 {
+  font-weight: 700;
+  color: #020617;
+  font-size: 1.875rem;
+  line-height: 2.25rem;
+  margin-bottom: 12px;
+}
+
+.markdown-body h2 {
+  font-weight: 700;
+  color: #020617;
+  font-size: 1.25rem;
+  line-height: 1.95rem;
+  margin-bottom: 15px;
+  margin-top: 12px;
+}
+
+.markdown-body h3 {
+  font-weight: 700;
+  color: #0f172a;
+  font-size: 1rem;
+  line-height: 1.55rem;
+  margin-bottom: 15px;
+  margin-top: 12px;
+}
+
+.markdown-body p, .markdown-body h4 {
+  font-size: 0.925rem !important;
+  color: #334155;
+  margin-bottom: 15px;
+}
+
+.markdown-body a {
+  color: #4483FD;
+}
+
+.markdown-body a:hover {
+  text-decoration: underline;
+}
+
+
+.markdown-body h4 {
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.markdown-body ul {
+  list-style: disc !important;
+  margin: 15px;
+  padding: 0;
+  font-size: 0.925rem !important;
+  color: #334155;
+  margin-bottom: 15px;
+}
+
+.markdown-body ol {
+  list-style: numeric !important;
+  margin: 15px;
+  padding: 0;
+  font-size: 0.925rem !important;
+  color: #334155;
+  margin-bottom: 15px;
+}
+
+.markdown-body > code, .markdown-body p > code, .markdown-body li > code {
+  display: inline-block;
+  background-color: #f1f5f9;
+  color: #D46E0F;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding-left: 7px;
+  padding-right: 7px;
+  padding-top: 3px;
+  padding-bottom: 3px;
+  font-size: 0.825rem !important;
+}
+
+.markdown-body > pre {
+  display: inline-block;
+  background-color: #f1f5f9;
+  color: #0C0C0C;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding-left: 14px;
+  padding-right: 14px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  margin-bottom: 15px;
+  font-size: 0.825rem !important;
+}
+
 /** Data table custom CSS */
 .table-data {
   height: fit-content;

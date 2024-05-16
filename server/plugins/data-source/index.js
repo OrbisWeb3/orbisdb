@@ -137,44 +137,6 @@ export default class DataSourcePlugin {
   }
 }
 
-let modelDef = {
-  name: "PriceFeed",
-  description: "Model storing price feeds for any asset. Version: 1.02",
-  version: "1.0",
-  accountRelation: {
-    type: "list",
-  },
-  schema: {
-    type: "object",
-    $schema: "https://json-schema.org/draft/2020-12/schema",
-    required: ["asset", "currency"],
-    properties: {
-      asset: {
-        type: "string",
-      },
-      price: {
-        type: ["number", "null"],
-      },
-      currency: {
-        type: "string",
-      },
-      source: {
-        type: "string",
-      },
-      candle: {
-        type: "string",
-      },
-      timestamp: {
-        type: "integer",
-      },
-      context: {
-        type: "string",
-      },
-    },
-    additionalProperties: false,
-  },
-};
-
 /** To create a model */
 /*let stream = await Model.create(this.ceramic,
   modelDef,

@@ -1,5 +1,6 @@
 import { adminDidAuthMiddleware } from "../../../middleware/didAuthMiddleware.js";
-
+import fs from "fs";
+import path from "path";
 import { v4 as uuidv4 } from "uuid";
 import {
   getOrbisDBSettings,
@@ -7,6 +8,7 @@ import {
   updateOrbisDBSettings,
 } from "../../../utils/helpers.js";
 import { loadPlugin, loadPlugins } from "../../../utils/plugins.js";
+import { __dirname } from "../../../utils/helpers.js";
 import logger from "../../../logger/index.js";
 
 /** prefixed with /api/plugins/ */
@@ -21,6 +23,23 @@ export default async function (server, opts) {
     } catch (e) {
       return res.internalServerError(`Error loading plugins: ${e.message}`);
     }
+  });
+
+  server.get('/readme/:pluginId', (req, res) => {
+    const pluginId = req.params.pluginId;
+    const readmePath = path.join(__dirname, '../plugins', pluginId, 'README.md');
+  
+    fs.readFile(readmePath, 'utf8', (err, data) => {
+      if (err) {
+        if (err.code === 'ENOENT') {
+          console.log('README file not found for ' + pluginId + " / path:" + readmePath);
+          return res.status(404).send();
+        } else {
+          return res.status(500).send('Server error');
+        }
+      }
+      res.send(data);
+    });
   });
 
   /** Authenticated scope */

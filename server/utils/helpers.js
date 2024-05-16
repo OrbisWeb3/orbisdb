@@ -8,7 +8,7 @@ import logger from "../logger/index.js";
 
 /** Initialize dirname */
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+export const __dirname = dirname(__filename);
 
 /** Helpful to delay a function for a few seconds */
 export const sleep = (milliseconds) => {

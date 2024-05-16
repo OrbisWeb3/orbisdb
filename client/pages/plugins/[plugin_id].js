@@ -15,6 +15,7 @@ import InternalNavigation from "../../components/InternalNavigation";
 import { useRouter } from "next/router";
 import { STATUS, sleep, findContextById } from "../../utils";
 import useContextDetails from "../../hooks/useContextDetails";
+import MarkdownRenderer from "../../components/MarkdownRenderer";
 
 export default function PluginDetails() {
   const { settings, setSettings, sessionJwt } = useGlobal();
@@ -151,7 +152,7 @@ export default function PluginDetails() {
             </div>
 
             {/** Plugin Navigation */}
-            <div className="flex justify-start mt-3 mb-3">
+            <div className="flex justify-start mt-3 mb-5">
               <InternalNavigation
                 items={[
                   { label: "Overview", active: true },
@@ -164,11 +165,7 @@ export default function PluginDetails() {
 
             {/** Show overview tab content */}
             {nav == "Overview" && (
-              <p className="text-slate-600 mt-1 text-base">
-                {pluginDetails.full_description
-                  ? pluginDetails.full_description
-                  : pluginDetails.description}
-              </p>
+              <MarkdownRenderer filePath={"/api/plugins/readme/" + plugin_id} fallback={pluginDetails.description} />
             )}
 
             {/** Show contexts tab content */}
