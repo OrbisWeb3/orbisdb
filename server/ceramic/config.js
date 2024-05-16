@@ -3,6 +3,7 @@ import { cliColors } from "../utils/cliColors.js";
 import { OrbisDB } from "@useorbis/db-sdk";
 import { OrbisKeyDidAuth } from "@useorbis/db-sdk/auth";
 import logger from "../logger/index.js";
+import { parseDidSeed } from "../utils/helpers.js";
 
 export default class Ceramic {
   constructor(node, instance, seed) {
@@ -45,8 +46,7 @@ export default class Ceramic {
 
   /** Will connect to the Ceramic seed defined globally */
   async connect(seed) {
-    let _seed = new Uint8Array(seed);
-    const auth = await OrbisKeyDidAuth.fromSeed(_seed);
+    const auth = await OrbisKeyDidAuth.fromSeed(parseDidSeed(seed));
 
     try {
       const result = await this.orbisdb.connectUser({ auth });

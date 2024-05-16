@@ -43,6 +43,36 @@ export async function getAdminDid(authHeader) {
   }
 }
 
+/** Parse a seed from string, or return if it's already in the right format */
+export function parseDidSeed(seed) {
+  const attemptJsonParse = (string) => {
+    try {
+      return JSON.parse(string);
+    } catch {
+      return false;
+    }
+  };
+
+  const parsedSeed = attemptJsonParse(seed) || seed;
+
+  if (typeof parsedSeed === "string") {
+    if (!/^(0x)?[0-9a-f]+$/i.test(seed)) {
+      throw "Invalid seed format. It's not a hex string or an array.";
+    }
+    return seed;
+  }
+
+  if (Array.isArray(parsedSeed)) {
+    return new Uint8Array(parsedSeed);
+  }
+
+  if (parsedSeed instanceof Uint8Array) {
+    return parsedSeed;
+  }
+
+  throw "Invalid seed format. It's not a hex string or an array.";
+}
+
 /** Load and returns OrbisDB settings */
 export function getOrbisDBSettings(slot) {
   let orbisdbSettings;

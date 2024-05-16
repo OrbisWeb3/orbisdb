@@ -5,6 +5,7 @@ import { useRouter } from "next/router";
 import { OrbisDB } from "@useorbis/db-sdk";
 import { OrbisKeyDidAuth } from "@useorbis/db-sdk/auth";
 import { DIDSession } from "did-session";
+import { parseDidSeed } from "../../server/utils/helpers.js";
 
 export const GlobalContext = React.createContext();
 
@@ -30,7 +31,7 @@ export const GlobalProvider = ({ children }) => {
     getBaseUrl();
 
     function getBaseUrl() {
-          // Get the protocol (http or https)
+      // Get the protocol (http or https)
       const protocol = window.location.protocol;
 
       // Get the hostname (domain or IP)
@@ -40,7 +41,7 @@ export const GlobalProvider = ({ children }) => {
       const port = window.location.port;
 
       // Construct the base URL
-      const _baseUrl = `${protocol}//${hostname}${port ? `:${port}` : ''}`;
+      const _baseUrl = `${protocol}//${hostname}${port ? `:${port}` : ""}`;
       setBaseUrl(_baseUrl);
     }
   }, []);
@@ -67,7 +68,7 @@ export const GlobalProvider = ({ children }) => {
     /** Will connect the front-end to the seed saved in configuration */
     async function connectSeed() {
       try {
-        let seed = settings.configuration.ceramic.seed;
+        const seed = settings.configuration.ceramic.seed;
         let _orbisdb = new OrbisDB({
           ceramic: {
             gateway: settings.configuration.ceramic.node,
@@ -79,8 +80,7 @@ export const GlobalProvider = ({ children }) => {
           ],
         });
 
-        let _seed = new Uint8Array(seed);
-        const auth = await OrbisKeyDidAuth.fromSeed(_seed);
+        const auth = await OrbisKeyDidAuth.fromSeed(parseDidSeed(seed));
 
         try {
           const result = await _orbisdb.connectUser({ auth });
@@ -222,7 +222,7 @@ export const GlobalProvider = ({ children }) => {
         setIsConfigured,
         isShared,
         adminSession,
-        baseUrl
+        baseUrl,
       }}
     >
       {children}
