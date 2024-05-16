@@ -113,7 +113,7 @@ code {
   padding-right: 7px;
   padding-top: 3px;
   padding-bottom: 3px;
-  font-size: 0.825rem !important;
+  font-size: 0.75rem !important;
 }
 
 .markdown-body > pre {
@@ -127,7 +127,7 @@ code {
   padding-top: 10px;
   padding-bottom: 10px;
   margin-bottom: 15px;
-  font-size: 0.825rem !important;
+  font-size: 0.75rem !important;
 }
 
 /** Data table custom CSS */
