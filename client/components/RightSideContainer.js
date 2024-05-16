@@ -30,7 +30,7 @@ const SetupDetails = () => {
     const { isShared, adminSession, baseUrl, settings } = useGlobal();
 
     return(
-         <div className="rounded-md bg-white border border-slate-200 p-4 flex flex-col">
+         <div className="rounded-md bg-white border border-slate-200 px-5 py-4 flex flex-col">
             <span className="font-medium text-base">Setup:</span>
             <p className="text-slate-600 text-xs">Here are some important variables you'll need when initializing the OrbisDB object using <Link className="hover:underline text-[#4483FD]" href="https://github.com/OrbisWeb3/db-sdk?tab=readme-ov-file#initialize-the-sdk" target="_blank">our SDK</Link>:</p>
             
@@ -78,7 +78,7 @@ const SetupDetails = () => {
 
 const PluginsDetails = () => {
     return(
-        <div className="rounded-md bg-white border border-slate-200 p-4">
+        <div className="rounded-md bg-white border border-slate-200 px-5 py-4">
             <span className="font-medium text-base">What are plugins?</span>
             <div className="text-slate-600 text-xs">
                 <p>Plugins can be used to perform any computing task in addition to the write and query abilities of OrbisDB. They offer four different capabilities:</p>
@@ -97,7 +97,7 @@ const PluginsDetails = () => {
 const ContextDetails = () => {
     const { isShared } = useGlobal();
     return(
-        <div className="rounded-md bg-white border border-slate-200 p-4">
+        <div className="rounded-md bg-white border border-slate-200 px-5 py-4">
             <span className="font-medium text-base">What are contexts?</span>
             <p className="text-slate-600 text-xs">
                 Contexts allow you to organize your data across different applications or projects. Within each context, you can create sub-contexts for a more detailed and granular approach.<br /> <br/>

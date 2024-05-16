@@ -86,7 +86,6 @@ export default function Header({ showItems }) {
 
 const NavItem = ({ item, href }) => {
   const router = useRouter();
-  console.log("router.asPath:", router.asPath);
 
   // Determine whether the current route matches the item's link
   let selected = false;
