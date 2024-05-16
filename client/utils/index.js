@@ -3,6 +3,36 @@ export const sleep = (milliseconds) => {
   return new Promise((resolve) => setTimeout(resolve, milliseconds));
 };
 
+/** Parse a seed from string, or return if it's already in the right format */
+export function parseDidSeed(seed) {
+  const attemptJsonParse = (string) => {
+    try {
+      return JSON.parse(string);
+    } catch {
+      return false;
+    }
+  };
+
+  const parsedSeed = attemptJsonParse(seed) || seed;
+
+  if (typeof parsedSeed === "string") {
+    if (!/^(0x)?[0-9a-f]+$/i.test(seed)) {
+      throw "Invalid seed format. It's not a hex string or an array.";
+    }
+    return seed;
+  }
+
+  if (Array.isArray(parsedSeed)) {
+    return new Uint8Array(parsedSeed);
+  }
+
+  if (parsedSeed instanceof Uint8Array) {
+    return parsedSeed;
+  }
+
+  throw "Invalid seed format. It's not a hex string or an array.";
+}
+
 /** Returns a shortened version of a string */
 export function shortAddress(address, number = 5) {
   if (!address) {
@@ -36,12 +66,12 @@ export const copyToClipboard = async (text) => {
 
 /** Will fint the context using the stream id in the contexts and sub-contexts */
 export function findContextById(contexts, streamId) {
-  if(streamId == "global") {
-    return({
+  if (streamId == "global") {
+    return {
       name: "Global",
-      stream_id: "global"
-    })
-  } else if(contexts && Array.isArray(contexts)) {
+      stream_id: "global",
+    };
+  } else if (contexts && Array.isArray(contexts)) {
     for (let context of contexts) {
       // Check if the current context's stream_id matches the target
       if (context.stream_id === streamId) {

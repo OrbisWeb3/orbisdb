@@ -5,7 +5,7 @@ import { useRouter } from "next/router";
 import { OrbisDB } from "@useorbis/db-sdk";
 import { OrbisKeyDidAuth } from "@useorbis/db-sdk/auth";
 import { DIDSession } from "did-session";
-import { parseDidSeed } from "../../server/utils/helpers.js";
+import { parseDidSeed } from "../utils/index.js";
 
 export const GlobalContext = React.createContext();
 
