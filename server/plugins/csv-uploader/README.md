@@ -17,7 +17,7 @@ To install the CSV Uploader plugin, follow these steps:
 
 ### Upload Route
 
-The plugin exposes an upload route which users can use to push the CSV file they want to import.
+The plugin exposes an `upload` route which users can use to push the CSV file they want to import.
 
 ### CSV Structure
 
