@@ -46,7 +46,7 @@ export default async function (server, opts) {
         const ceramicConfiguration = settings.configuration.ceramic;
         ceramicConfiguration.seed = seed;
 
-        const dbConfiguration = settings.configuration.db;
+        const dbConfiguration = { ...settings.configuration.db };
         dbConfiguration.database = databaseName;
 
         const slotSettings = {
@@ -64,7 +64,7 @@ export default async function (server, opts) {
         settings.slots[adminDid] = slotSettings;
 
         // Step 5: Update global settings
-        updateOrbisDBSettings(settings, adminDid);
+        updateOrbisDBSettings(settings);
 
         // Step 6: Restart indexing service
         await restartIndexingService(settings);
