@@ -64,7 +64,7 @@ export default async function (server, opts) {
         settings.slots[adminDid] = slotSettings;
 
         // Step 5: Update global settings
-        updateOrbisDBSettings(settings);
+        updateOrbisDBSettings(settings, adminDid);
 
         // Step 6: Restart indexing service
         await restartIndexingService(settings);

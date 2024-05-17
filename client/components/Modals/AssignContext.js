@@ -230,7 +230,7 @@ const ContextDropdown = ({
   index,
   plugin_id,
 }) => {
-  const { settings } = useGlobal();
+  const { settings, isShared } = useGlobal();
   const [listVis, setListVis] = useState(false);
 
   // Get the current context based on the last ID in selectedContextIds
@@ -301,13 +301,16 @@ const ContextDropdown = ({
             tabIndex="-1"
             role="listbox"
             aria-labelledby="listbox-label">
-              <li
-                className={`relative select-none py-2 pl-3 pr-9 text-gray-900 hover:bg-slate-50 cursor-pointer`}
-                role="option"
-                key={999}
-                onClick={() => selectContext({name: "Global", stream_id: "global"})}>
-                  <SmContextDetails context={{name: "Global", stream_id: "global"}} />
+              {/** Only allow Global context option on dedicated instance */}
+              {!isShared &&
+                <li
+                  className={`relative select-none py-2 pl-3 pr-9 text-gray-900 hover:bg-slate-50 cursor-pointer`}
+                  role="option"
+                  key={999}
+                  onClick={() => selectContext({name: "Global", stream_id: "global"})}>
+                    <SmContextDetails context={{name: "Global", stream_id: "global"}} />
                 </li>
+                }
               {(_contexts && _contexts.length > 0) ?
                 <>
                   {_contexts.map((context, index) => (
@@ -321,7 +324,9 @@ const ContextDropdown = ({
                   ))}
                 </>
                 :
-                  <Alert title="You haven't created any context yet." className="text-xs mt-2" />
+                  <div className="p-4">
+                    <Alert title="You haven't created any context yet." className="text-xs mt-2" />
+                  </div>
               }
           </ul>
         </>
