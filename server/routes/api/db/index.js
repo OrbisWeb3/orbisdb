@@ -139,6 +139,8 @@ export default async function (server, opts) {
   /** Will build a query from JSON and run it */
   server.post("/query/json", async (req, res) => {
     const { jsonQuery, env } = req.body;
+    console.log("jsonQuery:", jsonQuery);
+    console.log("env:", env);
     const slot = env;
 
     const { query, params } = SelectStatement.buildQueryFromJson(jsonQuery);
@@ -153,6 +155,7 @@ export default async function (server, opts) {
     if (slot && settings.is_shared) {
       database = global.indexingService.databases[slot];
     }
+    console.log("database:", database);
 
     try {
       const response = await database.query(query, params);

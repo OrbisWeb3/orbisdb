@@ -32,7 +32,7 @@ const SetupDetails = () => {
     return(
          <div className="rounded-md bg-white border border-slate-200 px-5 py-4 flex flex-col">
             <span className="font-medium text-base">Setup:</span>
-            <p className="text-slate-600 text-xs">Here are some important variables you'll need when initializing the OrbisDB object using <Link className="hover:underline text-[#4483FD]" href="https://github.com/OrbisWeb3/db-sdk?tab=readme-ov-file#initialize-the-sdk" target="_blank">our SDK</Link>:</p>
+            <p className="text-slate-600 text-xs">Here are some important variables you'll need when initializing the OrbisDB object using <Link className="hover:underline text-[#4483FD]" href={isShared ? "https://github.com/OrbisWeb3/db-sdk?tab=readme-ov-file#for-shared-instances" : "https://github.com/OrbisWeb3/db-sdk?tab=readme-ov-file#initialize-the-sdk"} target="_blank">our SDK</Link>:</p>
             
             {/** Ceramic node URL */}
             <p className="flex flex-col mt-3 justify-start items-start space-y-1">

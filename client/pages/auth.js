@@ -106,7 +106,7 @@ export default function Auth() {
             className="text-xs mb-4"
             title={
               <>
-                <b>Note:</b> This is a shared OrbisDB instance, if you want to
+                This is a shared OrbisDB instance, if you want to
                 use a dedicated one we recommend visiting our{" "}
                 <Link
                   className="underline"

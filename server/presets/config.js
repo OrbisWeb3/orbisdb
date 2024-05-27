@@ -1,4 +1,5 @@
-import { initSocialPreset } from "./social/index.js";
+import fs from 'fs';
+import path from 'path';
 
 /** Will enable the selected preset */
 export async function enablePreset(type, slot) {
@@ -12,12 +13,18 @@ export async function enablePreset(type, slot) {
       console.log("global.indexingService.database:", global.indexingService.database);
       db = global.indexingService.database;
     }
-  
-    // Execute preset based on type
-    switch(type) {
-      case "social":
-        initSocialPreset(db);
-        break;
+
+    // Load the preset JSON file
+    const presetFilePath = path.resolve(`./server/presets/definitions/${type}.json`);
+    const presetData = JSON.parse(fs.readFileSync(presetFilePath, 'utf-8'));
+
+    // Execute preset models and views
+    for (const model of presetData.models) {
+        await db.indexModel(model);
+    }
+
+    for (const view of presetData.views) {
+        await db.query(view.query);
     }
   
     return;

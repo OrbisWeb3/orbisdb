@@ -56,24 +56,15 @@ For an API returning this API Response:
 You can use the following mapping:
 ```json
 [
-  {
-    "keys": [
-      { "key": "asset", "path": ["data", "asset"] },
-      { "key": "price", "path": ["data", "price"], "type": "numeric" },
-      { "key": "currency", "path": ["data", "currency"] },
-      { "key": "source", "path": ["data", "source"] },
-      { "key": "candle", "path": ["data", "candle"] },
-      { "key": "timestamp", "path": ["data", "timestamp"], "type": "numeric" }
-    ]
-  }
-]
+    {
+      "keys": [
+        { "key": "asset", "value": "bitcoin" }, { "key": "price", "path": ["bitcoin", "usd"], "type": "numeric" }
+      ]
+    }
+  ]
 ```
 
 **In this example:**
 
-- `asset` in the API response maps to the `asset` field in the Ceramic schema.
-- `price` is mapped to the model's `price` field and converted to a numeric type.
-- `currency` is mapped to the model's `currency` field.
-- `source` is mapped to the model's `source` field.
-- `candle` is mapped to the model's `candle` field.
-- `timestamp` field is also converted to a numeric type and mapped to the model's `timestamp` field.
+- `asset` The `asset` field in your model will always be set to `bitcoin`.
+- `price` field in your model is mapped to the `bitcoin[usd]` field and converted to a numeric type.

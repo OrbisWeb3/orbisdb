@@ -50,30 +50,17 @@ export default class DataSourcePlugin {
   /** This will fetch the API and create a Ceramic stream afterward based on the plugin settings */
   async fetchApi() {
     let results = await this.getResult();
+    console.log("results:", results);
 
     if (results) {
       for (const result of results) {
+        console.log("result:", result);
         if (result) {
           try {
-            let content = {
-              ...result,
-              context: this.context,
-              timestamp: Math.floor(Date.now() / 1000),
-            };
-
-            /** We call the update hook here in order to support hooks able to update data before it's created in Ceramic  */
-            let __content =
-              await global.indexingService.hookHandler.executeHook(
-                "update",
-                content,
-                this.context
-              );
-            logger.debug("content:", __content);
-
             /** We then create the stream with the updated content */
             let stream = await global.indexingService.ceramic.orbisdb
               .insert(this.model_id)
-              .value(__content)
+              .value(result)
               .context(this.context)
               .run();
 
@@ -85,6 +72,8 @@ export default class DataSourcePlugin {
       }
     }
   }
+
+  
 
   /** Will return the result expected by the developer using the variables */
   async getResult() {
@@ -101,6 +90,7 @@ export default class DataSourcePlugin {
 
         // Iterate over the keys and build the result object for each document
         for (const item of doc.keys) {
+          console.log("item:", item);
           if ("path" in item) {
             // Existing path traversal logic
             let value = data;
@@ -128,6 +118,7 @@ export default class DataSourcePlugin {
         }
 
         results.push(result);
+        console.log("Pushing:", results);
       }
     } catch (e) {
       logger.error("Error fetching URL:" + this.url + ": ", e);
