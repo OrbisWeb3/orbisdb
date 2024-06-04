@@ -68,7 +68,7 @@ export default class Ceramic {
 
     /** Create social models 
     try {
-        let model = await this.orbisdb.ceramic.createModel(discoursePostsModelDefinition);
+        let model = await this.orbisdb.ceramic.createModel(voteModelDefinition);
         console.log("model:", model); 
     } catch(e) {
         console.log(cliColors.text.red, "Error creating model:", cliColors.reset, e);
@@ -417,10 +417,10 @@ const followModelDefinition = {
 
 /** Model for proposal */
 /**
- * StreamID Mainnet: kjzl6hvfrbw6c9k9g95am3g8s7gp8fp48qqjvxtrarwfo7njbcd0la801wcfwoz
+ * StreamID Mainnet: kjzl6hvfrbw6c6czaljcbq6gbzmhsehcb9edaxov0wa0qoxby3fgq1m213u0pfp
  * */
 const proposalModelDefinition = {
-  name: "SolPartyProposal",
+  name: "GovernanceProposals",
   version: "1.0",
   accountRelation: {
     type: "list",
@@ -465,10 +465,10 @@ const proposalModelDefinition = {
 
 /** Model for votes */
 /**
- * StreamID Mainnet: kjzl6hvfrbw6ca82toboen7mrjumkcmldfv0dn9rlyr73jpvvge867aqzuikfcj
+ * StreamID Mainnet: kjzl6hvfrbw6carr31lps2ujx1wngyyl5mm09fmaj22v5bhg1vgxbms08k1mnn5
  * */
 const voteModelDefinition = {
-  name: "SolPartyVote",
+  name: "GovernanceVotes",
   version: "2.0",
   accountRelation: {
     type: "set",

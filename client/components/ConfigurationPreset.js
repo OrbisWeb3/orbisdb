@@ -1,5 +1,5 @@
 import Button from "./Button";
-import { SocialIcon } from "./Icons";
+import { GovernanceIcon, SocialIcon } from "./Icons";
 
 const ConfigurationPreset = ({presets, setPresets, status, save}) => {
 
@@ -25,7 +25,9 @@ const ConfigurationPreset = ({presets, setPresets, status, save}) => {
           <p className="text-sm text-slate-500 mb-2">Click on the presets you want to use in order to configure your instance to cover specific use cases immediately.</p>
           <div className="flex flex-row items-center space-x-2 mb-3">
             {/** Social preset */}
-            <div className={`select-none rounded-xl border-2 h-24 w-24 items-center justify-center uppercase text-xs font-medium flex flex-col cursor-pointer ${presets.includes("social") ? "border-[#4483FD] text-[#1e58f2]" : "border-slate-200 text-slate-600 hover:border-dashed hover:border-[#5a9eff]"}`} onClick={() => enablePreset("social", !presets.includes("social"))}><SocialIcon/><span className="mt-1">Social</span></div>
+            <div className={`select-none rounded-xl border-2 h-24 w-24 items-center justify-center uppercase text-xxs font-medium flex flex-col cursor-pointer ${presets.includes("social") ? "border-[#4483FD] text-[#1e58f2]" : "border-slate-200 text-slate-600 hover:border-dashed hover:border-[#5a9eff]"}`} onClick={() => enablePreset("social", !presets.includes("social"))}><SocialIcon/><span className="mt-1">Social</span></div>
+            {/** Governance preset */}
+            <div className={`select-none rounded-xl border-2 h-24 w-24 items-center justify-center uppercase text-xxs font-medium flex flex-col cursor-pointer ${presets.includes("governance") ? "border-[#4483FD] text-[#1e58f2]" : "border-slate-200 text-slate-600 hover:border-dashed hover:border-[#5a9eff]"}`} onClick={() => enablePreset("governance", !presets.includes("governance"))}><GovernanceIcon/><span className="mt-1">Governance</span></div>
           </div>
         </div>
         

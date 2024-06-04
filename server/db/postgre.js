@@ -326,7 +326,7 @@ export default class Postgre {
 
     /** If stream is a model we trigger the indexing */
     if (model == "kh4q0ozorrgaq2mezktnrmdwleo1d") {
-      //this.indexModel(content.stream_id);
+      this.indexModel(content.stream_id);
     }
 
     /** Try to insert stream in the corresponding table */
@@ -385,7 +385,7 @@ export default class Postgre {
   }
 
   /** Will prepare the indexing of a model by creating the corresponding table in our database */
-  async indexModel(model, callback) {
+  async indexModel(model, callback = null, forced = false) {
     let content;
     let title;
     let uniqueFormattedTitle;
@@ -437,7 +437,7 @@ export default class Postgre {
     await this.createTable(model, fields, uniqueFormattedTitle, callback);
 
     // Step 4: Insert new row in models_indexed table
-    if (model != "kh4q0ozorrgaq2mezktnrmdwleo1d") {
+    if (model != "kh4q0ozorrgaq2mezktnrmdwleo1d" && !forced) {
       this.upsert(
         "kh4q0ozorrgaq2mezktnrmdwleo1d",
         {
@@ -486,6 +486,7 @@ export default class Postgre {
 
       // Will trigger a callback if provided by the parent function
       if (callback) {
+        console.log("Calling callback:", callback);
         callback();
       }
     } catch (err) {

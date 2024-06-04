@@ -335,7 +335,7 @@ const ContextDropdown = ({
   );
 };
 
-const SmContextDetails = ({ context }) => {
+export const SmContextDetails = ({ context }) => {
   return (
     <div className="flex items-center">
       {/** Display context logo if any */}

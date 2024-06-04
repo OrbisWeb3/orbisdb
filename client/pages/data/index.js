@@ -152,7 +152,7 @@ export default function Data() {
     <>
       <div className="flex flex-row w-full flex-1 overflow-hidden">
         {/** Table navigation */}
-        <div className="w-[250px] bg-slate-50 h-full px-4 overflow-y-scroll border-r border-slate-299">
+        <div className="w-[250px] bg-slate-50 h-full px-4 overflow-y-scroll border-r border-slate-200">
           {/** List all tables */}
           <p className="font-medium text-xxs flex flex-row items-center space-x-1 mt-4 mb-2 text-slate-600">
             TABLES

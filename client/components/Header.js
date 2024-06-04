@@ -12,7 +12,7 @@ export default function Header({ showItems }) {
     { title: "Contexts", path: "/", type: "equal" },
     { title: "Plugins", path: "/plugins", type: "includes" },
     { title: "Data", path: "/data", type: "includes" },
-    { title: "Playground", path: "/playground", type: "equal" }
+    { title: "Model builder", path: "/models", type: "equal" }
   ];
 
   return (
@@ -54,7 +54,7 @@ export default function Header({ showItems }) {
               item={{
                 title: (
                   <>
-                    <span>Documentation</span>
+                    <span>SDK Documentation</span>
                     <ExternalLinkIcon />
                   </>
                 ),
@@ -67,9 +67,9 @@ export default function Header({ showItems }) {
 
           {/** Show instance type */}
           {isShared ?
-          <div className="bg-amber-50 text-amber-900 rounded-full px-3 py-1 text-xs ml-6 font-medium border border-amber-200">Shared</div>
+            <div className="bg-amber-50 text-amber-900 rounded-full px-3 py-1 text-xs ml-6 font-medium border border-amber-200">Shared</div>
           :
-          <div className="bg-sky-50 text-sky-900 rounded-full px-3 py-1 text-xs ml-6 font-medium border border-sky-200">Dedicated</div>
+            <div className="bg-sky-50 text-sky-900 rounded-full px-3 py-1 text-xs ml-6 font-medium border border-sky-200">Dedicated</div>
           }
         </>
       ) : (

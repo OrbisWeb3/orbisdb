@@ -98,6 +98,7 @@ export default async function (server, opts) {
       }
     });
 
+    /** Will return the schema for a database */
     server.get("/schema", async (req, res) => {
       // Retrieve admin
       let adminDid = req.adminDid;
@@ -131,6 +132,43 @@ export default async function (server, opts) {
         logger.error(error);
         return res.internalServerError(
           `Internal server error while querying table schemas.`
+        );
+      }
+    });
+
+    /** Will force index a model */
+    server.post("/index/model", async (req, res) => {
+      const { model_id } = req.body;
+      console.log("Enter /index/model with model_id:", model_id);
+
+      // Retrieve admin
+      const adminDid = req.adminDid;
+
+      // Retrieve global settings
+      const settings = getOrbisDBSettings();
+
+      // If this is a shared instance we select the right db to query or use the global one
+      let database = global.indexingService.databases["global"];
+      if (adminDid && settings.is_shared) {
+        database = global.indexingService.databases[adminDid];
+      }
+
+      try {
+        const response = await database.indexModel(model_id, null, true);
+        if (!response) {
+          res.status(404);
+          return {
+            error: `Couldn't index this model: ` + model_id,
+          };
+        }
+
+        return {
+          message: "Indexed model " + model_id + " with success."
+        };
+      } catch (error) {
+        logger.error(error);
+        return res.internalServerError(
+          "Internal server error while indexing model."
         );
       }
     });
