@@ -7,6 +7,7 @@ import AddContextModal from "../components/Modals/AddContext";
 import Button from "../components/Button";
 import Alert from "../components/Alert";
 import RightSideContainer from "../components/RightSideContainer";
+import Script from "next/script";
 
 export default function Contexts() {
   const { settings, isShared } = useGlobal();
@@ -22,6 +23,18 @@ export default function Contexts() {
 
   return (
     <>
+      <Script
+        src="https://www.googletagmanager.com/gtag/js?id=G-FG6J6YEJE7"
+        strategy="afterInteractive"
+      />
+      <Script id="google-analytics" strategy="afterInteractive">
+        {`
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){window.dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-FG6J6YEJE7');
+        `}
+      </Script>
       <div className="flex flex-row px-16 py-12">
         {/** Left part */}
         <div className="w-2/3 pr-4">

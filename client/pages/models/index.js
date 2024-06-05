@@ -314,7 +314,7 @@ function ModelFieldsInputGroups({ inputGroups, setInputGroups }) {
 
   const handleTextChange = (index, value) => {
     // Define a regular expression to allow only alphanumeric characters
-    const regex = /^[a-zA-Z0-9]*$/;
+    const regex = /^[a-zA-Z0-9_]*$/;
 
     // Check if the value matches the regex
     if (regex.test(value)) {
@@ -338,33 +338,33 @@ function ModelFieldsInputGroups({ inputGroups, setInputGroups }) {
   return (
       <div className="items-center flex flex-col w-full space-y-2">
           {inputGroups.map((group, index) => (
-              <div key={group.id} className="flex flex-row space-x-1 w-full">
-                  <input
-                      type="text"
-                      placeholder="Field name"
-                      value={group.textValue}
-                      onChange={(e) => handleTextChange(index, e.target.value)}
-                      className="flex-1 bg-white border border-slate-200 rounded-md shadow-sm px-3 py-1.5 text-sm font-medium text-slate-900 mr-2" />
-                  <select
-                      placeholder="Field type"
-                      value={group.selectValue}
-                      onChange={(e) => handleSelectChange(index, e.target.value)}
-                      className="bg-white border border-slate-200 rounded-md shadow-sm px-3 py-1.5 text-sm font-medium text-slate-900">
-                      <option value="">Field type</option>
-                      <option value="string">String</option>
-                      <option value="number">Number</option>
-                      <option value="boolean">Boolean</option>
-                      <option value="object">Object</option>
-                      <option value="array">Array</option>
-                      <option value="did">DID</option>
-                      <option value="datetime">DateTime</option>
-                  </select>
-              </div>
+            <div key={group.id} className="flex flex-row space-x-1 w-full">
+              <input
+                type="text"
+                placeholder="Field name"
+                value={group.textValue}
+                onChange={(e) => handleTextChange(index, e.target.value)}
+                className="flex-1 bg-white border border-slate-200 rounded-md shadow-sm px-3 py-1.5 text-sm font-medium text-slate-900 mr-2" />
+              <select
+                placeholder="Field type"
+                value={group.selectValue}
+                onChange={(e) => handleSelectChange(index, e.target.value)}
+                className="bg-white border border-slate-200 rounded-md shadow-sm px-3 py-1.5 text-sm font-medium text-slate-900">
+                <option value="">Field type</option>
+                <option value="string">String</option>
+                <option value="number">Number</option>
+                <option value="boolean">Boolean</option>
+                {/**<option value="object">Object</option>
+                <option value="array">Array</option>*/}
+                <option value="did">DID</option>
+                <option value="datetime">DateTime</option>
+              </select>
+            </div>
           ))}
           <button
-              onClick={addInputGroup}
-              className="text-sm font-medium text-[#4483FD] hover:underline">
-              + Add another property
+            onClick={addInputGroup}
+            className="text-sm font-medium text-[#4483FD] hover:underline">
+            + Add another property
           </button>
       </div>
   );
