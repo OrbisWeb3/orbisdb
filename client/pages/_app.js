@@ -205,10 +205,6 @@ const ConfigurationSharedSetup = () => {
   const [status, setStatus] = useState(STATUS.ACTIVE);
   const [presets, setPresets] = useState([]);
 
-  useEffect(() => {
-    console.log("sessionJwt:", sessionJwt);
-  }, [sessionJwt]);
-
   async function configure() {
     setStatus(STATUS.LOADING);
     try {
@@ -284,7 +280,7 @@ function ConfigurationSetup() {
         <p className="text-base text-slate-600 mb-4 text-center">
           To get started, let's configure your OrbisDB instance.
         </p>
-        <ConfigurationSettings />
+        <ConfigurationSettings showPresets={true} />
       </div>
     </div>
   );

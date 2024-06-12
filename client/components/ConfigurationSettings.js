@@ -6,6 +6,7 @@ import Button from "./Button";
 import { CheckIcon, SocialIcon } from "./Icons";
 import { OrbisDB } from "@useorbis/db-sdk";
 import { OrbisEVMAuth } from "@useorbis/db-sdk/auth";
+import ConfigurationPreset from "./ConfigurationPreset";
 
 export default function ConfigurationSettings({showPresets}) {
     return(
@@ -118,6 +119,11 @@ export function ConfigurationSetup({showPresets}) {
     }
   }
 
+  async function goStep4() {
+    setStatus(STATUS.ACTIVE);
+    setStep(4);
+  }
+
   async function saveSettings() {
     console.log("Enter saveSettings()");
     if (!adminAccount || adminAccount == "") {
@@ -147,14 +153,15 @@ export function ConfigurationSetup({showPresets}) {
               host: dbHost,
               port: parseInt(dbPort)
             }
-          }
+          },
+          presets: presets
         })
       });
 
       const response = await rawResponse.json();
       console.log("Configuration saved:", response);
 
-      if(response.status == 200) {
+      if(response.result) {
         console.log("Success updating configutation with:", response.updatedSettings);
         setStatus(STATUS.SUCCESS);
         setSettings(response.updatedSettings);
@@ -198,20 +205,32 @@ export function ConfigurationSetup({showPresets}) {
       ],
     });
     const auth = new OrbisEVMAuth(window.ethereum);
-    const result = await adminOrbisDB.connectUser({ auth, saveSession: false });
-    localStorage.setItem("orbisdb-admin-session", result.session.session);
-    if (result?.user) {
-      setAdminAccount(result.user.did);
-      setIsAdmin(true);
-      setSessionJwt(result.session.session);
+
+    try {
+      const result = await adminOrbisDB.connectUser({ auth, saveSession: false });
+      localStorage.setItem("orbisdb-admin-session", result.session.session);
+      if (result?.user) {
+        setAdminAccount(result.user.did);
+        setIsAdmin(true);
+        setSessionJwt(result.session.session);
+      }
+      setStatusConnect(STATUS.SUCCESS);
+    } catch(e) {
+      console.log("Error while connecting:", e);
+      setStatusConnect(STATUS.ACTIVE);
     }
-    setStatusConnect(STATUS.SUCCESS);
+    
   }
 
   return (
     <>
         {/** Stepper to show progress */}
-        <StepsProgress steps={["Ceramic Settings", "Database", "Admins"]} currentStep={step} />
+        {showPresets ?
+          <StepsProgress steps={["Ceramic Settings", "Database", "Presets", "Admins"]} currentStep={step} />
+        :
+          <StepsProgress steps={["Ceramic Settings", "Database", "Admins"]} currentStep={step} />
+        }
+          
         
         {/** Step 1: Ceramic node */}
         {step == 1 &&
@@ -272,9 +291,26 @@ export function ConfigurationSetup({showPresets}) {
             </div>
           </>
         }
+
+        {/** Step 3: Presets configuration */}
+        {step == 3 &&
+          <>
+            <div className="mt-2">
+              <label className="text-base font-medium text-center">Database configuration:</label>
+              <p className="text-sm text-slate-500 mb-2">This database will be used to index the data stored on your Ceramic node in order to query and analyze it easily.</p>
+                {/** Display presets available */}
+                <ConfigurationPreset presets={presets} setPresets={setPresets} />
+            </div>
+            
+            {/** CTA to save updated context */}
+            <div className="flex w-full justify-center mt-2">
+              <Button title="Next" status={status} onClick={() => goStep4()} />
+            </div>
+          </>
+        }
         
         {/** Step 3: Add admins */}
-        {step == 3 &&
+        {step == 4 &&
           <>
             <div className="mt-2">
               <label className="text-base font-medium text-center">Add your OrbisDB admin:</label>
