@@ -16,10 +16,29 @@
       "id": "scorer_id"
     },
     {
+      "name": "Action",
+      "description": "Which action should the plugin perform?",
+      "id": "action",
+      "type": "select",
+      "options": [
+        { "value": "validate", "label": "Gate one of your context based on the user's score" },
+        { "value": "add_metadata", "label": "Add the user's Gitcoin Passport score to streams created in your context" }
+      ],
+      "per_context": true
+    },
+    {
+      "name": "Field",
+      "description": "Which field do you want to use as the address to pass to the Passport API? The stream's fields are under the 'content' object and generic fields are parents fields (like 'controller').",
+      "id": "field",
+      "type": "string",
+      "per_context": true
+    },
+    {
       "name": "Score required",
       "description": "The Gitcoin Passport score required for this context.",
       "per_context": true,
-      "id": "min_score"
+      "id": "min_score",
+      "conditions": [{ "id": "action", "value": "validate" }]
     }
   ]
 }

@@ -11,7 +11,7 @@ export default async function (server, opts) {
 
     // API endpoint to query a table
     server.post("/query/all", async (req, res) => {
-      const { table, page, order_by_indexed_at } = req.body;
+      const { table, page, context, order_by_indexed_at } = req.body;
 
       // Retrieve admin
       let adminDid = req.adminDid;
@@ -29,7 +29,8 @@ export default async function (server, opts) {
         let response = await database.queryGlobal(
           table,
           parseInt(page, 10),
-          order_by_indexed_at === "true"
+          true,
+          context
         );
         console.log("response in query/all:", response);
         if (response && response.data) {

@@ -1,5 +1,6 @@
 import { ethers } from "ethers";
 import logger from "../../logger/index.js";
+import { getValueByPath } from "../../utils/helpers.js";
 
 
 export default class ENSPlugin {
@@ -30,7 +31,7 @@ export default class ENSPlugin {
         let { address } = getAddressFromDid(stream.controller);
         field = address;
       } else {
-        field = this.getValueByPath(stream, this.field);
+        field = getValueByPath(stream, this.field);
       }
       
       logger.debug("field:", field)
@@ -86,24 +87,7 @@ export default class ENSPlugin {
       logger.debug("Error retrieving address:", e);
       return null;
     }
-  }
-
-  /** This will convert the path entered by the user into the actual stream key value */
-  getValueByPath(obj, path) {
-    // Split the path by '.' to get individual keys
-    const keys = path.split('.');
-    // Reduce the keys to access the nested property
-    const result = keys.reduce((currentObject, key) => {
-        // Check if the current level is valid to avoid errors
-        if (currentObject && currentObject.hasOwnProperty(key)) {
-            return currentObject[key];
-        }
-        // Return undefined or any fallback value if the path is invalid
-        return undefined;
-    }, obj);
-    return result;
-  }
-  
+  }  
 }
 
 /** Returns a JSON object with the address and network based on the did */

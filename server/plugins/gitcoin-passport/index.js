@@ -1,4 +1,5 @@
 import logger from "../../logger/index.js";
+import { getValueByPath } from "../../utils/helpers.js";
 
 export default class GitcoinPassportPlugin {
   /**
@@ -6,24 +7,78 @@ export default class GitcoinPassportPlugin {
    * A plugin can register multiple hooks, each hook being linked to a function that will be executed when the hook is triggered
    */
   async init() {
+    let HOOKS = {};
+    switch (this.action) {
+      case "validate":
+        HOOKS.validate =  (stream) => this.isValid(stream);
+        break;
+      case "add_metadata":
+        HOOKS.add_metadata = (stream) => this.getScore(stream);
+        break;
+    }
+
     return {
-      HOOKS: {
-        validate: (stream) => this.isValid(stream),
-        //"stream:add_metadata": (stream) => this.hello(stream),
-      },
+      HOOKS: HOOKS
     };
   }
 
   /** Will check if user has a sufficient Gitcoin Passport score to use this app */
   async isValid(stream) {
-    // Initialize score variable
-    let score;
-
     // Get address and network from did
-    let { address } = getAddressFromDid(stream.controller);
-    logger.debug("address:", address);
+    let field;
 
-    if (address) {
+    /** Will convert the field to the actual value and make an exception for controller to use the address instead of the full did */
+    if(this.field == "controller") {
+      let { address } = getAddressFromDid(stream.controller);
+      field = address;
+    } else {
+      field = getValueByPath(stream, this.field);
+    }
+    
+    logger.debug("address to use:", field)
+
+    if (field) {
+      let score = await this.computeScore(field);
+      /** Make sure the user's score is above the minimum score required by the developer */
+      if (score > this.min_score) {
+        return true;
+      } else {
+        return false;
+      }
+    } else {
+      logger.debug(
+        "Stream " + stream.stream_id + " rejected by Gitcoin Passport."
+      );
+      return false;
+    }
+  }
+
+  /** Returns a simple hello:world key value pair which will be added to the plugins_data field */
+  async getScore(stream) {
+    let score;
+    // Get address and network from did
+    let field;
+
+    /** Will convert the field to the actual value and make an exception for controller to use the address instead of the full did */
+    if(this.field == "controller") {
+      let { address } = getAddressFromDid(stream.controller);
+      field = address;
+    } else {
+      field = getValueByPath(stream, this.field);
+    }
+
+    if(field) {
+      score = await this.computeScore(field);
+    }
+    
+    return {
+      score: score,
+    };
+  }
+
+  async computeScore(address) {
+    let score;
+    try {
       /** Will submit passport to make sure we retrieve the latest score */
       let res = await this.submitPassport(address);
       logger.debug("res:", res);
@@ -42,19 +97,11 @@ export default class GitcoinPassportPlugin {
         let passportScore = await this.getPassportScore(address);
         score = Number(passportScore.score);
       }
-      logger.debug("score:", score);
-      /** Make sure the user's score is above the minimum score required by the developer */
-      if (score > this.min_score) {
-        return true;
-      } else {
-        return false;
-      }
-    } else {
-      logger.debug(
-        "Stream " + stream.stream_id + " rejected by Gitcoin Passport."
-      );
-      return false;
+    } catch(e) {
+      score = undefined;
     }
+    logger.debug("score:", score);
+    return score;
   }
 
   /** Submit passport to API to make sure we are using the latest score */

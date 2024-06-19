@@ -662,18 +662,27 @@ export default class Postgre {
   }
 
   /** Query a whole table */
-  async queryGlobal(table, page, orderByIndexedAt = true) {
+  async queryGlobal(table, page, orderByIndexedAt = true, context) {
     const records = 100;
     const offset = (page - 1) * records;
 
-    // Query for paginated data
-    let queryText;
-    if (orderByIndexedAt) {
-      queryText = `SELECT * FROM ${table} ORDER BY indexed_at DESC LIMIT ${records} OFFSET ${offset}`;
-    } else {
-      queryText = `SELECT * FROM ${table} LIMIT ${records} OFFSET ${offset}`;
+    // Base query
+    let queryText = `SELECT * FROM ${table}`;
+    
+    // Add filtering by context if context is provided
+    if (context && context != "global" && table != "kh4q0ozorrgaq2mezktnrmdwleo1d") {
+        queryText += ` WHERE _metadata_context = ${context}`;
     }
+
+    // Add ordering and pagination
+    if (orderByIndexedAt) {
+        queryText += ` ORDER BY indexed_at DESC`;
+    }
+
+    queryText += ` LIMIT ${records} OFFSET ${offset}`;
+    
     logger.debug("In queryGlobal", queryText);
+    console.log("In queryGlobal", queryText);
 
     // Query for total count
     const countQuery = `SELECT COUNT(*) FROM ${table}`;
