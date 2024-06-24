@@ -1,0 +1,9 @@
+{
+  "id": "index-network",
+  "name": "Index Network",
+  "logo": "/img/data-source-logo.png",
+  "description": "Plugin used to generate stream based on an external datasources API.",
+  "full_description": "Plugin used to generate stream based on an external datasources API. This plugin can call any API specified and save the data according to any model you want to use. You can specify the interval at which this plugin can be called.",
+  "hooks": ["generate"],
+  "variables": []
+}
