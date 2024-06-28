@@ -161,7 +161,7 @@ export async function registerGraphQLRoute(path, database) {
 
 /** Will refresh the schema to make sure it takes into account the last changes (relations, new models, etc) */
 export async function refreshGraphQLSchema(db, slot) {
-  let path = `/${slot}/graphql`;
+  let path = `/${cleanDidPath(slot)}/graphql`;
   console.log("In refreshGraphQLSchema() path:", path);
 
   try {
