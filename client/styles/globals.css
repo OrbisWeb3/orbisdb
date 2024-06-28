@@ -325,3 +325,6 @@ button.graphiql-execute-button:focus {
 .graphiql-tooltip {
   display: none !important;
 }
+.CodeMirror-info {
+  display: none !important;
+}
