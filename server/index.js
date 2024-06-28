@@ -134,6 +134,15 @@ async function startServer(databases) {
   );
 }
 
+// Helper function to register a GraphQL schema
+async function registerSchema(instance, schema, path) {
+  await instance.register(mercurius, {
+    schema,
+    path, // Set the path dynamically based on the slot
+  });
+  return instance.graphql;
+}
+
 /** Will register a graphQL endpoint for each slot */
 export async function registerGraphQLRoute(path, database) {
   const schema = await database.generateGraphQLSchema();
@@ -148,15 +157,10 @@ export async function registerGraphQLRoute(path, database) {
     return;
   }
 
-  const subServer = await global.server.register((instance, opts, done) => {
-    instance.register(mercurius, {
-      schema,
-      path: _path, // Set the path dynamically based on the slot
-    });
-    done();
+  await global.server.register(async (instance) => {
+    const graphqlInstance = await registerSchema(instance, schema, _path);
+    mercuriusInstances[_path] = graphqlInstance; // Store the instance in the map
   });
-
-  mercuriusInstances[_path] = subServer.graphql; // Store the instance in the map
 }
 
 /** Will refresh the schema to make sure it takes into account the last changes (relations, new models, etc) */
