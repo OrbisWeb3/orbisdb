@@ -120,7 +120,7 @@ export default class IndexingService {
         switch (parsedData.eventType) {
           // Discoverd a new stream
           case 0:
-            logger.debug(
+            console.log(
               cliColors.text.cyan,
               "👀 Discovered new stream:",
               cliColors.reset,
@@ -130,7 +130,7 @@ export default class IndexingService {
             break;
           // Updated a new stream
           case 1:
-            logger.debug(
+            console.log(
               cliColors.text.cyan,
               "👀 Update discovered for stream:",
               cliColors.reset,
@@ -140,7 +140,7 @@ export default class IndexingService {
             break;
           // Detect anchoring
           case 2:
-            logger.debug(
+            console.log(
               cliColors.text.cyan,
               "👀 Detected anchoring for stream:",
               cliColors.reset,

@@ -9,7 +9,7 @@ export default function Logs() {
   const [logData, setLogData] = useState(false);
   const { sessionJwt } = useGlobal();
 
-  const exportLog = (log) => {
+  /*const exportLog = (log) => {
     const blob = new Blob([JSON.stringify(log, null, 4)], {
       type: "text/json",
     });
@@ -30,7 +30,7 @@ export default function Logs() {
 
     link.dispatchEvent(evt);
     link.remove();
-  };
+  };*/
 
   const fetchLogs = async () => {
     try {
@@ -48,6 +48,7 @@ export default function Logs() {
       const selectedLog = logs.find(log => log.level === 'debug');
       
       /** Display logs available in dropdown */
+      console.log("logs:", logs);
       setLogs(logs);
 
       /** Sellect latest log */
@@ -69,7 +70,7 @@ export default function Logs() {
     }
 
     const logData = await response.json();
-
+    console.log("logData:", logData)
     // Sort logs from newest to oldest
     logData.logs.sort(
       (logA, logB) => new Date(logB.timestamp) - new Date(logA.timestamp)
@@ -83,6 +84,7 @@ export default function Logs() {
   }, []);
 
   useEffect(() => {
+    console.log("currentLog:", currentLog);
     if (!currentLog) {
       return;
     }
@@ -94,46 +96,42 @@ export default function Logs() {
     <>
       <div className="px-16 py-12 w-full">
         <h1 className="text-3xl font-bold text-slate-900">Node Logs</h1>
-        {logs ? (
-          logs.error ? (
-            <div>Error occurred while loading logs: {logs.error}</div>
-          ) : (
-            <div className="flex mt-4">
-              <select
-                name="Current log"
-                value={currentLog}
-                onChange={(e) => viewLog(e.target.value)}
-                className={`bg-white px-2 py-1 rounded-md border border-slate-300 text-base text-slate-900`}
-              >
-                <option value="" disabled>
-                  Select a log
+        {(logs && logs.length > 0)  ? (
+          <div className="flex mt-4">
+            <select
+              name="Current log"
+              value={currentLog}
+              onChange={(e) => viewLog(e.target.value)}
+              className={`bg-white px-2 py-1 rounded-md border border-slate-300 text-base text-slate-900`}
+            >
+              <option value="" disabled>
+                Select a log
+              </option>
+              {logs.map((log) => (
+                <option key={log.id} value={log.id}>
+                  {log.level}: {new Date(log.timestamp).toDateString()}
                 </option>
-                {logs.map((log) => (
-                  <option key={log.id} value={log.id}>
-                    {log.level}: {new Date(log.timestamp).toDateString()}
-                  </option>
-                ))}
-              </select>
-              {currentLog && (
-                <div className="ml-2">
-                  <Button
-                    onClick={() => fetchLog(currentLog)}
-                    title="Refresh log"
-                    type="secondary"
-                  ></Button>
-                </div>
-              )}
-              {logData && logData.id === currentLog && (
-                <div className="ml-2">
-                  <Button
-                    onClick={() => exportLog(logData)}
-                    title="Export full log"
-                    successTitle="Log successfully exported"
-                  ></Button>
-                </div>
-              )}
-            </div>
-          )
+              ))}
+            </select>
+            {currentLog && (
+              <div className="ml-2">
+                <Button
+                  onClick={() => fetchLog(currentLog)}
+                  title="Refresh log"
+                  type="secondary"
+                ></Button>
+              </div>
+            )}
+            {/*logData && logData.id === currentLog && (
+              <div className="ml-2">
+                <Button
+                  onClick={() => exportLog(logData)}
+                  title="Export full log"
+                  successTitle="Log successfully exported"
+                ></Button>
+              </div>
+            )*/}
+          </div>
         ) : (
           <h2>Loading logs...</h2>
         )}

@@ -1,4 +1,7 @@
 import postgresql from "pg";
+import { buildSchema, GraphQLObjectType, GraphQLString, GraphQLInt, GraphQLFloat, GraphQLBoolean, GraphQLList, GraphQLInputObjectType, GraphQLNonNull, GraphQLSchema } from 'graphql';
+import { GraphQLJSONObject } from 'graphql-scalars';
+
 import { snakeCase } from "change-case";
 import { cliColors } from "../utils/cliColors.js";
 const { Pool, Client } = postgresql;
@@ -78,7 +81,7 @@ export default class Postgre {
       port,
       max: 20, // Set pool max size to 20
       idleTimeoutMillis: 30000, // Set idle timeout to 30 seconds
-      connectionTimeoutMillis: 2000, // Set connection timeout to 2 seconds
+      connectionTimeoutMillis: 30000, // Set connection timeout to 2 seconds
       ssl: this.supportsSSL ? { rejectUnauthorized: false } : false,
     });
 
@@ -282,6 +285,225 @@ export default class Postgre {
     }
   }
 
+
+// Fetch DB schema to create GraphQL schema for the database
+async fetchDBSchema() {
+  const client = await this.adminPool.connect();
+  try {
+    const result = await client.query(`
+      SELECT table_name, column_name, data_type
+      FROM information_schema.columns
+      WHERE table_schema = 'public'
+    `);
+
+    const schema = result.rows.reduce((acc, row) => {
+      if (!acc[row.table_name]) {
+        acc[row.table_name] = { columns: {} };
+      }
+      acc[row.table_name].columns[row.column_name] = row.data_type;
+      return acc;
+    }, {});
+
+    return schema;
+  } finally {
+    client.release();
+  }
+}
+
+// Helper function to map field types to GraphQL types
+getGraphQLType(fieldType) {
+  switch (fieldType) {
+    case 'character varying':
+    case 'text':
+      return GraphQLString;
+    case 'integer':
+      return GraphQLInt;
+    case 'boolean':
+      return GraphQLBoolean;
+    case 'float8':
+      return GraphQLFloat;
+    case 'json':
+    case 'jsonb':
+      return GraphQLJSONObject;
+    default:
+      if (fieldType.startsWith('_')) {
+        const elementType = this.getGraphQLType(fieldType.substring(1));
+        return new GraphQLList(elementType || GraphQLString);
+      } else {
+        return GraphQLString;
+      }
+  }
+}
+
+  /** Function to generate the GraphQL schema using the DB schema and relations specified by the user */
+  async generateGraphQLSchema() {
+    const settings = getOrbisDBSettings(this.slot);
+    const dbSchema = await this.fetchDBSchema();
+    const modelsMapping = settings.models_mapping || {};
+    const relations = settings.relations || {};
+
+    let typeDefs = {};
+    let inputTypeDefs = {};
+
+    // Define all types initially
+    for (const [modelId, { columns }] of Object.entries(dbSchema)) {
+      const typeName = modelsMapping[modelId] || modelId;
+      const fields = {};
+      const inputFields = {};
+
+      for (const [fieldName, fieldType] of Object.entries(columns)) {
+        const graphqlType = this.getGraphQLType(fieldType);
+        fields[fieldName] = { type: graphqlType };
+        inputFields[fieldName] = { type: graphqlType };
+      }
+
+      typeDefs[typeName] = () => ({
+        name: typeName,
+        fields
+      });
+
+      inputTypeDefs[`${typeName}Filter`] = new GraphQLInputObjectType({
+        name: `${typeName}Filter`,
+        fields: inputFields,
+      });
+    }
+
+    // Define GraphQL Object Types with possible relations
+    const finalTypeDefs = {};
+    for (const typeName in typeDefs) {
+      finalTypeDefs[typeName] = new GraphQLObjectType({
+        name: typeName,
+        fields: () => {
+          const fields = typeDefs[typeName](); // Get fields from the thunk
+          const relFields = {};
+
+          let modelId = getTableModelId(typeName, this.slot);
+
+          if (relations[modelId]) {
+            for (const relation of relations[modelId]) {
+              const relatedTypeName = modelsMapping[relation.referencedTable] || relation.referencedTable;
+              relFields[relation.referenceName] = {
+                type: finalTypeDefs[relatedTypeName],
+                resolve: async (source) => {
+                  const client = await this.adminPool.connect();
+                  try {
+                    const referencedTable = relation.referencedTable;
+                    const referencedColumn = relation.referencedColumn;
+                    const value = source[relation.column]; // Ensure this source key matches your GraphQL type field names
+                    const query = `SELECT * FROM ${referencedTable} WHERE ${referencedColumn} = $1 LIMIT 1`;
+                    const params = [value]; // Safe parameterization
+                    const result = await client.query(query, params);
+                    return result.rows[0];
+                  } finally {
+                    client.release();
+                  }
+                }
+              };
+            }
+          }
+          return { ...fields.fields, ...relFields }; // Combine relational fields with regular fields
+        }
+      });
+    }
+
+    // Construct the main query type with resolve functions
+    const queryFields = {};
+    for (const [modelId] of Object.entries(dbSchema)) {
+      const typeName = modelsMapping[modelId] || modelId;
+      queryFields[typeName] = {
+        type: new GraphQLList(finalTypeDefs[typeName]),
+        args: {
+          filter: { type: inputTypeDefs[`${typeName}Filter`] }
+        },
+        resolve: async (_, { filter }) => {
+          const client = await this.adminPool.connect();
+          try {
+            let query = `SELECT * FROM ${modelId}`;
+            const whereClauses = [];
+            if (filter) {
+              Object.entries(filter).forEach(([field, value]) => {
+                if (Array.isArray(value)) {
+                  whereClauses.push(`${field} IN (${value.map(v => `'${v}'`).join(', ')})`);
+                } else if (typeof value === 'string' && value.includes('%')) {
+                  whereClauses.push(`${field} ILIKE '${value}'`);
+                } else {
+                  whereClauses.push(`${field} = '${value}'`);
+                }
+              });
+              if (whereClauses.length > 0) {
+                query += ` WHERE ${whereClauses.join(' AND ')}`;
+              }
+            }
+            query += ` LIMIT 50`; // Adjust LIMIT as needed
+            const result = await client.query(query);
+            return result.rows;
+          } finally {
+            client.release();
+          }
+        }
+      };
+    }
+    // Return the fully constructed GraphQL schema
+    const queryType = new GraphQLObjectType({
+      name: 'Query',
+      fields: queryFields
+    });
+
+    return new GraphQLSchema({
+      query: queryType
+    });
+  }
+
+  // Method to prepare query fields
+  prepareQueryFields(modelsMapping, dbSchema, finalTypeDefs, inputTypeDefs) {
+    const queryFields = {};
+    Object.entries(dbSchema).forEach(([modelId]) => {
+      const typeName = modelsMapping[modelId] || modelId;
+      const filterTypeName = `${typeName}Filter`;
+  
+      if (inputTypeDefs[filterTypeName]) {
+        queryFields[typeName] = {
+          type: new GraphQLList(finalTypeDefs[typeName]),
+          args: {
+            filter: { type: inputTypeDefs[filterTypeName] },
+          },
+          resolve: async (_, { filter }) => {
+            const client = await this.adminPool.connect();
+            try {
+              let query = `SELECT * FROM ${modelId}`;
+              const whereClauses = [];
+              if (filter) {
+                Object.entries(filter).forEach(([field, value]) => {
+                  if (Array.isArray(value)) {
+                    whereClauses.push(`${field} IN (${value.map(v => `'${v}'`).join(', ')})`);
+                  } else if (typeof value === 'string' && value.includes('%')) {
+                    whereClauses.push(`${field} ILIKE '${value}'`);
+                  } else {
+                    whereClauses.push(`${field} = '${value}'`);
+                  }
+                });
+                if (whereClauses.length > 0) {
+                  query += ` WHERE ${whereClauses.join(' AND ')}`;
+                }
+              }
+              query += ` LIMIT 50`;
+              const result = await client.query(query);
+              return result.rows;
+            } finally {
+              client.release();
+            }
+          },
+        };
+      }
+    });
+    return queryFields;
+  }
+
+  // Resolvers are now set up in the GraphQL schema itself
+  async setupResolvers() {
+    return {};
+  }
+
   /** Will try to insert variable in the model table */
   async upsert(model, content, pluginsData) {
     let variables;
@@ -379,8 +601,7 @@ export default class Postgre {
       logger.error(`Could not create database ${name}`, error);
     } finally {
       // Make sure to close the client connection
-      await client.release();
-      logger.debug("Disconnected from PostgreSQL (released the connection)");
+      client.release();
     }
   }
 
@@ -563,33 +784,45 @@ export default class Postgre {
 
   /** Will query DB Schema with admin user */
   async query_schema() {
+    console.log("Enter query_schema");
     // Build schema query
     let query = `SELECT
-        t.table_name,
-        'TABLE' as type,
-        NULL as view_definition
-      FROM
-        information_schema.tables t
-      WHERE
-        t.table_type = 'BASE TABLE'
-        AND t.table_schema = 'public'
+          t.table_name,
+          'TABLE' as type,
+          NULL as view_definition,
+          json_agg(json_build_object('column_name', c.column_name, 'data_type', c.data_type)) as columns
+        FROM
+          information_schema.tables t
+          LEFT JOIN information_schema.columns c
+          ON t.table_name = c.table_name
+        WHERE
+          t.table_type = 'BASE TABLE'
+          AND t.table_schema = 'public'
+        GROUP BY
+          t.table_name
 
-      UNION ALL
+        UNION ALL
 
-      SELECT
-        v.table_name,
-        'VIEW' as type,
-        v.view_definition
-      FROM
-        information_schema.views v
-      WHERE
-        v.table_schema = 'public';`;
+        SELECT
+          v.table_name,
+          'VIEW' as type,
+          v.view_definition,
+          json_agg(json_build_object('column_name', c.column_name, 'data_type', c.data_type)) as columns
+        FROM
+          information_schema.views v
+          LEFT JOIN information_schema.columns c
+          ON v.table_name = c.table_name
+        WHERE
+          v.table_schema = 'public'
+        GROUP BY
+          v.table_name, v.view_definition;`;
 
     // Perform query and return results
     const client = await this.adminPool.connect();
     try {
       const res = await client.query(query);
-      return { data: res };
+      console.log("res:", res);
+      return { data: res.rows };
     } catch (e) {
       logger.error(
         cliColors.text.red,
@@ -603,6 +836,7 @@ export default class Postgre {
       client.release();
     }
   }
+
 
   /** Will run any query and return the results */
   async query(userQuery, params) {
@@ -680,10 +914,7 @@ export default class Postgre {
     }
 
     queryText += ` LIMIT ${records} OFFSET ${offset}`;
-    
-    logger.debug("In queryGlobal", queryText);
-    console.log("In queryGlobal", queryText);
-
+  
     // Query for total count
     const countQuery = `SELECT COUNT(*) FROM ${table}`;
 

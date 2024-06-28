@@ -223,12 +223,13 @@ export default function AssignContextModal({
   );
 }
 
-const ContextDropdown = ({
+export const ContextDropdown = ({
   selectedContext,
   selectedContextIds,
   setSelectedContextIds,
   index,
-  plugin_id,
+  showGlobal = false,
+  size
 }) => {
   const { settings, isShared } = useGlobal();
   const [listVis, setListVis] = useState(false);
@@ -277,12 +278,12 @@ const ContextDropdown = ({
     <div className="w-full relative mb-2">
       {/* Dropdown selector */}
       <div
-        className="flex flex-row bg-white px-2 py-1 rounded-md border border-slate-300 hover:border-slate-400 cursor-pointer text-base text-slate-900 mt-1 items-center"
+        className={`flex flex-row bg-white px-2 py-1 rounded-md border border-slate-300 hover:border-slate-400 cursor-pointer text-slate-900 mt-1 items-center ${size == "xs" ? "text-xs" : "text-base" }`}
         onClick={() => setListVis(!listVis)}
       >
         {currentContext ? (
           <span className="flex flex-1">
-            <SmContextDetails context={currentContext} />
+            <SmContextDetails context={size == "xs" ? {name: "All contexts", stream_id: "global"} : currentContext} />
           </span>
         ) : (
           <span className="flex flex-1">Select your context</span>
@@ -297,25 +298,25 @@ const ContextDropdown = ({
       {/* Dropdown list content */}
       {listVis && (
         <>
-          <ul className="absolute z-10 mt-1 max-h-56 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm"
+          <ul className={`absolute z-10 mt-1 max-h-56 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm  ${size == "xs" ? "text-xs" : "text-base" }`}
             tabIndex="-1"
             role="listbox"
             aria-labelledby="listbox-label">
               {/** Only allow Global context option on dedicated instance */}
-              {!isShared &&
+              {(!isShared || showGlobal) &&
                 <li
-                  className={`relative select-none py-2 pl-3 pr-9 text-gray-900 hover:bg-slate-50 cursor-pointer`}
+                  className={`relative select-none pr-9 text-gray-900 hover:bg-slate-50 cursor-pointer ${size == "xs" ? "py-1 pl-2" : "py-2 pl-3" }`}
                   role="option"
                   key={999}
-                  onClick={() => selectContext({name: "Global", stream_id: "global"})}>
-                    <SmContextDetails context={{name: "Global", stream_id: "global"}} />
+                  onClick={() => selectContext({name: size == "xs" ? "All contexts" : "Global", stream_id: "global"})}>
+                    <SmContextDetails context={{name: size == "xs" ? "All contexts" : "Global", stream_id: "global"}} />
                 </li>
                 }
               {(_contexts && _contexts.length > 0) ?
                 <>
                   {_contexts.map((context, index) => (
                     <li
-                      className={`relative select-none py-2 pl-3 pr-9 text-gray-900 hover:bg-slate-50 cursor-pointer`}
+                      className={`relative select-none pr-9 text-gray-900 hover:bg-slate-50 cursor-pointer ${size == "xs" ? "py-1 pl-2" : "py-2 pl-3" }`}
                       role="option"
                       key={index}
                       onClick={() => selectContext(context)}>
@@ -346,7 +347,7 @@ export const SmContextDetails = ({ context }) => {
           className="h-5 w-5 flex-shrink-0 mr-1.5 rounded-full"
         />
       )}
-      <span className="font-normal block truncate">{context.name}</span>
+      <span className={"font-normal block truncate"}>{context.name}</span>
     </div>
   );
 };

@@ -3,7 +3,7 @@ import { cliColors } from "../utils/cliColors.js";
 import { OrbisDB } from "@useorbis/db-sdk";
 import { OrbisKeyDidAuth } from "@useorbis/db-sdk/auth";
 import logger from "../logger/index.js";
-import { parseDidSeed } from "../utils/helpers.js";
+import { parseDidSeed, sleep } from "../utils/helpers.js";
 
 export default class Ceramic {
   constructor(node, instance, seed) {
@@ -68,11 +68,23 @@ export default class Ceramic {
 
     /** Create social models 
     try {
-        let model = await this.orbisdb.ceramic.createModel(voteModelDefinition);
+        let model = await this.orbisdb.ceramic.createModel(orbisdbContextModelDefinition);
         console.log("model:", model); 
     } catch(e) {
         console.log(cliColors.text.red, "Error creating model:", cliColors.reset, e);
     }*/
+
+    /** Create Stream */
+    await sleep(2000);
+    try {
+      let result = await this.orbisdb.insert('kjzl6hvfrbw6c6crcw5tvydjrgtjatrty8dge1u295gm7yo402htt6bp19qw641').value({
+        name: "Node 3",
+        description: "I am Node 3, a very good node!",
+        id: "node-3"
+      }).run();      
+    } catch(e) {
+      console.log("Error creating stream:", e);
+    }
   }
 }
 
@@ -83,8 +95,8 @@ function cleanNodeUrl(url) {
 
 /** Model for OrbisDB contexts */
 /**
- * StreamID Mainnet: kjzl6hvfrbw6c52v85swdm53yzahr8k9zojf0w7krz18f3gzk9ppyz11bx0plar
- * StreamID Testnet: ___
+ * StreamID Mainnet: kjzl6hvfrbw6c6zdvwmwqx9wd361witgc0qtbjx8763d16espkxtybag1ylv3tc
+ * StreamID Testnet: kjzl6hvfrbw6c6zdvwmwqx9wd361witgc0qtbjx8763d16espkxtybag1ylv3tc
  * */
 const orbisdbContextModelDefinition = {
   name: "OrbisDBContext",
@@ -199,6 +211,7 @@ const discoursePostsModelDefinition = {
 /** Model for Orbis posts */
 /**
  * StreamID Mainnet: kjzl6hvfrbw6c88wvnnb8x62rwvt5iphtvgmg88s4qis09nvchbij21c70th28a
+ * StreamID Recon: kjzl6hvfrbw6cajk0869qi0tthihoy9q8kycwymavzho6b66p9d9qi3yplnv4is
  * */
 const fullPostModelDefinition = {
   name: "SocialPost",
@@ -309,6 +322,7 @@ const fullPostModelDefinition = {
 /** Model for Orbis profiles */
 /**
  * StreamID Mainnet: kjzl6hvfrbw6c9ajvxfoyxcpi8zbiilf5c62zyxk1tzt31rsei9zeq1sqddy09a
+ * StreamID Recon: kjzl6hvfrbw6c9x1dusvyt413a3emwmeouk9qswky6mu4a7g0764392i5xdo573
  * */
 const profileModelDefinition = {
   name: "SocialProfile",
@@ -362,7 +376,10 @@ const profileModelDefinition = {
 };
 
 /** Model for Orbis reactions */
-/** StreamID Mainnet: kjzl6hvfrbw6catjwpn53stszvbv04ez7phlfheparps47kbx8q7t11z6l06lwl */
+/** 
+ * StreamID Mainnet: kjzl6hvfrbw6caca84g61qjl4v4zyhlnzfknowvaitq1c35gl54yb6jg71gxohc 
+ * StreamID Recon: kjzl6hvfrbw6caca84g61qjl4v4zyhlnzfknowvaitq1c35gl54yb6jg71gxohc
+ * */
 const reactionsModelDefinition = {
   name: "SocialReaction",
   version: "2.0",
@@ -389,7 +406,10 @@ const reactionsModelDefinition = {
 };
 
 /** Model for Orbis follow */
-/** StreamID Mainnet: kjzl6hvfrbw6c7m2zwttqjjrh9uibh3im0qmxab3apf7wq37lrjid26iyu137jt */
+/** 
+ * StreamID Mainnet: kjzl6hvfrbw6c7m2zwttqjjrh9uibh3im0qmxab3apf7wq37lrjid26iyu137jt 
+ * StreamID Recon: kjzl6hvfrbw6c93uuh5e5h0twvqdtm0aynhywdmvixefiy54dzalx74eocfkqfk
+ * */
 const followModelDefinition = {
   name: "SocialFollow",
   version: "2.0",
@@ -418,6 +438,7 @@ const followModelDefinition = {
 /** Model for proposal */
 /**
  * StreamID Mainnet: kjzl6hvfrbw6c6czaljcbq6gbzmhsehcb9edaxov0wa0qoxby3fgq1m213u0pfp
+ * StreamID Recon: kjzl6hvfrbw6c89iy11sksbox1vb6sjfojh669fqdi73shvflqaw6d1svr6ozo6
  * */
 const proposalModelDefinition = {
   name: "GovernanceProposals",
@@ -466,6 +487,7 @@ const proposalModelDefinition = {
 /** Model for votes */
 /**
  * StreamID Mainnet: kjzl6hvfrbw6carr31lps2ujx1wngyyl5mm09fmaj22v5bhg1vgxbms08k1mnn5
+ * StreamID Recon: kjzl6hvfrbw6c5cil3sb0bxzf0q9sg62vswx5q59uktx7ozax2dmqbjnhvwlfju
  * */
 const voteModelDefinition = {
   name: "GovernanceVotes",
@@ -492,101 +514,166 @@ const voteModelDefinition = {
   },
 };
 
-/**** NOT IMPLEMENTED YET ****/
 /** Schema for the user's encrypted email posts */
+/**
+ * StreamID Recon: kjzl6hvfrbw6caidfppsrbalmig520hrzvgtmcj7kviobmt92n77gpsqqj5jk9p
+ */
 export const socialEncryptedEmailSchema = {
-  $schema: "http://json-schema.org/draft-07/schema#",
-  title: "SocialEncryptedEmail",
-  type: "object",
-  properties: {
-    encryptedEmail: {
-      type: ["object", "null"],
-      properties: {
-        encryptedString: {
-          type: "string",
+  name: "SocialEncryptedEmail",
+  schema: {
+    type: "object",
+    $schema: "https://json-schema.org/draft/2020-12/schema",
+    properties: {
+      encryptedEmail: {
+        type: "object",
+        properties: {
+          encryptedString: {
+            type: "string"
+          },
+          encryptedSymmetricKey: {
+            type: "string"
+          },
+          accessControlConditions: {
+            type: "string"
+          }
         },
-        encryptedSymmetricKey: {
-          type: "string",
-        },
-        accessControlConditions: {
-          type: "string",
-        },
-      },
+        additionalProperties: false
+      }
     },
+    additionalProperties: false
   },
+  version: "2.0",
+  interface: false,
+  implements: [],
+  accountRelation: {
+    type: "single"
+  }
 };
 
-/** Schema for the Orbis conversations */
+/**** NOT IMPLEMENTED YET ****/
+/** 
+ * Schema for the Orbis conversations 
+ * StreamID Mainnet: kjzl6hvfrbw6c8ynorxt2tp766711479zupiaq6ai80wgsgbr256hbap4mpspt3
+ * StreamID Recon: kjzl6hvfrbw6cabk4x5rqdanaaxf164iu8n3vrzz2zfspk1g44d2zbmkbsvuz6k
+ * */
 export const socialConversationSchema = {
-  $schema: "http://json-schema.org/draft-07/schema#",
-  title: "SocialConversation",
-  type: "object",
-  properties: {
-    name: {
-      type: ["string", "null"],
-    },
-    description: {
-      type: ["string", "null"],
-    },
-    context: {
-      type: ["string", "null"],
-    },
-    recipients: {
-      type: "array",
-      items: {
-        type: "string",
+  name: "SocialConversation",
+  schema: {
+    type: "object",
+    $schema: "https://json-schema.org/draft/2020-12/schema",
+    required: [
+      "recipients"
+    ],
+    properties: {
+      name: {
+        type: [
+          "string",
+          "null"
+        ]
       },
+      context: {
+        type: [
+          "string",
+          "null"
+        ]
+      },
+      recipients: {
+        type: "array",
+        items: {
+          type: "string"
+        }
+      },
+      description: {
+        type: [
+          "string",
+          "null"
+        ]
+      }
     },
+    additionalProperties: false
   },
-  required: ["recipients"],
+  version: "2.0",
+  interface: false,
+  implements: [],
+  accountRelation: {
+    type: "list"
+  }
 };
 
-/** Schema for the Orbis messages */
+/**
+ *  Schema for the Orbis messages 
+ * StreamID Mainnet: kjzl6hvfrbw6cav5vj5fmqxxt95gjlkuxroafdl4elues1il176flbixrcaq9bv
+ * StreamID Recon: kjzl6hvfrbw6ca08skivz4p240lk31ga73hg4t95p85p6vlpf4i0njdcccmwgdo
+ * */
 export const socialPrivateMessageSchema = {
-  $schema: "http://json-schema.org/draft-07/schema#",
-  title: "SocialPrivateMessage",
-  type: "object",
-  properties: {
-    conversation_id: {
-      type: "string",
-    },
-    master: {
-      type: ["string", "null"],
-    },
-
-    reply_to: {
-      type: ["string", "null"],
-    },
-    encryptedMessage: {
-      type: ["object", "null"],
-      properties: {
-        encryptedString: {
-          type: "string",
-        },
-        encryptedSymmetricKey: {
-          type: "string",
-        },
-        accessControlConditions: {
-          type: "string",
-        },
+  name: "SocialPrivateMessage",
+  schema: {
+    type: "object",
+    $schema: "https://json-schema.org/draft/2020-12/schema",
+    required: [
+      "conversation_id"
+    ],
+    properties: {
+      master: {
+        type: [
+          "string",
+          "null"
+        ]
       },
-    },
-    encryptedMessageSolana: {
-      type: ["object", "null"],
-      properties: {
-        encryptedString: {
-          type: "string",
-        },
-        encryptedSymmetricKey: {
-          type: "string",
-        },
-        solRpcConditions: {
-          type: "string",
-        },
+      reply_to: {
+        type: [
+          "string",
+          "null"
+        ]
       },
+      conversation_id: {
+        "type": "string"
+      },
+      encryptedMessage: {
+        type: [
+          "object",
+          "null"
+        ],
+        properties: {
+          encryptedString: {
+            type: "string"
+          },
+          encryptedSymmetricKey: {
+            type: "string"
+          },
+          accessControlConditions: {
+            type: "string"
+          }
+        },
+        additionalProperties: false
+      },
+      encryptedMessageSolana: {
+        type: [
+          "object",
+          "null"
+        ],
+        properties: {
+          encryptedString: {
+            type: "string"
+          },
+          solRpcConditions: {
+            type: "string"
+          },
+          encryptedSymmetricKey: {
+            type: "string"
+          }
+        },
+        additionalProperties: false
+      }
     },
+    additionalProperties: false
   },
-  required: ["conversation_id"],
+  version: "2.0",
+  interface: false,
+  implements: [],
+  accountRelation: {
+    type: "list"
+  }
 };
 
 /** Schema for the Orbis settings notifications */

@@ -1,4 +1,5 @@
 import Fastify from "fastify";
+import mercurius from 'mercurius';
 
 import cors from "@fastify/cors";
 import fastifySensible from "@fastify/sensible";
@@ -47,7 +48,7 @@ const server = new Fastify({
 
 const PORT = process.env.PORT || 7008;
 
-async function startServer() {
+async function startServer(databases) {
   // We're running in production and there's no NextJS build output
   if (
     !dev &&
@@ -79,6 +80,19 @@ async function startServer() {
       fileSize: 50000000,
     },
   });
+
+  // Setup GraphQL
+  // Register GraphQL routes for all databases
+  for (const [slot, db] of Object.entries(databases)) {
+    const schema = await db.generateGraphQLSchema();
+    let _path = `/${slot}/graphql`;
+    console.log("Registered path:", _path);
+    server.register(mercurius, {
+      schema,
+      path: _path,
+    });
+    console.log("server.graphql:", server.graphql)
+  }
 
   await server.register(ServerRoutes);
 
@@ -121,7 +135,40 @@ async function startServer() {
   );
 }
 
-/** Initialize the app by loading all of the required plugins while initializng those and start the indexing service */
+server.after(() => {
+  console.log("server.graphql:", server.graphql); // Check availability here
+});
+
+/** Will register a graphQL endpoint for each slot */
+async function registerGraphQLRoute(path, database) {
+  const schema = await database.generateGraphQLSchema();
+  let _path = `/${path}/graphql`;
+  console.log("Registered path:", _path);
+  server.register(mercurius, {
+    schema,
+    path: _path,
+  });
+}
+
+/** Will refresh the schema to make sure it takes into account the last changes (relations, new models, etc) */
+export async function refreshGraphQLSchema(db, slot) {
+  try {
+    const schema = await db.generateGraphQLSchema();
+    let _path = `/${slot}/graphql`;
+    console.log("in refreshGraphQLSchema(): path:", _path);
+    /*server.register(mercurius, {
+      schema,
+      path: _path,
+    });*/
+    console.log("server:", server);
+    console.log("server.graphql:", server.graphql);
+    console.log("server.graphql.path:", server.graphql.path);
+  } catch (error) {
+    console.error('Failed to refresh GraphQL schema:', error);
+  }
+}
+
+/** Initialize the app by loading all of the required plugins while initializing those and start the indexing service */
 export async function startIndexing() {
   // Retrieve OrbisDB current settings
   let settings = getOrbisDBSettings();
@@ -219,10 +266,10 @@ export async function startIndexing() {
 
   /** Subscribe to streams created on Mainnet */
   global.indexingService.subscribe();
-}
 
-/** Start server */
-startServer().catch(logger.error);
+  // Start the server after initializing the database
+  startServer(databases).catch(logger.error);
+}
 
 /** Initialize indexing service */
 startIndexing();

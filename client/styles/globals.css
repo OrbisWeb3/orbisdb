@@ -24,7 +24,12 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
     monospace;
 }
-
+.text-active {
+  color: #4483FD;
+}
+.bg-active {
+  background-color: #4483FD;
+}
 .text-base {
   font-size: 0.925rem !important;
 }
@@ -218,4 +223,105 @@ code {
 .private-input:focus {
   color: initial;
   text-shadow: none;
+}
+
+/** GraphiQL */
+body:not(.graphiql-light) .graphiql-response {
+  --color-primary: 338, 100%, 67%;
+  --color-secondary: 243, 100%, 77%;
+  --color-tertiary: 158, 76%, 41%;
+  --color-info: 202, 89%, 48% !important;
+  --color-success: 158, 100%, 42%;
+  --color-warning: 29, 90%, 49% !important;
+  --color-error: 13, 100%, 58%;
+  --color-neutral: 215, 16%, 47%;
+  --color-base: 219, 29%, 18%;
+  --popover-box-shadow: none;
+  --popover-border: 1px solid hsl(var(--color-neutral));
+}
+.graphiql-doc-explorer-title {
+  color: #020617;
+}
+.graphiql-doc-explorer-search {
+  display: none;
+}
+.graphiql-markdown-description {
+  margin-top: 0px !important;
+}
+body .graphiql-plugin {
+  --color-info: 202, 100%, 55% !important;
+  --color-neutral: 217, 28%, 23%;
+  --color-warning: 28, 90%, 56% !important;
+}
+/* Customize the GraphiQL container */
+.graphiql-container {
+  font-family: 'Fira Code', monospace;
+  font-size: 12px;
+  color: #2d2d2d;
+  background-color: #FFF !important;
+}
+.graphiql-container .graphiql-sidebar button, button.graphiql-tab-add > svg, .graphiql-history-header {
+  color: #020617 !important;
+}
+
+/* Customize the GraphiQL editor background */
+.graphiql-container .editorWrap .CodeMirror {
+  background-color: #f5f5f5;
+  color: #2d2d2d;
+}
+
+/* Customize the GraphiQL toolbar */
+.graphiql-container .toolbar {
+  background-color: #f1f1f1;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+/* Customize the GraphiQL buttons */
+.graphiql-container .toolbar button {
+  background-color: #4483fd;
+  color: #ffffff;
+  border: none;
+  border-radius: 3px;
+  padding: 5px 10px;
+  margin: 0 5px;
+  cursor: pointer;
+}
+
+.graphiql-container .toolbar button:hover {
+  background-color: #356dc0;
+}
+
+/* Customize the query editor */
+.graphiql-container .queryWrap {
+  background-color: #ffffff;
+}
+
+/* Customize the response editor */
+.graphiql-container .resultWrap {
+  background-color: #ffffff;
+}
+
+/* Customize the GraphiQL result table */
+.graphiql-container .result-window .CodeMirror {
+  background-color: #FFF;
+  color: #2d2d2d;
+}
+.graphiql-container .graphiql-sessions {
+  background-color: #FFF !important;
+}
+.graphiql-logo-link {
+  display: none;
+}
+button.graphiql-execute-button {
+  background-color: #4483FD !important;
+  opacity: 1;
+}
+button.graphiql-execute-button:hover {
+  opacity: 0.95;
+}
+button.graphiql-execute-button:focus {
+  outline: none;
+}
+.graphiql-tooltip {
+  display: none !important;
 }

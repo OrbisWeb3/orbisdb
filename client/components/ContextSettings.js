@@ -39,12 +39,11 @@ export default function ContextSettings({
     /** Update if existing or create new context */
     if (context) {
       delete content.stream_id;
+      delete content.contexts;
       res = await orbisdb.update(context.stream_id).replace(content).run();
     } else {
       res = await orbisdb
-        .insert(
-          "kjzl6hvfrbw6c52v85swdm53yzahr8k9zojf0w7krz18f3gzk9ppyz11bx0plar"
-        )
+        .insert("kjzl6hvfrbw6c6zdvwmwqx9wd361witgc0qtbjx8763d16espkxtybag1ylv3tc")
         .value(content)
         .run();
     }

@@ -171,8 +171,8 @@ export function toValidDbName(input) {
 }
 
 /** Retrieve readable table name from model using mapping */
-export function getTableName(model) {
-  let settings = getOrbisDBSettings();
+export function getTableName(model, adminDid) {
+  let settings = getOrbisDBSettings(adminDid);
   if (settings && settings.models_mapping) {
     return settings.models_mapping[model];
   } else {
@@ -181,8 +181,8 @@ export function getTableName(model) {
 }
 
 // Add a method to get the model ID for a human-readable table name
-export function getTableModelId(tableName) {
-  let settings = getOrbisDBSettings();
+export function getTableModelId(tableName, adminDid) {
+  let settings = getOrbisDBSettings(adminDid);
   const modelsMapping = settings.models_mapping;
   for (const [id, name] of Object.entries(modelsMapping || {})) {
     if (name === tableName) {

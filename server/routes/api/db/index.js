@@ -1,8 +1,9 @@
 import { adminDidAuthMiddleware } from "../../../middleware/didAuthMiddleware.js";
 
 import { SelectStatement } from "@useorbis/db-sdk/query";
-import { getOrbisDBSettings } from "../../../utils/helpers.js";
+import { getOrbisDBSettings, getTableName, updateOrbisDBSettings } from "../../../utils/helpers.js";
 import logger from "../../../logger/index.js";
+import { refreshGraphQLSchema } from "../../../index.js";
 
 // Prefixed with /api/db/
 export default async function (server, opts) {
@@ -32,7 +33,6 @@ export default async function (server, opts) {
           true,
           context
         );
-        console.log("response in query/all:", response);
         if (response && response.data) {
           return {
             columns: response.data.fields,
@@ -100,7 +100,9 @@ export default async function (server, opts) {
     });
 
     /** Will return the schema for a database */
-    server.get("/schema", async (req, res) => {
+    server.get('/schema', async (req, res) => {
+      console.log("Enter /schema");
+
       // Retrieve admin
       let adminDid = req.adminDid;
 
@@ -112,30 +114,31 @@ export default async function (server, opts) {
       if (adminDid && settings.is_shared) {
         database = global.indexingService.databases[adminDid];
       }
-
-      // Perform query
       try {
         let response = await database.query_schema();
         if (!response) {
           res.status(404);
-          return {
+          return res.json({
             data: [],
             error: `There wasn't any results returned from table.`,
-          };
+          });
         }
+        console.log("response:", response);
 
         return {
-          data: response.data?.rows,
+          data: response.data,
           totalCount: response.totalCount,
-          title: response.title,
+          title: response.title, 
         };
       } catch (error) {
-        logger.error(error);
-        return res.internalServerError(
-          `Internal server error while querying table schemas.`
-        );
+        console.error(error);
+        res.status(500);
+        return {
+          error: `Internal server error while querying table schemas.`,
+        };
       }
     });
+
 
     /** Will force index a model */
     server.post("/index/model", async (req, res) => {
@@ -171,6 +174,89 @@ export default async function (server, opts) {
         return res.internalServerError(
           "Internal server error while indexing model."
         );
+      }
+    });
+
+
+    /** Will add a new relation (used in graphql) */
+    server.post('/foreign-key', async (req, res) => {
+      console.log("Enter /foreign-key");
+    
+      // Retrieve admin
+      const adminDid = req.adminDid;
+      console.log("adminDid:", adminDid);
+    
+      // Retrieve global settings
+      const globalSettings = getOrbisDBSettings();
+      let settings = getOrbisDBSettings(adminDid);
+      console.log("settings:", settings);
+    
+      const { table, column, referenceName, referencedTable, referencedColumn } = req.body;
+    
+      try {
+        // Update the settings instead of altering the database
+        const updatedRelation = {
+          table,
+          column,
+          referenceName,
+          referencedTable,
+          referencedColumn
+        };
+
+        if (!settings.relations) {
+          settings.relations = {};
+        }
+        if (!settings.relations[table]) {
+          settings.relations[table] = [];
+        }
+    
+        settings.relations[table].push(updatedRelation);
+        console.log("new settings:", settings);
+    
+        // Update the settings file
+        updateOrbisDBSettings(settings, adminDid);
+
+        /** Refresh GraphQL schema for this db to make sure it reflects those changes */
+        let database = global.indexingService.databases["global"];
+        if (adminDid && globalSettings.is_shared) {
+          database = global.indexingService.databases[adminDid];
+        }
+        refreshGraphQLSchema(database, globalSettings.is_shared ? adminDid : "global");
+    
+        return { success: true, settings: settings };
+      } catch (err) {
+        console.error('Error updating settings:', err);
+        return { success: false, message: 'Error updating settings' };
+      }
+    });
+
+    /** Will update an existing relation */
+    server.put('/foreign-key', async (req, res) => {
+      const { table, column, referenceName, referencedTable, referencedColumn, index } = req.body;
+
+      // Retrieve admin
+      const adminDid = req.adminDid;
+    
+      try {
+        const settings = getOrbisDBSettings(adminDid);
+        if (!settings.relations[table] || !settings.relations[table][index]) {
+          return { success: false, message: 'Relation not found' };
+        }
+    
+        settings.relations[table][index] = {
+          table,
+          column,
+          referenceName,
+          referencedTable,
+          referencedColumn
+        };
+    
+        updateOrbisDBSettings(settings, adminDid);
+
+        return { success: true, settings };
+      } catch (err) {
+        console.error('Error updating relation:', err);
+        return { success: false, message: 'Error updating relation' };
       }
     });
   });
@@ -217,4 +303,6 @@ export default async function (server, opts) {
       res.internalServerError("Internal server error while querying table.");
     }
   });
+
+
 }
