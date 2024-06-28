@@ -22,7 +22,7 @@ import "ace-builds/src-min-noconflict/mode-mysql";
 import "ace-builds/src-noconflict/mode-graphqlschema";
 import "ace-builds/src-noconflict/theme-sqlserver";
 import "ace-builds/src-min-noconflict/ext-language_tools";
-import { copyToClipboard, getCleanTableName } from "../../utils";
+import { cleanDidPath, copyToClipboard, getCleanTableName } from "../../utils";
 import { ContextDropdown } from "../../components/Modals/AssignContext";
 import { createGraphiQLFetcher } from '@graphiql/create-fetcher';
 import { GraphiQL } from 'graphiql';
@@ -328,7 +328,7 @@ const Editor = (props) => {
   function getEndpointUrl() {
     let _url;
     if(isShared) {
-      _url = `${baseUrl}/${adminSession}/graphql`;
+      _url = `${baseUrl}/${cleanDidPath(adminSession)}/graphql`;
     } else {
       _url = `${baseUrl}/global/graphql`;
     }

@@ -37,7 +37,12 @@ export default async function (server, opts) {
 
         // Step 2: Create a new database for this admin did
         const databaseName = toValidDbName(adminDid);
-        await global.indexingService.database.createDatabase(databaseName);
+        try {
+          await global.indexingService.database.createDatabase(databaseName);
+        } catch(e) {
+          console.log("Error creating db:", e);
+        }
+        
 
         // Step 3: Generate a new seed for the new user of the shared instance
         const seed = await generateSeed();

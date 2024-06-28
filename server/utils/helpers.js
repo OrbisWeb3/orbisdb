@@ -5,6 +5,7 @@ import { dirname } from "path";
 import { DIDSession } from "did-session";
 import { startIndexing } from "../index.js";
 import logger from "../logger/index.js";
+import { GraphQLObjectType, isObjectType } from "graphql";
 
 /** Initialize dirname */
 const __filename = fileURLToPath(import.meta.url);
@@ -21,6 +22,9 @@ export async function restartIndexingService() {
   if (global.indexingService) {
     await global.indexingService.stop();
   }
+
+  /** Restart Fastify server */
+  await global.server.close();
 
   // Start indexing service
   await startIndexing();
@@ -266,4 +270,20 @@ export function getValueByPath(obj, path) {
       return undefined;
   }, obj);
   return result;
+}
+
+export function isSchemaValid(schema) {
+  const queryType = schema.getQueryType();
+  if (!queryType || !isObjectType(queryType)) {
+    return false;
+  }
+
+  const fields = queryType.getFields();
+  return Object.keys(fields).length > 0;
+}
+
+/** Will remove : from DID to be supported as GraphQL endpoint */
+export function cleanDidPath(did) {
+  let path = did.replaceAll(":", "_");
+  return path;
 }

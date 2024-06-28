@@ -123,7 +123,6 @@ export default async function (server, opts) {
             error: `There wasn't any results returned from table.`,
           });
         }
-        console.log("response:", response);
 
         return {
           data: response.data,
@@ -238,7 +237,10 @@ export default async function (server, opts) {
       const adminDid = req.adminDid;
     
       try {
-        const settings = getOrbisDBSettings(adminDid);
+        // Retrieve global settings
+        const globalSettings = getOrbisDBSettings();
+        let settings = getOrbisDBSettings(adminDid);
+        
         if (!settings.relations[table] || !settings.relations[table][index]) {
           return { success: false, message: 'Relation not found' };
         }
@@ -253,6 +255,13 @@ export default async function (server, opts) {
     
         updateOrbisDBSettings(settings, adminDid);
 
+        /** Refresh GraphQL schema for this db to make sure it reflects those changes */
+        let database = global.indexingService.databases["global"];
+        if (adminDid && globalSettings.is_shared) {
+          database = global.indexingService.databases[adminDid];
+        }
+        refreshGraphQLSchema(database, globalSettings.is_shared ? adminDid : "global");
+
         return { success: true, settings };
       } catch (err) {
         console.error('Error updating relation:', err);
@@ -264,8 +273,6 @@ export default async function (server, opts) {
   /** Will build a query from JSON and run it */
   server.post("/query/json", async (req, res) => {
     const { jsonQuery, env } = req.body;
-    console.log("jsonQuery:", jsonQuery);
-    console.log("env:", env);
     const slot = env;
 
     const { query, params } = SelectStatement.buildQueryFromJson(jsonQuery);
@@ -280,7 +287,6 @@ export default async function (server, opts) {
     if (slot && settings.is_shared) {
       database = global.indexingService.databases[slot];
     }
-    console.log("database:", database);
 
     try {
       const response = await database.query(query, params);

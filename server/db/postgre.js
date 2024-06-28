@@ -12,6 +12,7 @@ import {
   getTableModelId,
 } from "../utils/helpers.js";
 import logger from "../logger/index.js";
+import { refreshGraphQLSchema } from "../index.js";
 
 const pgErrorToCode = (_message) => {
   const message_to_code = {
@@ -614,8 +615,7 @@ getGraphQLType(fieldType) {
 
     if (model != "kh4q0ozorrgaq2mezktnrmdwleo1d") {
       // Step 1: Load model details if not genesis stream
-      let stream =
-        await global.indexingService.ceramic.client.loadStream(model);
+      let stream = await global.indexingService.ceramic.client.loadStream(model);
       content = stream.content;
       if (content?.schema?.properties) {
         let postgresFields = this.jsonSchemaToPostgresFields(
@@ -705,6 +705,9 @@ getGraphQLType(fieldType) {
         uniqueFormattedTitle
       );
 
+      // Will refresh GraphQL schema
+      refreshGraphQLSchema(this, this.slot);
+
       // Will trigger a callback if provided by the parent function
       if (callback) {
         console.log("Calling callback:", callback);
@@ -784,7 +787,6 @@ getGraphQLType(fieldType) {
 
   /** Will query DB Schema with admin user */
   async query_schema() {
-    console.log("Enter query_schema");
     // Build schema query
     let query = `SELECT
           t.table_name,
@@ -821,7 +823,6 @@ getGraphQLType(fieldType) {
     const client = await this.adminPool.connect();
     try {
       const res = await client.query(query);
-      console.log("res:", res);
       return { data: res.rows };
     } catch (e) {
       logger.error(

@@ -26,7 +26,7 @@ import Ceramic from "./ceramic/config.js";
 import Postgre from "./db/postgre.js";
 import HookHandler from "./utils/hookHandler.js";
 
-import { getOrbisDBSettings } from "./utils/helpers.js";
+import { cleanDidPath, getOrbisDBSettings, isSchemaValid } from "./utils/helpers.js";
 import logger from "./logger/index.js";
 
 /** Initialize dirname */
@@ -41,14 +41,19 @@ const nextJs = next({
 });
 
 // Initialize the main Fastify instance
-const server = new Fastify({
-  bodyLimit: 50000000,
-  ignoreTrailingSlash: true,
-});
+global.server;
+const schemaMap = {}; // Store schemas by route
+const mercuriusInstances = {}; // Store Mercurius instances by route
 
 const PORT = process.env.PORT || 7008;
 
 async function startServer(databases) {
+  /** Start the Fastify server */
+  global.server = new Fastify({
+    bodyLimit: 50000000,
+    ignoreTrailingSlash: true,
+  });
+  
   // We're running in production and there's no NextJS build output
   if (
     !dev &&
@@ -73,38 +78,31 @@ async function startServer(databases) {
   await nextJs.prepare();
   const nextRequestHandler = nextJs.getRequestHandler();
 
-  await server.register(cors, {});
-  await server.register(fastifySensible, {});
-  await server.register(fastifyMultipart, {
+  await global.server.register(cors, {});
+  await global.server.register(fastifySensible, {});
+  await global.server.register(fastifyMultipart, {
     limits: {
       fileSize: 50000000,
     },
   });
 
+  await server.register(ServerRoutes);
+
   // Setup GraphQL
   // Register GraphQL routes for all databases
   for (const [slot, db] of Object.entries(databases)) {
-    const schema = await db.generateGraphQLSchema();
-    let _path = `/${slot}/graphql`;
-    console.log("Registered path:", _path);
-    server.register(mercurius, {
-      schema,
-      path: _path,
-    });
-    console.log("server.graphql:", server.graphql)
+    await registerGraphQLRoute(slot, db);
   }
-
-  await server.register(ServerRoutes);
 
   if (!dev) {
     // Serve static files from Next.js production build
     logger.debug("Using production build.");
-    server.register(fastifyStatic, {
+    global.server.register(fastifyStatic, {
       prefix: "/public/",
       root: path.join(__dirname, "../client/public"),
     });
 
-    server.register(fastifyStatic, {
+    global.server.register(fastifyStatic, {
       root: path.join(__dirname, "../client/.next"),
       prefix: "/_next/",
       decorateReply: false,
@@ -112,7 +110,7 @@ async function startServer(databases) {
   }
 
   // Default catch-all handler to allow Next.js to handle all other routes:
-  server.route({
+  global.server.route({
     method: ["GET", "POST", "PATCH", "PUT", "DELETE"],
     exposesHeadRoute: false,
     url: "*",
@@ -127,6 +125,7 @@ async function startServer(databases) {
     port: PORT,
   });
 
+
   logger.info(
     cliColors.text.cyan,
     "📞 OrbisDB UI ready on",
@@ -135,36 +134,52 @@ async function startServer(databases) {
   );
 }
 
-server.after(() => {
-  console.log("server.graphql:", server.graphql); // Check availability here
-});
-
 /** Will register a graphQL endpoint for each slot */
-async function registerGraphQLRoute(path, database) {
+export async function registerGraphQLRoute(path, database) {
   const schema = await database.generateGraphQLSchema();
-  let _path = `/${path}/graphql`;
-  console.log("Registered path:", _path);
-  server.register(mercurius, {
-    schema,
-    path: _path,
+  let _path = `/${cleanDidPath(path)}/graphql`;
+  console.log("Registering path:", _path);
+
+  schemaMap[_path] = schema; // Store the schema in a map to be re-used when refreshing schema
+
+  // Will make sure schema is valid before registering it
+  if (!isSchemaValid(schema)) {
+    console.error(`Invalid schema for path: ${_path}. Skipping registration.`);
+    return;
+  }
+
+  const subServer = await global.server.register((instance, opts, done) => {
+    instance.register(mercurius, {
+      schema,
+      path: _path, // Set the path dynamically based on the slot
+    });
+    done();
   });
+
+  mercuriusInstances[_path] = subServer.graphql; // Store the instance in the map
 }
 
 /** Will refresh the schema to make sure it takes into account the last changes (relations, new models, etc) */
 export async function refreshGraphQLSchema(db, slot) {
+  let path = `/${slot}/graphql`;
+  console.log("In refreshGraphQLSchema() path:", path);
+
   try {
-    const schema = await db.generateGraphQLSchema();
-    let _path = `/${slot}/graphql`;
-    console.log("in refreshGraphQLSchema(): path:", _path);
-    /*server.register(mercurius, {
-      schema,
-      path: _path,
-    });*/
-    console.log("server:", server);
-    console.log("server.graphql:", server.graphql);
-    console.log("server.graphql.path:", server.graphql.path);
+    console.log(`Refreshing GraphQL schema for path: ${path}...`);
+    const newSchema = await db.generateGraphQLSchema();
+    
+    // Update the schema in the map
+    schemaMap[path] = newSchema; 
+
+    const instance = mercuriusInstances[path];
+    if (instance) {
+      instance.replaceSchema(newSchema);
+      console.log(`GraphQL schema for path ${path} refreshed successfully.`);
+    } else {
+      console.error(`Failed to find GraphQL instance for path: ${path}`);
+    }
   } catch (error) {
-    console.error('Failed to refresh GraphQL schema:', error);
+    console.error(`Failed to refresh GraphQL schema for path ${path}:`, error);
   }
 }
 
@@ -260,7 +275,7 @@ export async function startIndexing() {
     ceramics, // The slots individual Ceramic object will be used by plugins installed on the corresponding slot and in the UI
     databases, // Database instance to use
     hookHandler, // Hookhandler
-    server,
+    global.server,
     settings.is_shared ? settings.is_shared : false
   );
 

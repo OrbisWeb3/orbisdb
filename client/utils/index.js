@@ -234,3 +234,8 @@ export function getCleanTableName(settings, model_id) {
     return modelsMapping[model_id];
   }
 }
+/** Will remove : from DID to be supported as GraphQL endpoint */
+export function cleanDidPath(did) {
+  let path = did.replaceAll(":", "_");
+  return path;
+}
