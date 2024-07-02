@@ -183,14 +183,12 @@ export default async function (server, opts) {
     
       // Retrieve admin
       const adminDid = req.adminDid;
-      console.log("adminDid:", adminDid);
     
       // Retrieve global settings
       const globalSettings = getOrbisDBSettings();
       let settings = getOrbisDBSettings(adminDid);
-      console.log("settings:", settings);
     
-      const { table, column, referenceName, referencedTable, referencedColumn } = req.body;
+      const { table, column, referenceName, referencedTable, referencedColumn, referencedType } = req.body;
     
       try {
         // Update the settings instead of altering the database
@@ -199,7 +197,8 @@ export default async function (server, opts) {
           column,
           referenceName,
           referencedTable,
-          referencedColumn
+          referencedColumn,
+          referencedType,
         };
 
         if (!settings.relations) {
@@ -210,7 +209,6 @@ export default async function (server, opts) {
         }
     
         settings.relations[table].push(updatedRelation);
-        console.log("new settings:", settings);
     
         // Update the settings file
         updateOrbisDBSettings(settings, adminDid);
@@ -231,7 +229,7 @@ export default async function (server, opts) {
 
     /** Will update an existing relation */
     server.put('/foreign-key', async (req, res) => {
-      const { table, column, referenceName, referencedTable, referencedColumn, index } = req.body;
+      const { table, column, referenceName, referencedTable, referencedColumn, referencedType, index } = req.body;
 
       // Retrieve admin
       const adminDid = req.adminDid;
@@ -250,7 +248,8 @@ export default async function (server, opts) {
           column,
           referenceName,
           referencedTable,
-          referencedColumn
+          referencedColumn,
+          referencedType
         };
     
         updateOrbisDBSettings(settings, adminDid);

@@ -1,5 +1,5 @@
 import postgresql from "pg";
-import { buildSchema, GraphQLObjectType, GraphQLString, GraphQLInt, GraphQLFloat, GraphQLBoolean, GraphQLList, GraphQLInputObjectType, GraphQLNonNull, GraphQLSchema } from 'graphql';
+import { buildSchema, GraphQLObjectType, GraphQLString, GraphQLInt, GraphQLFloat, GraphQLBoolean, GraphQLList, GraphQLInputObjectType, GraphQLNonNull, GraphQLSchema, GraphQLEnumType } from 'graphql';
 import { GraphQLJSONObject } from 'graphql-scalars';
 
 import { snakeCase } from "change-case";
@@ -287,54 +287,103 @@ export default class Postgre {
   }
 
 
-// Fetch DB schema to create GraphQL schema for the database
-async fetchDBSchema() {
-  const client = await this.adminPool.connect();
-  try {
-    const result = await client.query(`
-      SELECT table_name, column_name, data_type
-      FROM information_schema.columns
-      WHERE table_schema = 'public'
-    `);
+  // Fetch DB schema to create GraphQL schema for the database
+  async fetchDBSchema() {
+    const client = await this.adminPool.connect();
+    try {
+      const result = await client.query(`
+        SELECT table_name, column_name, data_type
+        FROM information_schema.columns
+        WHERE table_schema = 'public'
+      `);
 
-    const schema = result.rows.reduce((acc, row) => {
-      if (!acc[row.table_name]) {
-        acc[row.table_name] = { columns: {} };
-      }
-      acc[row.table_name].columns[row.column_name] = row.data_type;
-      return acc;
-    }, {});
+      const schema = result.rows.reduce((acc, row) => {
+        if (!acc[row.table_name]) {
+          acc[row.table_name] = { columns: {} };
+        }
+        acc[row.table_name].columns[row.column_name] = row.data_type;
+        return acc;
+      }, {});
 
-    return schema;
-  } finally {
-    client.release();
+      return schema;
+    } finally {
+      client.release();
+    }
   }
-}
 
-// Helper function to map field types to GraphQL types
-getGraphQLType(fieldType) {
-  switch (fieldType) {
-    case 'character varying':
-    case 'text':
-      return GraphQLString;
-    case 'integer':
-      return GraphQLInt;
-    case 'boolean':
-      return GraphQLBoolean;
-    case 'float8':
-      return GraphQLFloat;
-    case 'json':
-    case 'jsonb':
-      return GraphQLJSONObject;
-    default:
-      if (fieldType.startsWith('_')) {
-        const elementType = this.getGraphQLType(fieldType.substring(1));
-        return new GraphQLList(elementType || GraphQLString);
-      } else {
+  // Helper function to map field types to GraphQL types
+  getGraphQLType(fieldType) {
+    switch (fieldType) {
+      case 'character varying':
+      case 'text':
         return GraphQLString;
-      }
+      case 'integer':
+        return GraphQLInt;
+      case 'boolean':
+        return GraphQLBoolean;
+      case 'float8':
+        return GraphQLFloat;
+      case 'json':
+      case 'jsonb':
+        return GraphQLJSONObject;
+      default:
+        if (fieldType.startsWith('_')) {
+          const elementType = this.getGraphQLType(fieldType.substring(1));
+          return new GraphQLList(elementType || GraphQLString);
+        } else {
+          return GraphQLString;
+        }
+    }
   }
-}
+
+  // Helper function to create filter input types
+  createFilterInputType(typeName, fields) {
+    const filterFields = {};
+
+    Object.entries(fields).forEach(([fieldName, { type }]) => {
+      filterFields[`${fieldName}`] = { type };
+      filterFields[`${fieldName}_eq`] = { type };
+      filterFields[`${fieldName}_ne`] = { type };
+      filterFields[`${fieldName}_gt`] = { type };
+      filterFields[`${fieldName}_lt`] = { type };
+      filterFields[`${fieldName}_gte`] = { type };
+      filterFields[`${fieldName}_lte`] = { type };
+      filterFields[`${fieldName}_like`] = { type: GraphQLString };
+      filterFields[`${fieldName}_in`] = { type: new GraphQLList(type) };
+      filterFields[`${fieldName}_nin`] = { type: new GraphQLList(type) };
+    });
+
+    return new GraphQLInputObjectType({
+      name: `${typeName}Filter`,
+      fields: filterFields,
+    });
+  }
+
+  // Helper function to create orderBy input types
+  createOrderByInputType(typeName, fields) {
+    const orderByEnumValues = {};
+
+    Object.entries(fields).forEach(([fieldName]) => {
+      orderByEnumValues[fieldName] = { value: fieldName };
+    });
+
+    const OrderByEnum = new GraphQLEnumType({
+      name: `${typeName}OrderByEnum`,
+      values: {
+        ...orderByEnumValues,
+        ASC: { value: 'ASC' },
+        DESC: { value: 'DESC' },
+      },
+    });
+
+    return new GraphQLInputObjectType({
+      name: `${typeName}OrderBy`,
+      fields: {
+        field: { type: OrderByEnum },
+        direction: { type: OrderByEnum },
+      },
+    });
+  }
 
   /** Function to generate the GraphQL schema using the DB schema and relations specified by the user */
   async generateGraphQLSchema() {
@@ -345,6 +394,7 @@ getGraphQLType(fieldType) {
 
     let typeDefs = {};
     let inputTypeDefs = {};
+    let orderByTypeDefs = {};
 
     // Define all types initially
     for (const [modelId, { columns }] of Object.entries(dbSchema)) {
@@ -360,13 +410,11 @@ getGraphQLType(fieldType) {
 
       typeDefs[typeName] = () => ({
         name: typeName,
-        fields
+        fields,
       });
 
-      inputTypeDefs[`${typeName}Filter`] = new GraphQLInputObjectType({
-        name: `${typeName}Filter`,
-        fields: inputFields,
-      });
+      inputTypeDefs[`${typeName}Filter`] = this.createFilterInputType(typeName, fields);
+      orderByTypeDefs[`${typeName}OrderBy`] = this.createOrderByInputType(typeName, fields);
     }
 
     // Define GraphQL Object Types with possible relations
@@ -383,18 +431,34 @@ getGraphQLType(fieldType) {
           if (relations[modelId]) {
             for (const relation of relations[modelId]) {
               const relatedTypeName = modelsMapping[relation.referencedTable] || relation.referencedTable;
+              const relatedType = finalTypeDefs[relatedTypeName];
+
               relFields[relation.referenceName] = {
-                type: finalTypeDefs[relatedTypeName],
+                type: relation.referencedType === "list" ? new GraphQLList(relatedType) : relatedType,
                 resolve: async (source) => {
                   const client = await this.adminPool.connect();
                   try {
                     const referencedTable = relation.referencedTable;
                     const referencedColumn = relation.referencedColumn;
-                    const value = source[relation.column]; // Ensure this source key matches your GraphQL type field names
-                    const query = `SELECT * FROM ${referencedTable} WHERE ${referencedColumn} = $1 LIMIT 1`;
-                    const params = [value]; // Safe parameterization
-                    const result = await client.query(query, params);
-                    return result.rows[0];
+                    const value = source[relation.column];
+                    const params = [value];
+                    let query;
+                    let result;
+
+                    switch (relation.referencedType) {
+                      case "single":
+                        query = `SELECT * FROM ${referencedTable} WHERE ${referencedColumn} = $1 LIMIT 1`;
+                        result = await client.query(query, params);
+                        return result.rows[0];
+                      case "list":
+                        query = `SELECT * FROM ${referencedTable} WHERE ${referencedColumn} = $1 LIMIT 50`;
+                        result = await client.query(query, params);
+                        return result.rows;
+                      default:
+                        query = `SELECT * FROM ${referencedTable} WHERE ${referencedColumn} = $1 LIMIT 1`;
+                        result = await client.query(query, params);
+                        return result.rows[0];
+                    }
                   } finally {
                     client.release();
                   }
@@ -408,42 +472,8 @@ getGraphQLType(fieldType) {
     }
 
     // Construct the main query type with resolve functions
-    const queryFields = {};
-    for (const [modelId] of Object.entries(dbSchema)) {
-      const typeName = modelsMapping[modelId] || modelId;
-      queryFields[typeName] = {
-        type: new GraphQLList(finalTypeDefs[typeName]),
-        args: {
-          filter: { type: inputTypeDefs[`${typeName}Filter`] }
-        },
-        resolve: async (_, { filter }) => {
-          const client = await this.adminPool.connect();
-          try {
-            let query = `SELECT * FROM ${modelId}`;
-            const whereClauses = [];
-            if (filter) {
-              Object.entries(filter).forEach(([field, value]) => {
-                if (Array.isArray(value)) {
-                  whereClauses.push(`${field} IN (${value.map(v => `'${v}'`).join(', ')})`);
-                } else if (typeof value === 'string' && value.includes('%')) {
-                  whereClauses.push(`${field} ILIKE '${value}'`);
-                } else {
-                  whereClauses.push(`${field} = '${value}'`);
-                }
-              });
-              if (whereClauses.length > 0) {
-                query += ` WHERE ${whereClauses.join(' AND ')}`;
-              }
-            }
-            query += ` LIMIT 50`; // Adjust LIMIT as needed
-            const result = await client.query(query);
-            return result.rows;
-          } finally {
-            client.release();
-          }
-        }
-      };
-    }
+    const queryFields = this.prepareQueryFields(modelsMapping, dbSchema, finalTypeDefs, inputTypeDefs, orderByTypeDefs);
+
     // Return the fully constructed GraphQL schema
     const queryType = new GraphQLObjectType({
       name: 'Query',
@@ -456,39 +486,75 @@ getGraphQLType(fieldType) {
   }
 
   // Method to prepare query fields
-  prepareQueryFields(modelsMapping, dbSchema, finalTypeDefs, inputTypeDefs) {
+  prepareQueryFields(modelsMapping, dbSchema, finalTypeDefs, inputTypeDefs, orderByTypeDefs) {
     const queryFields = {};
     Object.entries(dbSchema).forEach(([modelId]) => {
       const typeName = modelsMapping[modelId] || modelId;
       const filterTypeName = `${typeName}Filter`;
-  
+      const orderByTypeName = `${typeName}OrderBy`;
+
       if (inputTypeDefs[filterTypeName]) {
         queryFields[typeName] = {
           type: new GraphQLList(finalTypeDefs[typeName]),
           args: {
             filter: { type: inputTypeDefs[filterTypeName] },
+            orderBy: { type: orderByTypeDefs[orderByTypeName] },
           },
-          resolve: async (_, { filter }) => {
+          resolve: async (_, { filter, orderBy }) => {
             const client = await this.adminPool.connect();
             try {
               let query = `SELECT * FROM ${modelId}`;
               const whereClauses = [];
+              const params = [];
               if (filter) {
-                Object.entries(filter).forEach(([field, value]) => {
+                Object.entries(filter).forEach(([field, value], index) => {
                   if (Array.isArray(value)) {
-                    whereClauses.push(`${field} IN (${value.map(v => `'${v}'`).join(', ')})`);
+                    whereClauses.push(`${field} IN (${value.map((v, i) => `$${index + i + 1}`).join(', ')})`);
+                    params.push(...value);
                   } else if (typeof value === 'string' && value.includes('%')) {
-                    whereClauses.push(`${field} ILIKE '${value}'`);
+                    whereClauses.push(`${field} ILIKE $${index + 1}`);
+                    params.push(value);
+                  } else if (field.endsWith('_eq')) {
+                    whereClauses.push(`${field.replace('_eq', '')} = $${index + 1}`);
+                    params.push(value);
+                  } else if (field.endsWith('_ne')) {
+                    whereClauses.push(`${field.replace('_ne', '')} != $${index + 1}`);
+                    params.push(value);
+                  } else if (field.endsWith('_gt')) {
+                    whereClauses.push(`${field.replace('_gt', '')} > $${index + 1}`);
+                    params.push(value);
+                  } else if (field.endsWith('_lt')) {
+                    whereClauses.push(`${field.replace('_lt', '')} < $${index + 1}`);
+                    params.push(value);
+                  } else if (field.endsWith('_gte')) {
+                    whereClauses.push(`${field.replace('_gte', '')} >= $${index + 1}`);
+                    params.push(value);
+                  } else if (field.endsWith('_lte')) {
+                    whereClauses.push(`${field.replace('_lte', '')} <= $${index + 1}`);
+                    params.push(value);
+                  } else if (field.endsWith('_like')) {
+                    whereClauses.push(`${field.replace('_like', '')} LIKE $${index + 1}`);
+                    params.push(value);
+                  } else if (field.endsWith('_in')) {
+                    whereClauses.push(`${field.replace('_in', '')} IN (${value.map((v, i) => `$${index + i + 1}`).join(', ')})`);
+                    params.push(...value);
+                  } else if (field.endsWith('_nin')) {
+                    whereClauses.push(`${field.replace('_nin', '')} NOT IN (${value.map((v, i) => `$${index + i + 1}`).join(', ')})`);
+                    params.push(...value);
                   } else {
-                    whereClauses.push(`${field} = '${value}'`);
+                    whereClauses.push(`${field} = $${index + 1}`);
+                    params.push(value);
                   }
                 });
                 if (whereClauses.length > 0) {
                   query += ` WHERE ${whereClauses.join(' AND ')}`;
                 }
               }
+              if (orderBy) {
+                query += ` ORDER BY ${orderBy.field} ${orderBy.direction}`;
+              }
               query += ` LIMIT 50`;
-              const result = await client.query(query);
+              const result = await client.query(query, params);
               return result.rows;
             } finally {
               client.release();

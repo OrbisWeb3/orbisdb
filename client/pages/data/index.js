@@ -321,7 +321,7 @@ const Content = (props) => {
 };
 
 const Editor = (props) => {
-  const [type, setType] = useState("sql");
+  const [type, setType] = useState("graphql");
   const { isShared, adminSession, baseUrl } = useGlobal();
   const url = getEndpointUrl();
 
@@ -753,13 +753,13 @@ const Toggle = ({type, setType}) => {
   return(
     <div className="flex items-center text-xs font-normal mr-3">
       <span className="ml-2 mr-3 text-xxs" id="graphql-editor-label">
-        <span className={`${type == "sql" ? "font-bold text-active" : "text-slate-500"}`}>SQL Editor</span>
+        <span className={`${type == "graphql" ? "font-bold text-active" : "text-slate-500"}`}>GraphQL</span>
       </span>
-      <button type="button" className={`relative inline-flex h-6 w-11 px-0.5 items-center flex-shrink-0 cursor-pointer rounded-full bg-slate-50 border border-slate-200 hover:border-slate-400 transition-colors duration-200 ease-in-out ${type == "sql" ? "justify-start" : "justify-end"}`} role="switch" aria-checked="false" aria-labelledby="annual-billing-label" onClick={() => setType(type == "graphql" ? "sql" : "graphql")}>
+      <button type="button" className={`relative inline-flex h-6 w-11 px-0.5 items-center flex-shrink-0 cursor-pointer rounded-full bg-slate-50 border border-slate-200 hover:border-slate-400 transition-colors duration-200 ease-in-out ${type == "graphql" ? "justify-start" : "justify-end"}`} role="switch" aria-checked="false" aria-labelledby="annual-billing-label" onClick={() => setType(type == "graphql" ? "sql" : "graphql")}>
         <span aria-hidden="true" className="pointer-events-none inline-block h-5 w-5 translate-x-0 transform rounded-full bg-active shadow ring-0 transition duration-200 ease-in-out"></span>
       </button>
       <span className="ml-3 text-xxs" id="sql-editor-label">
-        <span className={`${type == "graphql" ? "font-bold text-active" : "text-slate-500"}`}>GraphQL Editor</span>
+        <span className={`${type == "sql" ? "font-bold text-active" : "text-slate-500"}`}>SQL</span>
       </span>
     </div>
   )

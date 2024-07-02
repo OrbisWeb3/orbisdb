@@ -18,6 +18,7 @@ const ManageDataRelations = ({ isOpen, onClose, schema, selectedTable, selectedT
   const [referencedColumns, setReferencedColumns] = useState([]);
   const [selectedReferencedColumn, setSelectedReferencedColumn] = useState(null);
   const [referenceName, setReferenceName] = useState("");
+  const [referencedType, setReferencedType] = useState("");
 
   useEffect(() => {
     if (isOpen) {
@@ -28,8 +29,6 @@ const ManageDataRelations = ({ isOpen, onClose, schema, selectedTable, selectedT
   }, [isOpen]);
 
   useEffect(() => {
-    console.log("selectedTable:", selectedTable);
-    console.log("settings:", settings);
     if (selectedTable) {
       const table = schema.tables.find(t => t.id === selectedTable.id);
       setColumns(table ? table.columns : []);
@@ -56,6 +55,7 @@ const ManageDataRelations = ({ isOpen, onClose, schema, selectedTable, selectedT
     setReferencedColumns([]);
     setSelectedReferencedColumn(null);
     setReferenceName("");
+    setReferencedType("single");
   }
 
   const _setReferenceName = (name) => {
@@ -84,6 +84,7 @@ const ManageDataRelations = ({ isOpen, onClose, schema, selectedTable, selectedT
         referenceName: referenceName,
         referencedTable: referencedTable,
         referencedColumn: selectedReferencedColumn,
+        referencedType: referencedType
       };
 
       const response = await fetch('/api/db/foreign-key', {
@@ -120,6 +121,7 @@ const ManageDataRelations = ({ isOpen, onClose, schema, selectedTable, selectedT
         referenceName: referenceName,
         referencedTable: referencedTable,
         referencedColumn: selectedReferencedColumn,
+        referencedType: referencedType,
         index: selectedRelationIndex,
       };
 
@@ -155,6 +157,7 @@ const ManageDataRelations = ({ isOpen, onClose, schema, selectedTable, selectedT
     setReferenceName(relation.referenceName);
     setReferencedTable(relation.referencedTable);
     setSelectedReferencedColumn(relation.referencedColumn);
+    setReferencedType(relation.referencedType ? relation.referencedType : "single")
     setStep(2);
   };
 
@@ -243,14 +246,30 @@ const ManageDataRelations = ({ isOpen, onClose, schema, selectedTable, selectedT
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">Reference name</label>
+              <p className='text-slate-500 text-xs'>The name of this reference in your GraphQL schema.</p>
               <input
                 type="text"
                 placeholder="Context name"
-                className="bg-white w-full mt-2 px-2 py-1 rounded-md border border-slate-300 text-base text-slate-900 mb-1.5"
+                className="bg-white w-full mt-2 px-2 py-1 rounded-md border border-slate-300 text-base text-slate-900"
                 onChange={(e) => _setReferenceName(e.target.value)}
                 value={referenceName}
               />
             </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Reference type</label>
+              <p className='text-slate-500 text-xs'>Use "Single" if the relation should return only one result or "List" if it should return an array.</p>
+              <select
+                className={`bg-white px-2 py-1 rounded-md border border-slate-300 text-base text-slate-900 mt-1 w-full truncate mb-1.5`}
+                value={referencedType || ''}
+                onChange={(e) => setReferencedType(e.target.value)}
+              >
+                <option value="" disabled>Select a referenced type</option>
+                <option value="single">Single</option>
+                <option value="list">List</option>
+              </select>
+            </div>
+
             <div className="flex justify-end">
               <div className='flex flex-1 justify-start'>
                 <Button type="secondary" title="Back" onClick={() => setStep(1)} />
@@ -278,8 +297,11 @@ const ExistingRelation = ({index, relation, handleEditRelation}) => {
   return(
     <li className="mb-2 flex justify-between items-center">
       <div className='flex flex-col flex-1'>
-        <span className='text-base font-medium'>{relation.referenceName}</span> 
-        <span className='text-xs flex flex-row items-center space-x-1.5'><span>{cleanRelTableName}.{relation.column}</span> <ArrowRight className="opacity-60" /> <span>{cleanRelRefTableName}.{relation.referencedColumn}</span></span>
+        <div className='flex flex-row space-x-1.5 items-center'>
+          <span className='text-base font-medium'>{relation.referenceName}</span> 
+          <span className='bg-slate-100 text-slate-900 rounded-full px-2.5 text-xxs font-medium'>{(!relation.referencedType || relation.referencedType == "single") ? "Single" : "List"}</span>
+        </div>
+        <span className='text-slate-600 text-xs flex flex-row items-center space-x-1.5'><span>{cleanRelTableName}.{relation.column}</span> <ArrowRight className="opacity-60" /> <span>{cleanRelRefTableName}.{relation.referencedColumn}</span></span>
       </div>
       <Button type="secondary" title="Edit" onClick={() => handleEditRelation(index)} />
     </li>
