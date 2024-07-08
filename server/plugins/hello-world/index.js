@@ -58,7 +58,7 @@ export default class HelloWorldPlugin {
   async createStream() {
     logger.debug("Enter createStream in HelloWorld plugin.");
     this.model_id =
-      "kjzl6hvfrbw6c646f9as8ecl9ni6l5qh06hxnx1gbectvymjwjiz48dtlkadyrp";
+      "kjzl6hvfrbw6cajk0869qi0tthihoy9q8kycwymavzho6b66p9d9qi3yplnv4is";
 
     /** We then create the stream in Ceramic with the updated content */
     try {
