@@ -66,7 +66,6 @@ export default class HelloWorldPlugin {
         .insert(this.model_id)
         .value({
           body: "hello world!",
-          mention: "",
         })
         .context(this.context)
         .run();
