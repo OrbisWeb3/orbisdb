@@ -605,13 +605,17 @@ export default class Postgre {
     // Retrieving table name from mapping
     let tableName = model;
 
+    // Helper function to quote all column names
+    const quoteField = (field) => `"${field}"`;
+
     // Building the query
     const queryText = `
-    INSERT INTO ${tableName} (${fields.join(", ")})
-    VALUES (${fields.map((_, index) => `$${index + 1}`).join(", ")})
-    ON CONFLICT (stream_id)
-    DO UPDATE SET ${updateFields.map((field) => `${field} = EXCLUDED.${field}`).join(", ")}
-    RETURNING *;`;
+      INSERT INTO ${tableName} (${fields.map(quoteField).join(", ")})
+      VALUES (${fields.map((_, index) => `$${index + 1}`).join(", ")})
+      ON CONFLICT (stream_id)
+      DO UPDATE SET ${updateFields.map(field => `${quoteField(field)} = EXCLUDED.${quoteField(field)}`).join(", ")}
+      RETURNING *;
+    `;
 
     /** If stream is a model we trigger the indexing */
     if (model == "kh4q0ozorrgaq2mezktnrmdwleo1d") {
@@ -638,10 +642,12 @@ export default class Postgre {
         // Trigger indexing of new model with a callback to retry indexing this stream
         this.indexModel(model, () => this.upsert(model, content, pluginsData));
       } else {
+        console.log("content:", content);
         logger.error(
           cliColors.text.red,
-          `Error inserting stream ${variables.stream_id}:`,
+          `Error inserting stream ${variables.stream_id}`,
           cliColors.reset,
+          ` : in ${tableName}`,
           e.message
         );
       }

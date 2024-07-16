@@ -314,10 +314,18 @@ export default class IndexingService {
           } else {
             await this.database.upsert(model, insertedContent, pluginsData);
           }
-        }
 
-        // Will execute all of the post-processor plugins.
-        this.hookHandler.executeHook("post_process", processedData, context);
+          // Will execute all of the post-processor plugins.
+          this.hookHandler.executeHook(
+            "post_process", 
+            {
+              ...insertedContent,
+              model,
+              pluginsData
+            }, 
+            context
+          );
+        }       
       }
     } catch (e) {
       logger.error(

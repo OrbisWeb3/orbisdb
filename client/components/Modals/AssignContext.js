@@ -132,7 +132,7 @@ export default function AssignContextModal({
           ? "Update the plugin settings for this context."
           : "Assign this plugin to a new context."
       }
-      style={{ width: "50%" }}
+      className="w-[500px]"
     >
       {/** Show stepper only if user is assigning a plugin to a new context (not updating it) */}
       {!selectedContext && (

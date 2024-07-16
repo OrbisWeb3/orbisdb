@@ -158,7 +158,7 @@ export default class CSVUploaderPlugin {
                 </div>
               </div>
 
-              <button class="btn bg-blue-500 px-3 py-1.5 rounded pointer text-white" onClick="sendDataToServer()"}>Start upload</button>
+              <button class="btn bg-blue-500 px-3 py-1.5 rounded pointer text-white" onClick="sendDataToServer()">Start upload</button>
             </div>
           </div>
 
@@ -351,21 +351,21 @@ export default class CSVUploaderPlugin {
 
     // Loop through all rows and
     for (const content of data) {
-      // Optionally, you can check if the content is not empty
+      // Check if the content is not empty
       if (Object.keys(content).length > 0) {
         try {
-          /** We call the update hook here in order to support hooks able to update data before it's created in Ceramic  */
+          /** We call the update hook here in order to support hooks able to update data before it's created in Ceramic  
           let __content = await global.indexingService.hookHandler.executeHook(
             "update",
             content,
             this.context
-          );
+          );*/
 
           // Filter __content and convert numbers to their respective typed objects
-          let filteredContent = Object.keys(__content)
+          let filteredContent = Object.keys(content)
             .filter((key) => key in modelProperties) // Filter keys based on properties
             .reduce((obj, key) => {
-              const value = __content[key];
+              const value = content[key];
               obj[key] = this.convertToTypedObject(key, value, modelProperties); // Convert and assign the value
               logger.debug("obj[key]:", obj[key]);
               return obj;
@@ -374,6 +374,7 @@ export default class CSVUploaderPlugin {
           logger.debug("filteredContent:", filteredContent);
 
           /** We then create the stream in Ceramic with the updated content */
+          console.log("filteredContent:", filteredContent);
           let stream = await this.orbisdb
             .insert(this.model_id)
             .value(filteredContent)
@@ -395,14 +396,14 @@ export default class CSVUploaderPlugin {
 
           await sleep(100);
         } catch (error) {
+          logger.error("Error creating stream:", error);
           iErrors++;
           this.progressStore[sessionId] = {
             totalRows: data.length,
             processedRows: i,
             failedRows: iErrors,
           };
-
-          logger.error("Error creating stream:", error);
+          
         }
       }
     }
@@ -416,20 +417,27 @@ export default class CSVUploaderPlugin {
 
   // Function to determine if a number should be treated as 'int' or 'float' based on properties
   convertToTypedObject(key, value, properties) {
+    console.log("In convertToTypedObject key:", key);
     const type = properties[key]?.type;
+    console.log("key:", key);
+    console.log("properties[key]:", properties[key]);
+    console.log("type:", type);
     logger.debug("type in convertToTypedObject for:" + key, type);
 
-    if (type.includes("integer")) {
-      return parseInt(value, 10);
+    if(type) {
+      if (type.includes("integer")) {
+        return parseInt(value, 10);
+      }
+  
+      if (type.includes("float") || type.includes("numeric") || type.includes("number")) {
+        return parseFloat(value, 10);
+      }
+  
+      if (type.includes("array") || type.includes("object")) {
+        return JSON.parse(value);
+      }
     }
-
-    if (type.includes("float") || type.includes("numeric")) {
-      return parseFloat(value, 10);
-    }
-
-    if (type.includes("array") || type.includes("object")) {
-      return JSON.parse(value);
-    }
+    
 
     return value;
   }

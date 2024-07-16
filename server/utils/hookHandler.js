@@ -26,7 +26,6 @@ export default class HookHandler {
 
   // Execute the hook or returns an error
   async safeExecute(handler, data, contextId) {
-    console.log("Enter safeExecute()");
     try {
       const { pluginsData, ...dataToPass } = data;
       // Execute hook
