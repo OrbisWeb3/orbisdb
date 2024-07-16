@@ -1,5 +1,6 @@
 import { gql, GraphQLClient } from "graphql-request";
 import logger from "../../logger/index.js";
+import { OrbisDB } from "@useorbis/db-sdk";
 
 export default class VeraxListenerPlugin {
   constructor() {
@@ -7,18 +8,17 @@ export default class VeraxListenerPlugin {
     this.pageSize = 10;
     this.isListening = false;
     this.attestationModelId =
-      "kjzl6hvfrbw6c6wwwsgtaokzn3tug3ajpd50oogrvhuloxbaqu0ii9ncrqu4baz";
+      "kjzl6hvfrbw6cat6thy6b07gjebowgtgye79t23lzt0o1xzfkte4l8qv4hpof86";
     this.indexItemModelId =
-      "kjzl6hvfrbw6c88x6ce5pncbkict551wiojwe0d66wc7fwaq4udw14zn5a7mae2";
-    this.indexId =
-      "kjzl6kcym7w8yb52uekurca6dnvmn854vfn6vrcgscn1d0ckq99zckvh2mx0kft";
+      "kjzl6hvfrbw6c6hkpw7pee0jbu21086ojm3n13n0944tf3tlrch3332v6jxvdav";
     this.orderBy = "id";
     this.order = "asc";
-    this.where = {
-      schema:
-        "0x86e936ffddb895a13271ddb23cbf23b90ce44628b82de518dc0a6d117fed12db",
-    };
+
     this.client = new GraphQLClient(this.endpoint);
+    this.userOrbis = new OrbisDB({
+      ceramic: { gateway: "http://composedb.orbisdb:7007/" },
+      nodes: [{ gateway: "http://localhost:7008", key: "<YOUR_API_KEY>" }],
+    });
   }
 
   async init() {
@@ -81,7 +81,9 @@ export default class VeraxListenerPlugin {
       first: this.pageSize,
       orderBy: this.orderBy,
       orderDirection: this.order,
-      where: this.where,
+      where: {
+        schema: this.schemaId,
+      },
     };
 
     try {
@@ -103,6 +105,9 @@ export default class VeraxListenerPlugin {
   }
 
   async start() {
+    await this.userOrbis.connectUser({
+      serializedSession: this.indexOwnerSession,
+    });
     if (this.isListening) {
       logger.info("Already listening...");
       return;
@@ -131,16 +136,16 @@ export default class VeraxListenerPlugin {
           attestationID: id,
           subjectWallet: rest.subject,
           expirationDate: new Date(rest.expirationDate * 1000).toISOString(),
-          attestedDate: new Date(rest.expirationDate * 1000).toISOString(),
+          attestedDate: new Date(rest.attestedDate * 1000).toISOString(),
           revocationDate: new Date(rest.revocationDate * 1000).toISOString(),
         };
-        let stream = await global.indexingService.ceramic.orbisdb
+        let stream = await this.userOrbis
           .insert(this.attestationModelId)
           .value(res)
           .context(this.context)
           .run();
 
-        let indexItem = await global.indexingService.ceramic.orbisdb
+        let indexItem = await this.userOrbis
           .insert(this.indexItemModelId)
           .value({
             indexId: this.indexId,
@@ -150,13 +155,9 @@ export default class VeraxListenerPlugin {
             updatedAt: new Date().toISOString(),
           })
           .run();
-        //.context(this.context)
 
-        console.log(
-          `Stream ${stream.id.toString()} is indexed under ${indexItem.id.toString()}`
-        );
+        // console.log(`Stream ${stream.id.toString()} is indexed under ${indexItem.id.toString()}`);
 
-        //process.exit(0);
       }
     );
     await Promise.all(transformed);

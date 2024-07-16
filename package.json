@@ -44,7 +44,7 @@
     "@project-serum/anchor": "^0.26.0",
     "@solana/web3.js": "^1.90.1",
     "@supabase/supabase-js": "^2.38.1",
-    "@useorbis/db-sdk": "^0.0.33-alpha",
+    "@useorbis/db-sdk": "^0.0.40-alpha",
     "ace-builds": "^1.33.1",
     "better-sqlite3": "^9.3.0",
     "bs58": "^5.0.0",

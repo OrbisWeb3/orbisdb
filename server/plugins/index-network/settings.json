@@ -1,9 +1,241 @@
 {
   "id": "index-network",
-  "name": "Index Network",
+  "name": "Verax <> Index Network Indexer",
   "logo": "/img/data-source-logo.png",
-  "description": "Plugin used to generate stream based on an external datasources API.",
-  "full_description": "Plugin used to generate stream based on an external datasources API. This plugin can call any API specified and save the data according to any model you want to use. You can specify the interval at which this plugin can be called.",
-  "hooks": ["generate"],
-  "variables": []
+  "description": "Plugin to index Verax Attestation registry to make them discoverable with natural language.",
+  "full_description": "This plugin will index the Verax Attestation registry to Index Network, enabling users to search and interact with the data using natural language queries. By integrating with the Index Network, the plugin will promote seamless composability with other data models such as knowledge and social graphs, facilitating more comprehensive and interconnected data discovery.",
+  "hooks": [
+    "generate"
+  ],
+  "variables": [
+    {
+      "name": "Target Index ID",
+      "id": "indexId"
+    },
+    {
+      "name": "Session for Index owner",
+      "id": "indexOwnerSession"
+    },
+    {
+      "name": "Schema",
+      "description": "Verax attestation schema to index",
+      "id": "schemaId",
+      "type": "select",
+      "options": [
+        {
+          "value": "0x01f031da36192c34057c764239eb77bb6ec8ebfb808f72a7bb172f37a5bec31f",
+          "label": "GitcoinPassportScore"
+        },
+        {
+          "value": "0x021fa993b2ac55b95340608478282821b89398de6fa14073b4d44a3564a8c79d",
+          "label": "AnimaProofOfUniqueness"
+        },
+        {
+          "value": "0x0359a5c155f90c06ac75bcebd0d3cffaf13d0152f9a60d65b297baeb7476a024",
+          "label": "Orange Protocol"
+        },
+        {
+          "value": "0x105db2b6a3e9d79739bca3e1d9ddeec6bd68667cf1de8d4248020b91a9a80e46",
+          "label": "Trusta Humanity Attestations"
+        },
+        {
+          "value": "0x1299c489f12e79cf43672c791e9a962fb9ee2151784561f6ba2eb9ff6325a9a4",
+          "label": "zkPass OKX KYC passed"
+        },
+        {
+          "value": "0x12c558f387d188c857e18bf75600999b2766615e2b8af12ed89def31feec422e",
+          "label": "DappSheriff Review"
+        },
+        {
+          "value": "0x1c14fd320660a59a50eb1f795116193a59c26f2463c0705b79d8cb97aa9f419b",
+          "label": "HolonymV3"
+        },
+        {
+          "value": "0x2049fef3764ceceb65a9a4a001b3824dac1d05cf5a46c3f4436cf23d280b87de",
+          "label": "Okapi Review Schema"
+        },
+        {
+          "value": "0x25189c6dd4fbd6244edcce34942461b460c71f73088a71305c31aa85c0924ae3",
+          "label": "Trusta Brevis MEDIA Attestations"
+        },
+        {
+          "value": "0x26f9780b51aefe9581802ff0b315decb36701d39766fbb78dbd9b4596b6da0bd",
+          "label": "PADO Identity"
+        },
+        {
+          "value": "0x35e2eb198b2d9019f0d7c70ea2327c669a81b67721049d65cec92ec5fa5e2905",
+          "label": "PADO Assets Proof Polygon ID"
+        },
+        {
+          "value": "0x41b8c81288eebbf173b2f54b9fb2f1d37f2caca51ef39e8f99299b53c2599a3a",
+          "label": "Relationship"
+        },
+        {
+          "value": "0x4328051d68d61aacafd807faf9cfaa784da4c200d25dd689296787290fb4a472",
+          "label": "zkPass OKX Linea Address"
+        },
+        {
+          "value": "0x44a18728bda7ce4b5891c75a6e6d316f8d9020453bdf55754e63c1d3a85acee9",
+          "label": "openid3"
+        },
+        {
+          "value": "0x4df7fc1f3a1d637a1382bbf46fe4e7fc54434ec5f5fe319291c121bda5db409b",
+          "label": "Trusta Non-Sybil extend Attestations"
+        },
+        {
+          "value": "0x5003a7832fa2734780a5bf6a1f3940b84c0c66a398e62dd4e7f183fdbc7da6ee",
+          "label": "namedGraphRelationship"
+        },
+        {
+          "value": "0x501e6fcade7e3483d0ae7fcfebb732907ebda12b209f5116e52c02697062a50e",
+          "label": "GitcoinPassport"
+        },
+        {
+          "value": "0x5386eb7623bf983f446ac832822a007a436e50cbd1a2c7e4048175ea89ed8e10",
+          "label": "DappSheriff Review Attestation"
+        },
+        {
+          "value": "0x5c136e30f599e1a646323513bfe92f52ae6cb7c69141b1f156b7e648062bb280",
+          "label": "PADO Assets Proof"
+        },
+        {
+          "value": "0x5d7cf069e8113d144e3c7cbec09f8f9b59d5f67a89269c957d5b0b7e6ca782b7",
+          "label": "Nomis Score Schema"
+        },
+        {
+          "value": "0x6350a66dfb1aebcab88bb92c6fc179eb618472b7e0a95dee7ca5982a34610030",
+          "label": "0xScoreSchemav0.4"
+        },
+        {
+          "value": "0x63c8925414d0bd8e4b943b49867adef6fabf8fb66d9ecefacfa90272623edf9e",
+          "label": "Trusta MEDIA Attestations"
+        },
+        {
+          "value": "0x640b7a045d305f646074ac038830aaa2e8edfaac069f7cc2be53ae9034d13ad4",
+          "label": "PADO Token Holdings Polygon ID"
+        },
+        {
+          "value": "0x69f5398efdb55f1bb2ab1f2d3e3a9fed11b6c5ad5f2ab34ef659b9b75b3c08fe",
+          "label": "linea-steam-gaming"
+        },
+        {
+          "value": "0x6b215eaacc6184476dc304bd905c3bed3490bea8e7e00c7b55fde2f8e074b571",
+          "label": "Linea Attestations"
+        },
+        {
+          "value": "0x79730da3d78a0c132ba782e2285a27d61f55d48ed698e37c06c399b75d8f836d",
+          "label": "PADO Event"
+        },
+        {
+          "value": "0x7f70f5f92cd8d36ce3e329bb9fa95e1f7c2c70b717d3b1aafa2b57a6fa492264",
+          "label": "linea-steam-gaming"
+        },
+        {
+          "value": "0x84a794b98ee2d9de877c87b58eed9edcd89c1534313d25de5a0d0e21581575a2",
+          "label": "0xScore Schema v0.1"
+        },
+        {
+          "value": "0x84fdf5748d9af166503472ff5deb0cd5f61f006169424805fd5554356ac6df10",
+          "label": "PADO Web"
+        },
+        {
+          "value": "0x86e936ffddb895a13271ddb23cbf23b90ce44628b82de518dc0a6d117fed12db",
+          "label": "zkPass Coinbase Personal Verification passed"
+        },
+        {
+          "value": "0x89bd76e17fd84df8e1e448fa1b46dd8d97f7e8e806552b003f8386a5aebcb9f0",
+          "label": "Relationship"
+        },
+        {
+          "value": "0x8f83a0ef7871f63455a506f6bca0db98a88721764ae6dbde2afddd8e12e442b8",
+          "label": "Named Graph Relationship"
+        },
+        {
+          "value": "0x912214269b9b891a0d7451974030ba13207d3bf78e515351609de9dd8a339686",
+          "label": "openid3"
+        },
+        {
+          "value": "0x990725343f8d0e9cda6985028ff5826704c11946bd49ab0c48cdc557aeccf3d2",
+          "label": "openid3"
+        },
+        {
+          "value": "0xa288e257097a4bed4166c002cb6911713edacc88e30b6cb2b0104df9c365327d",
+          "label": "Offchain"
+        },
+        {
+          "value": "0xa2982ecf327d31c681082b2b0de023f5b15b5a9b054b62f46f5b15929de19b1e",
+          "label": "0xScoreSchema"
+        },
+        {
+          "value": "0xa913ce4f3de12a7b13304add3d7cd904794fc79c3d3f23b91a1914c2f19233e9",
+          "label": "HAPI Score Schema"
+        },
+        {
+          "value": "0xbbb1a7e4f8c31ea166a169cd995a2641781c80ff5561f3fd843299c69cb911ba",
+          "label": "linea-steam-gaming"
+        },
+        {
+          "value": "0xbfffe4ece9986eaf4862108310a324024e666158403698f84f1f8eaadd66f1d5",
+          "label": "Demo Schema"
+        },
+        {
+          "value": "0xc03f16330d9999e1997a789808b3f383661a188b524555363fc8e2cf0b29b43d",
+          "label": "0xScoreSchemav0.3"
+        },
+        {
+          "value": "0xc0980771b02c57e851f0ecca619d593de82dc84b25db9c9273bbf5b1537276ae",
+          "label": "zkPass Uber Account Trips is Greater Than 10"
+        },
+        {
+          "value": "0xc0b6b1c4720b5918e4eee35354ee3339b87ddda18f9b7f215cd9f2fe382a361d",
+          "label": "Trusta Non-Sybil Attestations"
+        },
+        {
+          "value": "0xc9992483a7da0207213d34288b835094b48567290cecf044c48913d3f1472a3a",
+          "label": "PADO Token Holdings"
+        },
+        {
+          "value": "0xce6351ef35f71cd649b75be11a4d08a8420811e21db89085b27f56c9eeac1578",
+          "label": "RubyScoreLineaLvl3"
+        },
+        {
+          "value": "0xdb5ae35f38076cf76d5d1ca8e1e4f701ebd024773b19cd2b30601294943f3bff",
+          "label": "Aspecta Builders Achievement"
+        },
+        {
+          "value": "0xe05ce58123ada948cd0218d42fb20ab57be6db7fe6aec4a2fac6190ca9fa9978",
+          "label": "Clique Linea Steam Gaming Credentials"
+        },
+        {
+          "value": "0xe31b05e91f5bbaab7dcfe940308fb07c92738b1aa462af5c1f60d9ed2af52050",
+          "label": "Trusta Humanity Attestations"
+        },
+        {
+          "value": "0xe3a3e680fe5fbfbddff981752989e660514e1fc49fdee922f26d345cc10b1be4",
+          "label": "AnimaProofOfLife"
+        },
+        {
+          "value": "0xe609add6190e4c3767a30e4f6d8b1059e116843d131befb8e5d880dc911d298e",
+          "label": "Trusta Brevis MEDIA Attestations"
+        },
+        {
+          "value": "0xec0f2d94ea5a78de8fcca98772fb8b4e36236bac1f081a6a8c745ed897c262b7",
+          "label": "Okapi Review Schema"
+        },
+        {
+          "value": "0xf35e5143be63173beafbcae8c0bbc6a17a611447a87f183818fa6baf8bc057f4",
+          "label": "Linea Attestations"
+        },
+        {
+          "value": "0xf406ce092700219c3be1729e52a0bc9539177e96b4a63d73d1e846ca20e1e900",
+          "label": "PADO Identity Polygon ID"
+        },
+        {
+          "value": "0xfcd7908635f4a15e4c4ae351f13f9aa393e56e67aca82e5ffd3cf5c463464ee7",
+          "label": "Proof of Machinehood Attestation"
+        }
+      ],
+      "per_context": true
+    },
+  ]
 }

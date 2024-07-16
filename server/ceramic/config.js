@@ -66,10 +66,10 @@ export default class Ceramic {
       );
     }
 
-    /** Create social models 
+    /** Create social models
     try {
         let model = await this.orbisdb.ceramic.createModel(voteModelDefinition);
-        console.log("model:", model); 
+        console.log("model:", model);
     } catch(e) {
         console.log(cliColors.text.red, "Error creating model:", cliColors.reset, e);
     }*/
