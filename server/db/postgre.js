@@ -619,6 +619,7 @@ export default class Postgre {
 
     /** If stream is a model we trigger the indexing */
     if (model == "kh4q0ozorrgaq2mezktnrmdwleo1d") {
+      console.log("Stream is a model, we index the model.");
       this.indexModel(content.stream_id);
     }
 
@@ -638,11 +639,11 @@ export default class Postgre {
         tableName
       );
     } catch (e) {
+      console.log("Error inserting stream:", e);
       if (e.code === "42P01") {
         // Trigger indexing of new model with a callback to retry indexing this stream
-        this.indexModel(model, () => this.upsert(model, content, pluginsData));
+        //this.indexModel(model, () => this.upsert(model, content, pluginsData));
       } else {
-        console.log("content:", content);
         logger.error(
           cliColors.text.red,
           `Error inserting stream ${variables.stream_id}`,
@@ -727,6 +728,7 @@ export default class Postgre {
     }
 
     // Step 3: Build SQL query and run
+    console.log("In indexModel, callback is:", callback);
     await this.createTable(model, fields, uniqueFormattedTitle, callback);
 
     // Step 4: Insert new row in models_indexed table
@@ -751,6 +753,7 @@ export default class Postgre {
    * Will create a new table dynamically based on the model id and fields
    */
   async createTable(model, fields, uniqueFormattedTitle, callback) {
+    console.log("Enter createTable for model:", model);
     // Construct the columns part of the SQL statement
     const columns = fields
       .map((field) => `"${field.name}" ${field.type}`)
@@ -763,10 +766,13 @@ export default class Postgre {
       CREATE INDEX IF NOT EXISTS "${model}_controller_idx" ON "${model}" ("controller");
       CREATE INDEX IF NOT EXISTS "${model}_indexed_at_idx" ON "${model}" ("indexed_at");`;
 
+      console.log("createTableQuery:", createTableQuery);
+
     const client = await this.adminPool.connect();
     try {
       // Execute the table creation query
       await client.query(createTableQuery);
+      
       // Keep track of new table name
       this.mapTableName(model, uniqueFormattedTitle);
 
@@ -776,15 +782,6 @@ export default class Postgre {
         cliColors.reset,
         uniqueFormattedTitle
       );
-
-      // Will refresh GraphQL schema
-      refreshGraphQLSchema(this, this.slot);
-
-      // Will trigger a callback if provided by the parent function
-      if (callback) {
-        console.log("Calling callback:", callback);
-        callback();
-      }
     } catch (err) {
       logger.error(
         cliColors.text.red,
@@ -795,6 +792,15 @@ export default class Postgre {
     } finally {
       // Release the client back to the pool
       client.release();
+
+      // Will refresh GraphQL schema
+      refreshGraphQLSchema(this, this.slot);
+
+      // Will trigger a callback if provided by the parent function
+      if (callback) {
+        console.log("Calling callback:", callback);
+        //callback();
+      }
     }
   }
 
@@ -915,6 +921,7 @@ export default class Postgre {
   async query(userQuery, params) {
     const defaultLimit = 100;
     let modifiedQuery = await this.replaceTableNames(userQuery);
+    console.log("modifiedQuery in query():", modifiedQuery);
 
     // Check if the query already contains a LIMIT clause
     /*if (!/LIMIT \d+/i.test(userQuery)) {
@@ -1039,7 +1046,7 @@ export default class Postgre {
         postgresType = this.jsonTypeToPostgresType(value.type);
       }
 
-      postgresFields.push({ name: key.toLowerCase(), type: postgresType });
+      postgresFields.push({ name: key, type: postgresType });
     }
 
     return postgresFields;
