@@ -18,6 +18,7 @@ export const sleep = (milliseconds) => {
 
 /** Will stop the previous indexing service and restart a new one */
 export async function restartIndexingService() {
+  console.log("Enter restartIndexingService");
   // Close previous indexing service
   if (global.indexingService) {
     await global.indexingService.stop();

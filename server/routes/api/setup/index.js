@@ -26,10 +26,7 @@ export default async function (server, opts) {
     server.post("/shared", async (req, res) => {
       const { presets } = req.body;
       const adminDid = req.adminDid;
-      logger.debug(
-        "adminDid for /api/settings/shared request:",
-        adminDid
-      );
+      console.log("adminDid for /api/setup/shared request:", adminDid);
 
       try {
         // Step 1: Retrieve global configuration to use the global ceramic node and db credentials
@@ -42,7 +39,6 @@ export default async function (server, opts) {
         } catch(e) {
           console.log("Error creating db:", e);
         }
-        
 
         // Step 3: Generate a new seed for the new user of the shared instance
         const seed = await generateSeed();
@@ -76,6 +72,7 @@ export default async function (server, opts) {
 
         // If user enabled some presets we run those
         if(presets && presets.length > 0) {
+          console.log("presets:", presets)
           await Promise.all(presets.map(preset => enablePreset(preset, adminDid)));
           console.log("Presets enabled for shared instance:", presets);
         }
@@ -88,7 +85,9 @@ export default async function (server, opts) {
       } catch (e) {
         logger.error("Error setup shared configuration db:", e);
 
-        return res.internalServerError("Error creating database.");
+        return {
+          result: "Error creating database."
+        }
       }
     });
   });
