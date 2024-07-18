@@ -248,8 +248,9 @@ const ConfigurationSharedSetup = () => {
           </span>
         )}
 
-        {/** Display presets available */}
+        {/** Display presets available 
         <ConfigurationPreset presets={presets} setPresets={setPresets} />
+        */}
 
         <Alert
           className="text-xs mt-1 mb-3"

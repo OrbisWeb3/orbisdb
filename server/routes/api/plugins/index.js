@@ -198,6 +198,59 @@ export default async function (server, opts) {
         return res.internalServerError("Failed to update settings.");
       }
     });
+
+    // Delete a plugin from a context
+    server.post("/delete", async (req, res) => {
+      const { plugin_id, uuid } = req.body;
+
+      logger.debug("Enter /delete plugin with uuid:", uuid);
+
+      // Retrieve global settings
+      const globalSettings = getOrbisDBSettings();
+
+      const adminDid = req.adminDid;
+
+      try {
+        const settings = getOrbisDBSettings(adminDid);
+
+        // TODO: Find plugin in settings.plugins using the plugin_id and uuid and delete it
+        const pluginIndex = settings.plugins.findIndex(plugin => plugin.plugin_id === plugin_id);
+        if (pluginIndex !== -1) {
+          const contextIndex = settings.plugins[pluginIndex].contexts.findIndex(context => context.uuid === uuid);
+    
+          if (contextIndex !== -1) {
+            // Remove the context from the plugin
+            settings.plugins[pluginIndex].contexts.splice(contextIndex, 1);
+    
+            // If the plugin has no more contexts, remove the plugin itself
+            if (settings.plugins[pluginIndex].contexts.length === 0) {
+              settings.plugins.splice(pluginIndex, 1);
+            }
+    
+            logger.debug("settings:", settings);
+    
+            // Write the updated settings back to the file
+            updateOrbisDBSettings(settings, adminDid);
+    
+            // Reset plugins
+            global.indexingService.resetPlugins();
+    
+            // Return results
+            return {
+              message: "Plugin removed successfully",
+              settings: settings,
+            };
+          } else {
+            return { message: "Context with given uuid not found" };
+          }
+        } else {
+          return { message: "Plugin with given plugin_id not found" };
+        }
+      } catch (err) {
+        logger.error(err);
+        return res.internalServerError("Failed to remove plugin and update settings.");
+      }
+    });
   });
 
   /** Dynamic route to handle GET / POST / PUT / PATCH / DELETE routes exposed by installed plugins */

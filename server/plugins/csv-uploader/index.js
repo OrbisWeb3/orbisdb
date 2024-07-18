@@ -276,36 +276,37 @@ export default class CSVUploaderPlugin {
             // Initialize a variable to track if any rows have been processed
             let hasProcessedAnyRows = false;
           
-            const progressInterval = setInterval(() => {
+            const progressInterval = setInterval(async () => {
               console.log("Enter interval fetching in startProgressUpdates");
-              fetch("./progress/${sessionId}")
-                .then(response => response.json())
-                .then(progress => {
-                  console.log('Progress:', progress);
-                  // Update progress bar based on 'progress'
-                  let progressPercentage = ((progress.processedRows + progress.failedRows) / progress.totalRows * 100).toFixed(2);
-          
-                  document.getElementById('progressBar').style.width = progressPercentage + '%';
-                  document.getElementById('progressBar').textContent = progressPercentage + '%';
-                  console.log("progressPercentage:", progressPercentage);
-                  
-                  if ((progress.processedRows === progress.totalRows) && progress.totalRows > 0) {
-                    clearInterval(progressInterval); // Stop polling on complete
-                    document.getElementById('output').textContent = "Uploaded " + progress.processedRows + " rows with success. Failed " + progress.failedRows + " rows.";
-                    document.getElementById('progressBar').style.backgroundColor = '#22c55e';
-                  } else {
-                    document.getElementById('output').textContent = "Processing " + (progress.processedRows + progress.failedRows) + "/"+progress.totalRows+" rows. Failed " + progress.failedRows + " rows.";
-                  }
-          
-                  // Check if any rows have been processed or failed and update the flag
-                  if (progress.processedRows > 0 || progress.failedRows > 0) {
-                    hasProcessedAnyRows = true;
-                  }
-                })
-                .catch(error => {
-                  console.error('Error fetching progress:', error);
-                  clearInterval(progressInterval); // Stopping polling on error
-                });
+              try {
+                let response = await fetch("./progress/${sessionId}");
+                let progress = response.json();
+
+                console.log('Progress:', progress);
+
+                // Update progress bar based on 'progress'
+                let progressPercentage = ((progress.processedRows + progress.failedRows) / progress.totalRows * 100).toFixed(4);
+        
+                document.getElementById('progressBar').style.width = progressPercentage + '%';
+                document.getElementById('progressBar').textContent = progressPercentage + '%';
+                console.log("progressPercentage:", progressPercentage);
+                
+                if ((progress.processedRows === progress.totalRows) && progress.totalRows > 0) {
+                  clearInterval(progressInterval); // Stop polling on complete
+                  document.getElementById('output').textContent = "Uploaded " + progress.processedRows + " rows with success. Failed " + progress.failedRows + " rows.";
+                  document.getElementById('progressBar').style.backgroundColor = '#22c55e';
+                } else {
+                  document.getElementById('output').textContent = "Processing " + (progress.processedRows + progress.failedRows) + "/"+progress.totalRows+" rows. Failed " + progress.failedRows + " rows.";
+                }
+        
+                // Check if any rows have been processed or failed and update the flag
+                if (progress.processedRows > 0 || progress.failedRows > 0) {
+                  hasProcessedAnyRows = true;
+                }
+              } catch(e) {
+                console.log("Error getting progress interval:", e);
+              }
+              
             }, 1000); // Poll every second
           
             // Set a timeout to stop the interval after 10 minutes if no rows have been processed
@@ -371,10 +372,7 @@ export default class CSVUploaderPlugin {
               return obj;
             }, {});
 
-          logger.debug("filteredContent:", filteredContent);
-
           /** We then create the stream in Ceramic with the updated content */
-          console.log("filteredContent:", filteredContent);
           let stream = await this.orbisdb
             .insert(this.model_id)
             .value(filteredContent)
@@ -417,12 +415,7 @@ export default class CSVUploaderPlugin {
 
   // Function to determine if a number should be treated as 'int' or 'float' based on properties
   convertToTypedObject(key, value, properties) {
-    console.log("In convertToTypedObject key:", key);
     const type = properties[key]?.type;
-    console.log("key:", key);
-    console.log("properties[key]:", properties[key]);
-    console.log("type:", type);
-    logger.debug("type in convertToTypedObject for:" + key, type);
 
     if(type) {
       if (type.includes("integer")) {
@@ -437,7 +430,6 @@ export default class CSVUploaderPlugin {
         return JSON.parse(value);
       }
     }
-    
 
     return value;
   }

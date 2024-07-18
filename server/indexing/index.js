@@ -192,7 +192,11 @@ export default class IndexingService {
     // Loop through all plugins instances and stop them
     this.plugins.map(async (plugin) => {
       if (plugin.stop) {
-        await plugin.stop();
+        try {
+          await plugin.stop();
+        } catch(e) {
+          console.log("Error stopping plugin:", e);
+        }
       }
     });
 
@@ -208,7 +212,7 @@ export default class IndexingService {
     }
 
     // Might add additional cleanup logic (if necessary) for example, releasing database connections, resetting internal state, etc.
-    logger.info(
+    console.log(
       cliColors.text.green,
       "Indexing service stopped successfully.",
       cliColors.reset

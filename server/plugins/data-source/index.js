@@ -13,38 +13,20 @@ export default class DataSourcePlugin {
     };
   }
 
-  /** Will connect to Ceramic using the seed passed by the plugin settings and trigger the fetch interval */
-  async start() {
-    try {
-      /**
-      let model_stream = await Model.create(this.ceramic,
-        modelDef,
-        {
-          model: "kh4q0ozorrgaq2mezktnrmdwleo1d",
-          controller: this.session.id
-        }
-      );
-      console.log("model_stream:", model_stream?.id?.toString())*/
-
-      // Perform first call
-      this.fetchApi();
-
-      // Start the interval function
-      this.interval = setInterval(() => {
+  /** Will create cron job for the process task */
+  start() {
+    if(this.cron_interval) {
+      this.task = cron.schedule(this.cron_interval, () => {
         this.fetchApi();
-      }, this.secs_interval * 1000);
-    } catch (e) {
-      logger.error("Couldn't connect to Ceramic, check the seed again:", e);
-    }
+        console.log('Running the process task every:', this.cron_interval);
+      });
+    }  
   }
 
-  /** Will stop the plugin's interval */
+  /** Will make sure cron job is stopped if OrbisDB is restarted */
   async stop() {
     logger.debug("Stopping plugin:", this.uuid);
-    if (this.interval) {
-      clearInterval(this.interval);
-      this.interval = null; // Clear the stored interval ID
-    }
+    this.task.stop();
   }
 
   /** This will fetch the API and create a Ceramic stream afterward based on the plugin settings */

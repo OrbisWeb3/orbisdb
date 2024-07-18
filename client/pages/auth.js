@@ -70,7 +70,7 @@ export default function Auth() {
         (result?.user && resultAdmins?.includes(result.user.did))
       ) {
         // Save admin session in localstorage
-        localStorage.setItem("orbisdb-admin-session", result.session.session);
+        localStorage.setItem("orbisdb-admin-session", result.auth.serializedSession);
         init();
         //router.push('/');
       } else {

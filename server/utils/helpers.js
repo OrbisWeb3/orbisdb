@@ -25,10 +25,14 @@ export async function restartIndexingService() {
   }
 
   /** Restart Fastify server */
-  await global.server.close();
+  console.log("About to close server.");
+  global.server.close();
 
   // Start indexing service
-  await startIndexing();
+  console.log("About to start indexing again.");
+  startIndexing();
+
+  return true;
 }
 
 /** Will convert a Ceramic JWT into a readable address */

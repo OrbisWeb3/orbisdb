@@ -1,37 +1,90 @@
 {
   "id": "evm-blockchain-listener",
-  "name": "EVM Blockchain Listener",
-  "description": "Listen to any smart contract event on EVM chains and create or update a Ceramic stream following the event.",
+  "name": "Base Event Listener",
+  "logo": "/img/base-event-listener.png",
+  "description": "Listen to and store any smart contract event from Base Mainnet or Testnet.",
   "hooks": ["generate"],
-  "visible": false,
+  "visible": true,
   "variables": [
     {
-      "name": "Infura API key",
-      "description": "Your Infura API key.",
-      "id": "infura_key"
-    },
-    {
-      "name": "EVM Chain",
-      "description": "The EVM chain you smart contract is on.",
-      "id": "chain",
-      "type": "select",
-      "options": [
-        { "value": "mainnet", "label": "Mainnet" },
-        { "value": "optimism", "label": "Optimism" }
-      ],
+      "name": "WebSocket RPC URL",
+      "description": "Your WebSocket RPC URL endpoint must start with wss://",
+      "id": "rpc_url",
       "per_context": true
     },
     {
       "name": "Contract Address",
       "description": "The address of your smart contract.",
-      "id": "contract",
+      "id": "contract_address",
       "per_context": true
     },
     {
-      "name": "ABI",
-      "description": "Your smart contract ABI.",
-      "id": "abi",
+      "name": "Contract type?",
+      "description": "What type of contract is this?",
+      "id": "contract_type",
+      "type": "select",
+      "options": [
+        { "value": "erc20", "label": "ERC20" },
+        { "value": "erc721", "label": "ERC721" },
+        { "value": "erc1155", "label": "ERC1155" },
+        { "value": "custom", "label": "Custom" }
+      ],
+      "per_context": true
+    },
+    {
+      "name": "ERC20 Event name",
+      "description": "Which smart contract event do you want to start tracking?",
+      "id": "event_name",
+      "type": "select",
+      "conditions": [{ "id": "contract_type", "value": "erc20" }],
+      "options": [
+        { "value": "Transfer", "label": "Transfer" },
+        { "value": "Approval", "label": "Approval" },
+        { "value": "Mint", "label": "Mint" }
+      ],
+      "per_context": true
+    },
+    {
+      "name": "ERC721 Event name",
+      "description": "Which smart contract event do you want to start tracking?",
+      "id": "event_name",
+      "type": "select",
+      "conditions": [{ "id": "contract_type", "value": "erc721" }],
+      "options": [
+        { "value": "Transfer", "label": "Transfer" },
+        { "value": "Approval", "label": "Approval" },
+        { "value": "Mint", "label": "Mint" }
+      ],
+      "per_context": true
+    },
+    {
+      "name": "ERC1155 Event name",
+      "description": "Which smart contract event do you want to start tracking?",
+      "id": "event_name",
+      "type": "select",
+      "conditions": [{ "id": "contract_type", "value": "erc1155" }],
+      "options": [
+        { "value": "Spawned", "label": "Spawned" },
+        { "value": "Transfer", "label": "Transfer" },
+        { "value": "Approval", "label": "Approval" },
+        { "value": "Mint", "label": "Mint" }
+      ],
+      "per_context": true
+    },
+    {
+      "name": "Contract ABI",
+      "description": "Paste the full smart-contract ABI.",
+      "id": "contract_abi",
       "type": "textarea",
+      "conditions": [{ "id": "contract_type", "value": "custom" }],
+      "per_context": true
+    },
+    {
+      "name": "Contract Event name",
+      "description": "Which smart contract event do you want to start tracking?",
+      "id": "event_name",
+      "type": "select_custom_event",
+      "conditions": [{ "id": "contract_type", "value": "custom" }],
       "per_context": true
     }
   ]

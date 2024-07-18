@@ -1,7 +1,12 @@
-import Web3 from "web3";
 import logger from "../../logger/index.js";
+import CustomInterface from "./interfaces/custom/index.js";
+import ERC1155Interface from "./interfaces/erc1155/index.js";
+import ERC20Interface from "./interfaces/erc20/index.js";
+import ERC721Interface from "./interfaces/erc721/index.js";
 
 export default class EthereumEventPlugin {
+  interface;
+
   async init() {
     return {
       HOOKS: {
@@ -10,77 +15,173 @@ export default class EthereumEventPlugin {
     };
   }
 
-  start() {
-    // Create contract instance
-    const USDC_ADDRESS = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eb48";
-    const USDC_ABI = [
-      // ABI for Transfer Event
-      {
-        anonymous: false,
-        inputs: [
-          { indexed: true, name: "from", type: "address" },
-          { indexed: true, name: "to", type: "address" },
-          { indexed: false, name: "value", type: "uint256" },
-        ],
-        name: "Transfer",
-        type: "event",
-      },
-    ];
-    //const contract = new this.web3.eth.Contract(USDC_ABI, USDC_ADDRESS);
-    // console.log("Contract created with success.");
-    try {
-      const provider = new Web3.providers.WebsocketProvider(
-        "wss://mainnet.infura.io/v3/9bf71860bc6c4560904d84cd241ab0a0",
-        {
-          clientConfig: {
-            keepalive: true,
-            keepaliveInterval: 60000,
-          },
-          reconnect: {
-            auto: true,
-            delay: 5000,
-            maxAttempts: 5,
-            onTimeout: false,
-          },
+  async start() {
+    console.log("Enter start() in EthereumEventPlugin");    
+
+    // Will pick which interface to use based on the type of smart contract being listened to (ex: ERC20, ERC721 etc)
+    switch(this.contract_type) {
+      case "erc20":
+        this.interface = new ERC20Interface(this.contract_address, this.rpc_url);
+        break;
+      case "erc721":
+        this.interface = new ERC721Interface(this.contract_address, this.rpc_url);
+        break;
+      case "erc1155":
+        this.interface = new ERC1155Interface(this.contract_address, this.rpc_url);
+        break;
+      case "custom":
+        // If custom create and save model id
+        let abi;
+        let events = [];
+        let event;
+        let schema;
+        let model;
+
+        try {
+          abi = JSON.parse(this.contract_abi)
+          events = getEventsFromABI(this.contract_abi);
+        } catch(e) {
+          console.log("error parsing abi:", e)
         }
-      );
 
-      provider.on("connect", () => {
-        logger.debug("Websocket connected.");
-      });
+        if(events) {
+          event = events.find(event => event.name == this.event_name);
+          console.log("selected event:", event);
+        }
 
-      provider.on("close", (event) => {
-        logger.debug(event);
-        logger.debug("Websocket closed.");
-      });
+        if(event) {
+          // Generate custom schema for the selected event
+          let properties = createJsonSchemaForEvent(event);
+          schema = {
+            name: this.event_name + "_model",
+            version: "2.0",
+            accountRelation: {
+              type: "list",
+            },
+            interface: false, // Assuming this field is part of your ModelDefinitionV2
+            implements: [], // Example field for ModelDefinitionV2
+            schema: properties,
+          };
+          
+          // Create model
+          try {
+            model = await this.orbisdb.ceramic.createModel(schema);
+            console.log("model:", model?.id); 
+          } catch(e) {
+              console.log(cliColors.text.red, "Error creating model:", cliColors.reset, e);
+          }
+        }
 
-      provider.on("error", (error) => {
-        logger.error("Error subscribing to websocket:", error.message);
-      });
-    } catch (e) {
-      logger.error("Error setting up web3 provider.");
+        if(model) {
+          this.interface = new CustomInterface(this.contract_address, this.rpc_url, abi, model?.id);
+        }
+        
+        break;
+      default:
+        this.interface = new ERC20Interface(this.contract_address, this.rpc_url);
+        break;
     }
 
-    /*const web3 = new Web3(provider);
-        const contract = new web3.eth.Contract(USDC_ABI, USDC_ADDRESS);
-        contract.events.Transfer()
-        .on("connected", (id) => {
-            console.log(`PairCreated subscription connected (${id})`);
-        }
-        ).on("data", (event) => {
-            console.log(event);
-
-        }).on("error", (error) => {
-            console.log(error);
-        })*/
-
-    // Event subscription
-    // Subscribe to Transfer Events
-
-    logger.debug("⭐️ Starting to listen to smart contract events.");
+    // Subscribe to event selected by user
+    try {
+      this.subscription = this.interface.contract.events.allEvents({ fromBlock: 'latest' }).on('data', this.handleEvent);
+      logger.debug("⭐️ Starting to listen to smart contract events:", this.contract_type);
+    } catch(e) {
+      logger.error("Error subscribing to event fron this smart contract:", this.contract_address);
+    }
   }
 
-  async processEvent(event) {
-    logger.debug("Received event:", event);
+  stop() {
+    console.log("Trying to stop web3 subscription for:", this.uuid)
+    try {
+      this.subscription.unsubscribe();
+      console.log("Success unsubscribing from contract events.");
+    } catch(e) {
+      console.log("Error unsubscribing from contract events:", e);
+    }
+  }
+
+  // Function to handle detected events
+  handleEvent = async (event) => {
+    if(event.event == this.event_name) {
+      let _event = this.interface.parse(event);
+      console.log('Formatted event:', _event);
+  
+      // Insert event as a new stream
+      if(_event.model_id) {
+        try {
+          let stream = await this.orbisdb
+            .insert(_event.model_id)
+            .value(_event.content)
+            .context(this.context)
+            .run();
+        } catch(e) {
+          console.log("Error creating stream:", e);
+        }
+      }
+    }
+  };
+}
+
+
+function getEventsFromABI(abi) {
+  let events = [];
+  try {
+    let abiJson = JSON.parse(abi);
+    events = abiJson.filter(item => item.type === 'event');
+  } catch(e) {
+    console.log("Error parsing ABI.");
+  }
+
+  return events;
+}
+
+/** Will create the json schema for this event */
+function createJsonSchemaForEvent(event) {
+  if (!event || !event.inputs) {
+      throw new Error('Invalid event object');
+  }
+
+  const schema = {
+      type: "object",
+      $schema: "https://json-schema.org/draft/2020-12/schema",
+      additionalProperties: false,
+      properties: {
+        _auto_type: { type: 'string', description: 'Automatically generated event name' },
+        _auto_contract: { type: 'string', description: 'Automatically generated contract address' },
+        _auto_hash: { type: 'string', description: 'Automatically generated transaction hash' }
+      },
+      required: []
+  };
+
+  event.inputs.forEach(input => {
+      schema.properties[input.name] = {
+          type: getType(input.type),
+          description: input.internalType
+      };
+      // Assuming all inputs are required
+      schema.required.push(input.name);
+  });
+
+  return schema;
+}
+
+/** Will convert solidity types in json types */
+function getType(solidityType) {
+  switch (solidityType) {
+      case 'address':
+          return 'string';
+      case 'uint8':
+      case 'int8':
+          return 'integer';
+      case 'bool':
+          return 'boolean';
+      case 'bytes':
+      case 'string':
+      case 'uint256':
+      case 'int256':
+          return 'string';
+      default:
+          return 'string'; // default type if not matched
   }
 }

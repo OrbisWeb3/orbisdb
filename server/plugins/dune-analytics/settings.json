@@ -1,0 +1,50 @@
+{
+  "id": "dune-analytics",
+  "name": "Dune Analytics",
+  "logo": "/img/dune-analytics.jpeg",
+  "description": "Push your Ceramic data to Dune automatically for analysis or mix it with additional data sources.",
+  "hooks": ["generate"],
+  "routes": ["force_refresh"],
+  "variables": [
+    {
+      "name": "Dune API Key",
+      "description": "Your Dune API Key which will be used to create tables and insert rows.",
+      "id": "dune_api_key",
+      "type": "string",
+      "per_context": false
+    },
+    {
+      "name": "Namespace",
+      "description": "This is usually your username on Dune",
+      "id": "namespace",
+      "type": "string",
+      "per_context": true
+    },
+    {
+      "name": "Table",
+      "description": "The table you want to duplicate on Dune. This will add the table with all of its history as well as push newly created streams. Your table name must be unique on Dune.",
+      "id": "model_id",
+      "type": "string",
+      "per_context": true
+    },
+    {
+      "name": "Is private?",
+      "description": "Should the new table created be private on Dune?",
+      "id": "is_private",
+      "type": "select",
+      "options": [
+        { "value": "no", "label": "No" },
+        { "value": "yes", "label": "Yes" }
+      ],
+      "per_context": true
+    },
+    {
+      "name": "Refresh interval",
+      "description": "How frequently should your data be pushed to Dune?",
+      "alert": "Each insert API call will cost you 250 Dune credits.",
+      "id": "cron_interval",
+      "type": "cron",
+      "per_context": true
+    }
+  ]
+}

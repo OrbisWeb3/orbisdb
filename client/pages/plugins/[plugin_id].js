@@ -6,6 +6,7 @@ import {
   SettingsIcon,
   DashIcon,
   ExternalLinkIcon,
+  DeleteIcon,
 } from "../../components/Icons";
 import Alert from "../../components/Alert";
 import PluginSettingsModal from "../../components/Modals/PluginSettings";
@@ -181,6 +182,7 @@ export default function PluginDetails() {
                       {settings.plugins[existingPluginIndex].contexts?.map(
                         (context, index) => (
                           <OneContext
+                            plugin_id={plugin_id}
                             context={context}
                             key={index}
                             setSelectedContext={setSelectedContext}
@@ -313,9 +315,44 @@ export default function PluginDetails() {
   );
 }
 
-const OneContext = ({ context, setSelectedContext, pluginDetails }) => {
+const OneContext = ({ plugin_id, context, setSelectedContext, pluginDetails }) => {
   console.log("pluginDetails context:", context);
-  const { settings } = useGlobal();
+  const { settings, setSettings, sessionJwt } = useGlobal();
+
+  async function deletePlugin(context) {
+    if (confirm('Are you sure you want to delete this plugin from this context?')) {
+      
+      // Delete it
+      console.log("Deleting plugin from context:", context.uuid);
+      console.log("pluginDetails:", pluginDetails);
+      /** Submit assign context form */
+      const rawResponse = await fetch(`/api/plugins/delete`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${sessionJwt}`,
+        },
+        body: JSON.stringify({
+          plugin_id: plugin_id,
+          uuid: context.uuid
+        }),
+      });
+      const response = await rawResponse.json();
+      console.log("response:", response);
+
+      if(response.settings) {
+        console.log('Plugin was deleted.');
+        setSettings(response.settings);
+      } else {
+        console.log("Error deleting plugin.");
+      }
+
+      
+    } else {
+      // Do nothing!
+      console.log('Plugin was not deleted.');
+    }
+  }
 
   return (
     <div className="rounded-md bg-white border border-slate-200 flex flex-col overflow-hidden mb-3 mr-3 min-w-[170px] max-w-[350px]">
@@ -376,13 +413,22 @@ const OneContext = ({ context, setSelectedContext, pluginDetails }) => {
         </div>
       )}
 
-      {/** Configure CTA */}
-      <div
-        className="flex flex-row bg-[#FBFBFB] text-slate-700 hover:text-slate-800 cursor-pointer border-t border-slate-200 space-x-1 px-3 py-1.5 items-center justify-center"
-        onClick={() => setSelectedContext(context)}
-      >
-        <SettingsIcon />
-        <span className="text-sm font-medium">Configure</span>
+      {/** Context footer */}
+      <div className="flex flex-row border-t border-slate-200 bg-[#FBFBFB] w-full">
+        {/** Configure CTA */}
+        <div
+          className="flex flex-row  text-slate-700 hover:text-slate-800 space-x-1 cursor-pointer items-center justify-center flex-1 px-3 py-1.5"
+          onClick={() => setSelectedContext(context)} >
+          <SettingsIcon />
+          <span className="text-sm font-medium">Configure</span>
+        </div>
+
+        {/** Delete CTA */}
+        <div className="flex flex-row text-red-600 hover:text-red-700 space-x-1 cursor-pointer items-center justify-center flex-1 border-l border-slate-200 px-3 py-1.5"
+          onClick={() => deletePlugin(context)}>
+            <DeleteIcon />
+            <span className="text-sm font-medium">Delete</span>
+          </div>
       </div>
     </div>
   );

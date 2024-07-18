@@ -776,6 +776,16 @@ export default class Postgre {
       // Keep track of new table name
       this.mapTableName(model, uniqueFormattedTitle);
 
+
+      // Will refresh GraphQL schema
+      refreshGraphQLSchema(this, this.slot);
+
+      // Will trigger a callback if provided by the parent function
+      if (callback) {
+        console.log("Calling callback:", callback);
+        callback();
+      }
+
       logger.debug(
         cliColors.text.cyan,
         `🧩 Created table:`,
@@ -792,15 +802,6 @@ export default class Postgre {
     } finally {
       // Release the client back to the pool
       client.release();
-
-      // Will refresh GraphQL schema
-      refreshGraphQLSchema(this, this.slot);
-
-      // Will trigger a callback if provided by the parent function
-      if (callback) {
-        console.log("Calling callback:", callback);
-        //callback();
-      }
     }
   }
 

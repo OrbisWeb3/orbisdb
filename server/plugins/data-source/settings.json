@@ -28,9 +28,9 @@
     },
     {
       "name": "Interval",
-      "description": "Interval in seconds to perform the API call.",
-      "id": "secs_interval",
-      "type": "integer",
+      "description": "CRON interval to perform the API call.",
+      "id": "cron_interval",
+      "type": "cron",
       "per_context": true
     }
   ]

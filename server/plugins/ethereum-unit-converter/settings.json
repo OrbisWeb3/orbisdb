@@ -1,0 +1,59 @@
+{
+  "id": "ethereum-unit-converter",
+  "name": "Ethereum Unit Converter",
+  "logo": "/img/ethereum-unit-converter.png",
+  "description": "Convert values from your content using the right decimal.",
+  "hooks": ["add_metadata"],
+  "variables": [
+    {
+      "name": "Field",
+      "description": "Which field do you want to use to do the conversion? The stream's fields are under the 'content' object and generic fields are parents fields (like 'controller').",
+      "id": "field",
+      "type": "string",
+      "per_context": true
+    },
+    {
+      "name": "Decimals",
+      "description": "Number of decimals to use to convert your amount to.",
+      "id": "decimals",
+      "type": "select",
+      "options": [
+        {"value": "1", "label": "1"}, 
+        {"value": "2", "label": "2"},
+        {"value": "3", "label": "3"}, 
+        {"value": "4", "label": "4"},
+        {"value": "5", "label": "5"}, 
+        {"value": "6", "label": "6"},
+        {"value": "7", "label": "7"}, 
+        {"value": "8", "label": "8"},
+        {"value": "9", "label": "9"},
+        {"value": "10", "label": "10"}, 
+        {"value": "11", "label": "11"},
+        {"value": "12", "label": "12"}, 
+        {"value": "13", "label": "13"},
+        {"value": "14", "label": "14"}, 
+        {"value": "15", "label": "15"},
+        {"value": "16", "label": "16"}, 
+        {"value": "17", "label": "17"},
+        {"value": "18", "label": "18"}
+      ],
+      "per_context": true
+    },
+    {
+      "name": "Apply only on a specific model?",
+      "description": "Should this plugin be used only on a specific model?",
+      "id": "only_model",
+      "type": "select",
+      "options": [{"value": "no", "label": "No"}, {"value": "yes", "label": "Yes"}],
+      "per_context": true
+    },
+    {
+      "name": "Model ID",
+      "description": "Paste the model ID on which this plugin should be used.",
+      "id": "model_id",
+      "type": "string",
+      "conditions": [{"id": "only_model", "value": "yes"}],
+      "per_context": true
+    }
+  ]
+}
