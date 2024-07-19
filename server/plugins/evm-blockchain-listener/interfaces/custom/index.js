@@ -10,11 +10,17 @@ export default class CustomInterface {
         this.model = model;
         console.log("listening to address:" + address + " with rpcUrl:", rpcUrl);
 
-        // Initialize web3 with contract + RPC Url passed in parameters
-        this.web3 = new Web3(new Web3.providers.WebsocketProvider(rpcUrl));
+        try {
+            // Initialize web3 with contract + RPC Url passed in parameters
+            this.web3 = new Web3(new Web3.providers.WebsocketProvider(rpcUrl));
 
-        // Initialize contract
-        this.contract = new this.web3.eth.Contract(abi, address);
+            // Initialize contract
+            this.contract = new this.web3.eth.Contract(abi, address);
+        } catch(e) {
+            console.log("Error listening to contract:", e);
+        }
+
+        
     }
 
     /** This parse function will return a formatted JSON object per event type */

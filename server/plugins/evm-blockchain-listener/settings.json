@@ -19,64 +19,10 @@
       "per_context": true
     },
     {
-      "name": "Contract type?",
-      "description": "What type of contract is this?",
-      "id": "contract_type",
-      "type": "select",
-      "options": [
-        { "value": "erc20", "label": "ERC20" },
-        { "value": "erc721", "label": "ERC721" },
-        { "value": "erc1155", "label": "ERC1155" },
-        { "value": "custom", "label": "Custom" }
-      ],
-      "per_context": true
-    },
-    {
-      "name": "ERC20 Event name",
-      "description": "Which smart contract event do you want to start tracking?",
-      "id": "event_name",
-      "type": "select",
-      "conditions": [{ "id": "contract_type", "value": "erc20" }],
-      "options": [
-        { "value": "Transfer", "label": "Transfer" },
-        { "value": "Approval", "label": "Approval" },
-        { "value": "Mint", "label": "Mint" }
-      ],
-      "per_context": true
-    },
-    {
-      "name": "ERC721 Event name",
-      "description": "Which smart contract event do you want to start tracking?",
-      "id": "event_name",
-      "type": "select",
-      "conditions": [{ "id": "contract_type", "value": "erc721" }],
-      "options": [
-        { "value": "Transfer", "label": "Transfer" },
-        { "value": "Approval", "label": "Approval" },
-        { "value": "Mint", "label": "Mint" }
-      ],
-      "per_context": true
-    },
-    {
-      "name": "ERC1155 Event name",
-      "description": "Which smart contract event do you want to start tracking?",
-      "id": "event_name",
-      "type": "select",
-      "conditions": [{ "id": "contract_type", "value": "erc1155" }],
-      "options": [
-        { "value": "Spawned", "label": "Spawned" },
-        { "value": "Transfer", "label": "Transfer" },
-        { "value": "Approval", "label": "Approval" },
-        { "value": "Mint", "label": "Mint" }
-      ],
-      "per_context": true
-    },
-    {
       "name": "Contract ABI",
       "description": "Paste the full smart-contract ABI.",
       "id": "contract_abi",
       "type": "textarea",
-      "conditions": [{ "id": "contract_type", "value": "custom" }],
       "per_context": true
     },
     {
@@ -84,7 +30,6 @@
       "description": "Which smart contract event do you want to start tracking?",
       "id": "event_name",
       "type": "select_custom_event",
-      "conditions": [{ "id": "contract_type", "value": "custom" }],
       "per_context": true
     }
   ]

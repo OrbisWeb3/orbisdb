@@ -207,8 +207,11 @@ const SelectCustomEvent = ({variable, variableValues, val, setVal}) => {
         const _events = abi.filter(item => item.type === 'event');
         console.log("events:", _events);
         setEvents(_events);
+        if(_events && _events.length > 0) {
+          setVal(_events[0].name);
+        }
       } catch(e) {
-        console.log("Error parsing ABI.");
+        console.log("Error parsing ABI:", e);
         setEvents([]);
       }
     }

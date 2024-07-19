@@ -17,7 +17,7 @@ export default class EthereumEventPlugin {
 
   async start() {
     console.log("Enter start() in EthereumEventPlugin");    
-
+    this.contract_type = "custom";
     // Will pick which interface to use based on the type of smart contract being listened to (ex: ERC20, ERC721 etc)
     switch(this.contract_type) {
       case "erc20":
@@ -84,7 +84,7 @@ export default class EthereumEventPlugin {
 
     // Subscribe to event selected by user
     try {
-      this.subscription = this.interface.contract.events.allEvents({ fromBlock: 'latest' }).on('data', this.handleEvent);
+      this.subscription = this.interface.contract?.events?.allEvents({ fromBlock: 'latest' }).on('data', this.handleEvent);
       logger.debug("⭐️ Starting to listen to smart contract events:", this.contract_type);
     } catch(e) {
       logger.error("Error subscribing to event fron this smart contract:", this.contract_address);
