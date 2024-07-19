@@ -640,7 +640,7 @@ export default class Postgre {
       );
     } catch (e) {
       console.log("Error inserting stream:", e);
-      if (e.code === "42P01") {
+      if (e.code === "42P01" && model != "kh4q0ozorrgaq2mezktnrmdwleo1d") {
         // Trigger indexing of new model with a callback to retry indexing this stream
         this.indexModel(model);
       } else {
