@@ -642,7 +642,7 @@ export default class Postgre {
       console.log("Error inserting stream:", e);
       if (e.code === "42P01") {
         // Trigger indexing of new model with a callback to retry indexing this stream
-        //this.indexModel(model, () => this.upsert(model, content, pluginsData));
+        this.indexModel(model);
       } else {
         logger.error(
           cliColors.text.red,
