@@ -26,7 +26,7 @@ export async function restartIndexingService() {
 
   /** Restart Fastify server */
   console.log("About to close server.");
-  global.server.close();
+  //global.server.close();
 
   // Start indexing service
   console.log("About to start indexing again.");

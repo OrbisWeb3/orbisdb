@@ -69,6 +69,7 @@ export default async function (server, opts) {
 
         // Step 6: Restart indexing service
         await restartIndexingService(settings);
+        console.log("After restartIndexingService");
 
         // If user enabled some presets we run those
         if(presets && presets.length > 0) {

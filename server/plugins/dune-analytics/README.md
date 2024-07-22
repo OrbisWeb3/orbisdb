@@ -11,7 +11,8 @@ The Dune Analytics Plugin allows users to create tables from their OrbisDB insta
 To install the Dune Analytics Plugin, follow these steps:
 
 1. Add the plugin to your OrbisDB instance.
-2. Configure the plugin settings through the user interface.
+2. Assign the plugin to the context of your choice
+3. Configure the plugin settings through the user interface.
 
 ## Configuration
 
@@ -39,7 +40,7 @@ Here is an example of how the settings might look:
 
 The plugin initializes by connecting to Dune Analytics using the provided developer API key and sets up a cron job to sync the specified OrbisDB table at regular intervals.
 
-Each sync costs Dune Analytics credits.
+Each insert API call will cost you 250 Dune credits.
 
 ### Syncing Data
 
