@@ -732,8 +732,8 @@ export default class Postgre {
     await this.createTable(model, fields, uniqueFormattedTitle, callback);
 
     // Step 4: Insert new row in models_indexed table
-    if (model != "kh4q0ozorrgaq2mezktnrmdwleo1d" && !forced) {
-      this.upsert(
+    if (model == "kh4q0ozorrgaq2mezktnrmdwleo1d" && !forced) {
+      /*this.upsert(
         "kh4q0ozorrgaq2mezktnrmdwleo1d",
         {
           stream_id: model,
@@ -743,7 +743,7 @@ export default class Postgre {
           content: content,
         },
         null
-      );
+      );*/
     }
 
     return true;
