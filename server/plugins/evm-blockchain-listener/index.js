@@ -46,7 +46,6 @@ export default class EthereumEventPlugin {
 
         if(events) {
           event = events.find(event => event.name == this.event_name);
-          console.log("selected event:", event);
         }
 
         if(event) {
@@ -66,7 +65,6 @@ export default class EthereumEventPlugin {
           // Create model
           try {
             model = await this.orbisdb.ceramic.createModel(schema);
-            console.log("model:", model?.id); 
           } catch(e) {
               console.log(cliColors.text.red, "Error creating model:", cliColors.reset, e);
           }

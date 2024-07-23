@@ -93,8 +93,6 @@ export default class DuneAnalyticsPlugin {
         WHERE table_schema = 'public' AND table_name = $1
       `, [this.model_id]);
 
-      console.log("result:", result);
-      console.log("result?.data?.rows:", result?.data?.rows);
   
       this.schema = result?.data?.rows.map(row => ({
         name: sanitizeColumnName(row.column_name),
@@ -194,7 +192,6 @@ export default class DuneAnalyticsPlugin {
         });
 
         responseData = await response.json();
-        console.log(responseData);
 
         // Save timestamp in timestamp.json file
         if (response.ok) {

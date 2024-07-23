@@ -93,6 +93,7 @@ export default class IndexingService {
         this.hookHandler.addHookHandler(
           hook,
           plugin.id,
+          plugin.uuid,
           plugin.context,
           handler
         );

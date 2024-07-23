@@ -79,6 +79,7 @@ export default class HookHandler {
       }
       handlers = Object.entries(this.hooks[hookName]);
     }
+    console.log("handlers:", handlers);
 
     // Loop through all handlers to execute them.
     for (const [pluginId, handler] of handlers) {
@@ -120,7 +121,7 @@ export default class HookHandler {
   }
 
   // Used to add a specific hook (can be used at runtime as well)
-  addHookHandler(hookName, pluginId, contextId, handler = () => {}) {
+  addHookHandler(hookName, pluginId, pluginUuid, contextId, handler = () => {}) {
     const isContextualized = this.registeredHooks[hookName]?.isContextualized;
     const sanitizedPluginId = this.sanitizePluginId(pluginId);
 
@@ -133,10 +134,10 @@ export default class HookHandler {
       if (!this.hooks[hookName][contextId]) {
         this.hooks[hookName][contextId] = {};
       }
-      this.hooks[hookName][contextId][sanitizedPluginId] = handler;
+      this.hooks[hookName][contextId][pluginUuid] = handler;
     } else {
       // Global hooks do not depend on contextId
-      this.hooks[hookName][sanitizedPluginId] = handler;
+      this.hooks[hookName][pluginUuid] = handler;
     }
   }
 
@@ -155,6 +156,8 @@ export default class HookHandler {
 
   // This is registering a hook in order execute them at the right time
   registerHook(hookName, opts) {
+    console.log("in registerHook:",hookName);
+    console.log("in registerHook opts:",opts)
     if (!this.registeredHooks[hookName]) {
       this.registeredHooks[hookName] = opts;
     }
