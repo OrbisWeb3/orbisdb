@@ -922,7 +922,6 @@ export default class Postgre {
   async query(userQuery, params) {
     const defaultLimit = 100;
     let modifiedQuery = await this.replaceTableNames(userQuery);
-    console.log("modifiedQuery in query():", modifiedQuery);
 
     // Check if the query already contains a LIMIT clause
     /*if (!/LIMIT \d+/i.test(userQuery)) {

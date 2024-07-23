@@ -82,7 +82,8 @@ export default class EthereumEventPlugin {
 
     // Subscribe to event selected by user
     try {
-      this.subscription = this.interface.contract?.events?.allEvents({ fromBlock: 'latest' }).on('data', this.handleEvent);
+      this.subscription = this.interface.contract?.events?.allEvents({ fromBlock: 'latest' });
+      this.subscription.on('data', this.handleEvent);
       logger.debug("⭐️ Starting to listen to smart contract events:", this.contract_type);
     } catch(e) {
       logger.error("Error subscribing to event fron this smart contract:", this.contract_address);
