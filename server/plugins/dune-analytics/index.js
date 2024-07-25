@@ -98,8 +98,6 @@ export default class DuneAnalyticsPlugin {
         name: sanitizeColumnName(row.column_name),
         type: this.mapColumnType(row.data_type)
       }));
-
-      console.log("schema:", this.schema);
   
       return this.schema;
     } catch(e) {

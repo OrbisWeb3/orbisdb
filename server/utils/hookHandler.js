@@ -82,10 +82,13 @@ export default class HookHandler {
     console.log("handlers:", handlers);
 
     // Loop through all handlers to execute them.
-    for (const [pluginId, handler] of handlers) {
+    for (const [pluginId, contextualizedPlugin] of handlers) {
+
+      let _pluginId = "";
+    
       // Safely execute the hook.
       const result = await this.safeExecute(
-        handler,
+        contextualizedPlugin.handler,
         JSON.parse(JSON.stringify(data))
       );
       // Handle hook executed based on its type
@@ -100,7 +103,12 @@ export default class HookHandler {
       // Will handle the result of the executed hook based on the hook type
       switch (hookName) {
         case "add_metadata":
-          hookData.pluginsData[pluginId] = result;
+          if(hookData.pluginsData[contextualizedPlugin.pluginId]) {
+            hookData.pluginsData[contextualizedPlugin.pluginId].push(result);
+          } else {
+            hookData.pluginsData[contextualizedPlugin.pluginId] = [result]
+          }
+          
           break;
         case "validate":
           if (result == false) {
@@ -134,10 +142,10 @@ export default class HookHandler {
       if (!this.hooks[hookName][contextId]) {
         this.hooks[hookName][contextId] = {};
       }
-      this.hooks[hookName][contextId][pluginUuid] = handler;
+      this.hooks[hookName][contextId][pluginUuid] = { pluginId, handler };
     } else {
       // Global hooks do not depend on contextId
-      this.hooks[hookName][pluginUuid] = handler;
+      this.hooks[hookName][pluginUuid] = { pluginId, handler };
     }
   }
 
