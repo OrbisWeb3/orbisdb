@@ -402,7 +402,7 @@ const TableCTAs = ({
     }
   }
   return (
-    <div className="w-full text-[12px] table-data -mt-px -ml-px font-mono px-2 p-2 justify-start flex flex-row space-x-2 items-center">
+    <div className="w-full text-[12px] table-data -mt-px -ml-px font-mono px-2 p-2 justify-start flex flex-row space-x-2 items-center sticky left-0">
       {loading ? (
         <button className="px-3 py-0.5 space-x-1 border border-transparent flex flex-row items-center w-full text-center justify-center">
           <LoadingCircle /> <span>Loading</span>

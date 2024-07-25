@@ -89,14 +89,14 @@ export function getOrbisDBSettings(slot) {
     let _path = path.resolve(__dirname, "../../orbisdb-settings.json");
     const settingsData = fs.readFileSync(_path);
     orbisdbSettings = settingsData.length ? JSON.parse(settingsData) : {};
-  } catch (error) {
-    logger.error(
+  } catch (e) {
+    console.log(
       "Error reading or parsing orbisdb-settings.json, returning empty settings:",
-      error
+      e
     );
     orbisdbSettings = {}; // Set a default value or handle the error as per your requirement
   }
-  if (slot && orbisdbSettings.is_shared) {
+  if (slot && orbisdbSettings?.is_shared) {
     return orbisdbSettings.slots ? orbisdbSettings.slots[slot] : {};
   } else {
     return orbisdbSettings;
