@@ -9,10 +9,11 @@ import Button from "../components/Button";
 import { STATUS, sleep } from "../utils";
 
 export default function Settings() {
-  const { settings, setSettings, sessionJwt, isShared } = useGlobal();
+  const { settings, globalSettings, setSettings, sessionJwt, isShared, isGlobalAdmin } = useGlobal();
   const [showJson, setShowJson] = useState(false);
   const [jsonValue, setJsonValue] = useState(
-    settings ? JSON.stringify(settings, null, "\t") : ""
+    globalSettings ? JSON.stringify(globalSettings, null, "\t") :
+    (settings ? JSON.stringify(settings, null, "\t") : "")
   );
   const [status, setStatus] = useState(0);
 
@@ -92,7 +93,7 @@ export default function Settings() {
       </div>
 
       {/** Give users running non shared instances to be able to paste the full json as settings */}
-      {!isShared && (
+      {(!isShared || isGlobalAdmin) && (
         <p
           className="w-full text-center mt-4 text-xs font-medium cursor-pointer hover:underline"
           onClick={() => setShowJson(!showJson)}

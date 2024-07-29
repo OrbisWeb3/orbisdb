@@ -5,7 +5,7 @@ import { useGlobal } from "../contexts/Global";
 import { copyToClipboard, getAddress, shortAddress } from "../utils";
 
 export default function Header({ showItems }) {
-  const { sessionJwt, adminSession, isShared } = useGlobal();
+  const { sessionJwt, adminSession, isShared, isGlobalAdmin } = useGlobal();
 
   // Define navigation items and their paths
   const navItems = [
@@ -29,7 +29,7 @@ export default function Header({ showItems }) {
             ))}
 
             {/** Display logs and setting for dedicated instances only */}
-            {!isShared && (
+            {(!isShared || isGlobalAdmin) && (
               <>
                 <NavItem
                   key="Logs"

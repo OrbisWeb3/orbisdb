@@ -59,15 +59,15 @@ export default function Auth() {
       console.log("user:", result);
 
       // retrieve admins
-      let resultAdmins = await getAdmin();
-      console.log("resultAdmins:", resultAdmins);
+      let { admins } = await getAdmin();
+      console.log("admins:", admins);
       console.log(
-        "resultAdmins.admins?.includes(result.user.did)",
-        resultAdmins?.includes(result.user.did)
+        "admins.includes(result.user.did)",
+        admins?.includes(result.user.did)
       );
       if (
         isShared ||
-        (result?.user && resultAdmins?.includes(result.user.did))
+        (result?.user && admins?.includes(result.user.did))
       ) {
         // Save admin session in localstorage
         localStorage.setItem("orbisdb-admin-session", result.auth.serializedSession);

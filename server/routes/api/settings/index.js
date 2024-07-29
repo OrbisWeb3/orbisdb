@@ -144,9 +144,13 @@ export default async function (server, opts) {
           return res.notFound(`Slot ${slot} not found.`);
         }*/
 
+        let _isGlobalAdmin = globalSettings?.configuration?.admins?.includes(slot);
+
         // (slot === adminDid for the slot)
         return {
           admins: [slot],
+          globalAdmins: globalSettings?.configuration?.admins,
+          globalSettings: _isGlobalAdmin ? globalSettings : null
         };
       }
 

@@ -17,6 +17,8 @@ export const GlobalProvider = ({ children }) => {
   const [settingsLoading, setSettingsLoading] = useState();
   const [adminLoading, setAdminLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isGlobalAdmin, setIsGlobalAdmin] = useState(false);
+  const [globalSettings, setGlobalSettings] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
   const [sessionJwt, setSessionJwt] = useState();
   const [user, setUser] = useState();
@@ -104,9 +106,10 @@ export const GlobalProvider = ({ children }) => {
   /** Load settings from file */
   async function init() {
     try {
-      let admins = await getAdmin(adminSession);
+      let { admins, globalAdmins, globalSettings: _globalSettings } = await getAdmin(adminSession);
+      setGlobalSettings(_globalSettings);
       if (admins) {
-        checkAdmin(admins);
+        checkAdmin(admins, globalAdmins);
       } else {
         setAdminLoading(false);
       }
@@ -119,7 +122,7 @@ export const GlobalProvider = ({ children }) => {
   }
 
   /** Check if there is an existing user connected */
-  async function checkAdmin(admins) {
+  async function checkAdmin(admins, globalAdmins) {
     // Retrieve admin session from local storage
     let adminSessionJwt = localStorage.getItem("orbisdb-admin-session");
     // Convert session string to the parent DID using Ceramic library
@@ -135,6 +138,7 @@ export const GlobalProvider = ({ children }) => {
 
         // If user connected is included in the admins array in configuration we give admin access and save the session token to be used in API calls
         let _isAdmin = admins?.includes(didId);
+        let _isGlobalAdmin = globalAdmins?.includes(didId);
         if (didId && _isAdmin) {
           console.log("User is admin.");
           setIsAdmin(true);
@@ -142,6 +146,11 @@ export const GlobalProvider = ({ children }) => {
           loadSettings(adminSessionJwt);
         } else {
           console.log("User is NOT an admin: ", didId);
+        }
+
+        if (didId && _isGlobalAdmin) {
+          console.log("User is a global admin.");
+          setIsGlobalAdmin(true);
         }
       } catch (e) {
         console.log("Error checking admin account:", e);
@@ -157,7 +166,11 @@ export const GlobalProvider = ({ children }) => {
     let result = await fetch(`/api/settings/admins/${adminSession}`);
     let resultJson = await result.json();
     console.log("In getAdmin:", resultJson);
-    return resultJson.admins;
+    return {
+      admins: resultJson?.admins,
+      globalAdmins: resultJson?.globalAdmins,
+      globalSettings: resultJson?.globalSettings,
+    };
   }
 
   async function loadSettings(_jwt) {
@@ -205,6 +218,8 @@ export const GlobalProvider = ({ children }) => {
         setSettings,
         settingsLoading,
         loadSettings,
+        globalSettings,
+        isGlobalAdmin,
         isAdmin,
         setIsAdmin,
         user,
