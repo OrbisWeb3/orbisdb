@@ -208,11 +208,11 @@ export function ConfigurationSetup({showPresets}) {
 
     try {
       const result = await adminOrbisDB.connectUser({ auth, saveSession: false });
-      localStorage.setItem("orbisdb-admin-session", result.session.session);
+      localStorage.setItem("orbisdb-admin-session", result.auth.session.serialize());
       if (result?.user) {
         setAdminAccount(result.user.did);
         setIsAdmin(true);
-        setSessionJwt(result.session.session);
+        setSessionJwt(result.auth.session.serialize());
       }
       setStatusConnect(STATUS.SUCCESS);
     } catch(e) {
