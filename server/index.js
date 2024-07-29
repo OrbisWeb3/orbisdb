@@ -261,29 +261,29 @@ export async function startIndexing() {
         }
       }
     }
-  } else {
-    // If configuration settings are valid we start the indexing service
-    if (settings?.configuration) {
-      databases["global"] = globalDatabase;
-      ceramics["global"] = globalCeramic;
+  }
 
-      /** Initialize the hook handler */
-      let hookHandler = new HookHandler();
+  // If configuration settings are valid we start the indexing service
+  if (settings?.configuration) {
+    databases["global"] = globalDatabase;
+    ceramics["global"] = globalCeramic;
 
-      /** Initialize the mainnet indexing service while specifying the plugins to use and database type only if setting configuration exists */
-      global.indexingService = new IndexingService(
-        globalCeramic, // The global ceramic object will be used to subscribe to SSE
-        globalDatabase, // The global database (used for example to create other slot's db or for non shared instances)
-        ceramics, // The slots individual Ceramic object will be used by plugins installed on the corresponding slot and in the UI
-        databases, // Database instance to use
-        hookHandler, // Hookhandler
-        global.server,
-        settings.is_shared ? settings.is_shared : false
-      );
+    /** Initialize the hook handler */
+    let hookHandler = new HookHandler();
 
-      /** Subscribe to streams created on Mainnet */
-      global.indexingService.subscribe();
-    }
+    /** Initialize the mainnet indexing service while specifying the plugins to use and database type only if setting configuration exists */
+    global.indexingService = new IndexingService(
+      globalCeramic, // The global ceramic object will be used to subscribe to SSE
+      globalDatabase, // The global database (used for example to create other slot's db or for non shared instances)
+      ceramics, // The slots individual Ceramic object will be used by plugins installed on the corresponding slot and in the UI
+      databases, // Database instance to use
+      hookHandler, // Hookhandler
+      global.server,
+      settings.is_shared ? settings.is_shared : false
+    );
+
+    /** Subscribe to streams created on Mainnet */
+    global.indexingService.subscribe();
   }
 
   // Start the server after initializing the database
