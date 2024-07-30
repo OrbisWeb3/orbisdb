@@ -551,7 +551,7 @@ export default class Postgre {
                 }
               }
               if (orderBy) {
-                query += ` ORDER BY ${orderBy.field} ${orderBy.direction}`;
+                query += ` ORDER BY "${orderBy.field}" ${orderBy.direction}`;
               }
               query += ` LIMIT 50`;
               const result = await client.query(query, params);

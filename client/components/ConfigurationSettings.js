@@ -17,6 +17,7 @@ export default function ConfigurationSettings({showPresets}) {
 export function ConfigurationSetup({showPresets}) {
   const { 
     settings,
+    globalSettings,
     setSettings,
     sessionJwt,
     setSessionJwt,
@@ -208,11 +209,11 @@ export function ConfigurationSetup({showPresets}) {
 
     try {
       const result = await adminOrbisDB.connectUser({ auth, saveSession: false });
-      localStorage.setItem("orbisdb-admin-session", result.session.session);
+      localStorage.setItem("orbisdb-admin-session", result.auth.serializedSession);
       if (result?.user) {
         setAdminAccount(result.user.did);
         setIsAdmin(true);
-        setSessionJwt(result.session.session);
+        setSessionJwt(result.auth.serializedSession);
       }
       setStatusConnect(STATUS.SUCCESS);
     } catch(e) {

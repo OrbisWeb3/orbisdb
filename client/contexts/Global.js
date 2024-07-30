@@ -231,6 +231,7 @@ export const GlobalProvider = ({ children }) => {
         adminLoading,
         setAdminLoading,
         isConnected,
+        setIsConnected,
         init,
         getAdmin,
         isConfigured,
