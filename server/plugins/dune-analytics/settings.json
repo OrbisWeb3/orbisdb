@@ -4,7 +4,6 @@
   "logo": "/img/dune-analytics.jpeg",
   "description": "Push your Ceramic data to Dune automatically for analysis or mix it with additional data sources.",
   "hooks": ["generate"],
-  "routes": ["force_refresh"],
   "variables": [
     {
       "name": "Dune API Key",

@@ -102,7 +102,8 @@ export default async function (server, opts) {
     server.post("/:plugin_id/context", async (req, res) => {
       const { plugin_id, path, variables, uuid } = req.body;
 
-      logger.debug("Enter assign-context with variables:", variables);
+      console.log("Enter assign-context with variables:", variables);
+      console.log("Enter assign-context with plugin_id:", plugin_id);
 
       // Retrieve global settings
       const globalSettings = getOrbisDBSettings();
@@ -221,11 +222,6 @@ export default async function (server, opts) {
           if (contextIndex !== -1) {
             // Remove the context from the plugin
             settings.plugins[pluginIndex].contexts.splice(contextIndex, 1);
-    
-            // If the plugin has no more contexts, remove the plugin itself
-            if (settings.plugins[pluginIndex].contexts.length === 0) {
-              settings.plugins.splice(pluginIndex, 1);
-            }
     
             logger.debug("settings:", settings);
     
