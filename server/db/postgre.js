@@ -1,6 +1,18 @@
 import postgresql from "pg";
-import { buildSchema, GraphQLObjectType, GraphQLString, GraphQLInt, GraphQLFloat, GraphQLBoolean, GraphQLList, GraphQLInputObjectType, GraphQLNonNull, GraphQLSchema, GraphQLEnumType } from 'graphql';
-import { GraphQLJSONObject } from 'graphql-scalars';
+import {
+  buildSchema,
+  GraphQLObjectType,
+  GraphQLString,
+  GraphQLInt,
+  GraphQLFloat,
+  GraphQLBoolean,
+  GraphQLList,
+  GraphQLInputObjectType,
+  GraphQLNonNull,
+  GraphQLSchema,
+  GraphQLEnumType,
+} from "graphql";
+import { GraphQLJSONObject } from "graphql-scalars";
 
 import { snakeCase } from "change-case";
 import { cliColors } from "../utils/cliColors.js";
@@ -286,7 +298,6 @@ export default class Postgre {
     }
   }
 
-
   // Fetch DB schema to create GraphQL schema for the database
   async fetchDBSchema() {
     const client = await this.adminPool.connect();
@@ -314,20 +325,20 @@ export default class Postgre {
   // Helper function to map field types to GraphQL types
   getGraphQLType(fieldType) {
     switch (fieldType) {
-      case 'character varying':
-      case 'text':
+      case "character varying":
+      case "text":
         return GraphQLString;
-      case 'integer':
+      case "integer":
         return GraphQLInt;
-      case 'boolean':
+      case "boolean":
         return GraphQLBoolean;
-      case 'float8':
+      case "float8":
         return GraphQLFloat;
-      case 'json':
-      case 'jsonb':
+      case "json":
+      case "jsonb":
         return GraphQLJSONObject;
       default:
-        if (fieldType.startsWith('_')) {
+        if (fieldType.startsWith("_")) {
           const elementType = this.getGraphQLType(fieldType.substring(1));
           return new GraphQLList(elementType || GraphQLString);
         } else {
@@ -371,8 +382,8 @@ export default class Postgre {
       name: `${typeName}OrderByEnum`,
       values: {
         ...orderByEnumValues,
-        ASC: { value: 'ASC' },
-        DESC: { value: 'DESC' },
+        ASC: { value: "ASC" },
+        DESC: { value: "DESC" },
       },
     });
 
@@ -413,8 +424,14 @@ export default class Postgre {
         fields,
       });
 
-      inputTypeDefs[`${typeName}Filter`] = this.createFilterInputType(typeName, fields);
-      orderByTypeDefs[`${typeName}OrderBy`] = this.createOrderByInputType(typeName, fields);
+      inputTypeDefs[`${typeName}Filter`] = this.createFilterInputType(
+        typeName,
+        fields
+      );
+      orderByTypeDefs[`${typeName}OrderBy`] = this.createOrderByInputType(
+        typeName,
+        fields
+      );
     }
 
     // Define GraphQL Object Types with possible relations
@@ -430,11 +447,16 @@ export default class Postgre {
 
           if (relations[modelId]) {
             for (const relation of relations[modelId]) {
-              const relatedTypeName = modelsMapping[relation.referencedTable] || relation.referencedTable;
+              const relatedTypeName =
+                modelsMapping[relation.referencedTable] ||
+                relation.referencedTable;
               const relatedType = finalTypeDefs[relatedTypeName];
 
               relFields[relation.referenceName] = {
-                type: relation.referencedType === "list" ? new GraphQLList(relatedType) : relatedType,
+                type:
+                  relation.referencedType === "list"
+                    ? new GraphQLList(relatedType)
+                    : relatedType,
                 resolve: async (source) => {
                   const client = await this.adminPool.connect();
                   try {
@@ -462,31 +484,43 @@ export default class Postgre {
                   } finally {
                     client.release();
                   }
-                }
+                },
               };
             }
           }
           return { ...fields.fields, ...relFields }; // Combine relational fields with regular fields
-        }
+        },
       });
     }
 
     // Construct the main query type with resolve functions
-    const queryFields = this.prepareQueryFields(modelsMapping, dbSchema, finalTypeDefs, inputTypeDefs, orderByTypeDefs);
+    const queryFields = this.prepareQueryFields(
+      modelsMapping,
+      dbSchema,
+      finalTypeDefs,
+      inputTypeDefs,
+      orderByTypeDefs
+    );
 
     // Return the fully constructed GraphQL schema
     const queryType = new GraphQLObjectType({
-      name: 'Query',
-      fields: queryFields
+      name: "Query",
+      fields: queryFields,
     });
 
     return new GraphQLSchema({
-      query: queryType
+      query: queryType,
     });
   }
 
   // Method to prepare query fields
-  prepareQueryFields(modelsMapping, dbSchema, finalTypeDefs, inputTypeDefs, orderByTypeDefs) {
+  prepareQueryFields(
+    modelsMapping,
+    dbSchema,
+    finalTypeDefs,
+    inputTypeDefs,
+    orderByTypeDefs
+  ) {
     const queryFields = {};
     Object.entries(dbSchema).forEach(([modelId]) => {
       const typeName = modelsMapping[modelId] || modelId;
@@ -509,37 +543,57 @@ export default class Postgre {
               if (filter) {
                 Object.entries(filter).forEach(([field, value], index) => {
                   if (Array.isArray(value)) {
-                    whereClauses.push(`${field} IN (${value.map((v, i) => `$${index + i + 1}`).join(', ')})`);
+                    whereClauses.push(
+                      `${field} IN (${value.map((v, i) => `$${index + i + 1}`).join(", ")})`
+                    );
                     params.push(...value);
-                  } else if (typeof value === 'string' && value.includes('%')) {
+                  } else if (typeof value === "string" && value.includes("%")) {
                     whereClauses.push(`${field} ILIKE $${index + 1}`);
                     params.push(value);
-                  } else if (field.endsWith('_eq')) {
-                    whereClauses.push(`${field.replace('_eq', '')} = $${index + 1}`);
+                  } else if (field.endsWith("_eq")) {
+                    whereClauses.push(
+                      `${field.replace("_eq", "")} = $${index + 1}`
+                    );
                     params.push(value);
-                  } else if (field.endsWith('_ne')) {
-                    whereClauses.push(`${field.replace('_ne', '')} != $${index + 1}`);
+                  } else if (field.endsWith("_ne")) {
+                    whereClauses.push(
+                      `${field.replace("_ne", "")} != $${index + 1}`
+                    );
                     params.push(value);
-                  } else if (field.endsWith('_gt')) {
-                    whereClauses.push(`${field.replace('_gt', '')} > $${index + 1}`);
+                  } else if (field.endsWith("_gt")) {
+                    whereClauses.push(
+                      `${field.replace("_gt", "")} > $${index + 1}`
+                    );
                     params.push(value);
-                  } else if (field.endsWith('_lt')) {
-                    whereClauses.push(`${field.replace('_lt', '')} < $${index + 1}`);
+                  } else if (field.endsWith("_lt")) {
+                    whereClauses.push(
+                      `${field.replace("_lt", "")} < $${index + 1}`
+                    );
                     params.push(value);
-                  } else if (field.endsWith('_gte')) {
-                    whereClauses.push(`${field.replace('_gte', '')} >= $${index + 1}`);
+                  } else if (field.endsWith("_gte")) {
+                    whereClauses.push(
+                      `${field.replace("_gte", "")} >= $${index + 1}`
+                    );
                     params.push(value);
-                  } else if (field.endsWith('_lte')) {
-                    whereClauses.push(`${field.replace('_lte', '')} <= $${index + 1}`);
+                  } else if (field.endsWith("_lte")) {
+                    whereClauses.push(
+                      `${field.replace("_lte", "")} <= $${index + 1}`
+                    );
                     params.push(value);
-                  } else if (field.endsWith('_like')) {
-                    whereClauses.push(`${field.replace('_like', '')} LIKE $${index + 1}`);
+                  } else if (field.endsWith("_like")) {
+                    whereClauses.push(
+                      `${field.replace("_like", "")} LIKE $${index + 1}`
+                    );
                     params.push(value);
-                  } else if (field.endsWith('_in')) {
-                    whereClauses.push(`${field.replace('_in', '')} IN (${value.map((v, i) => `$${index + i + 1}`).join(', ')})`);
+                  } else if (field.endsWith("_in")) {
+                    whereClauses.push(
+                      `${field.replace("_in", "")} IN (${value.map((v, i) => `$${index + i + 1}`).join(", ")})`
+                    );
                     params.push(...value);
-                  } else if (field.endsWith('_nin')) {
-                    whereClauses.push(`${field.replace('_nin', '')} NOT IN (${value.map((v, i) => `$${index + i + 1}`).join(', ')})`);
+                  } else if (field.endsWith("_nin")) {
+                    whereClauses.push(
+                      `${field.replace("_nin", "")} NOT IN (${value.map((v, i) => `$${index + i + 1}`).join(", ")})`
+                    );
                     params.push(...value);
                   } else {
                     whereClauses.push(`${field} = $${index + 1}`);
@@ -547,7 +601,7 @@ export default class Postgre {
                   }
                 });
                 if (whereClauses.length > 0) {
-                  query += ` WHERE ${whereClauses.join(' AND ')}`;
+                  query += ` WHERE ${whereClauses.join(" AND ")}`;
                 }
               }
               if (orderBy) {
@@ -613,7 +667,7 @@ export default class Postgre {
       INSERT INTO ${tableName} (${fields.map(quoteField).join(", ")})
       VALUES (${fields.map((_, index) => `$${index + 1}`).join(", ")})
       ON CONFLICT (stream_id)
-      DO UPDATE SET ${updateFields.map(field => `${quoteField(field)} = EXCLUDED.${quoteField(field)}`).join(", ")}
+      DO UPDATE SET ${updateFields.map((field) => `${quoteField(field)} = EXCLUDED.${quoteField(field)}`).join(", ")}
       RETURNING *;
     `;
 
@@ -688,7 +742,8 @@ export default class Postgre {
 
     if (model != "kh4q0ozorrgaq2mezktnrmdwleo1d") {
       // Step 1: Load model details if not genesis stream
-      let stream = await global.indexingService.ceramic.client.loadStream(model);
+      let stream =
+        await global.indexingService.ceramic.client.loadStream(model);
       content = stream.content;
       if (content?.schema?.properties) {
         let postgresFields = this.jsonSchemaToPostgresFields(
@@ -766,19 +821,20 @@ export default class Postgre {
       CREATE INDEX IF NOT EXISTS "${model}_controller_idx" ON "${model}" ("controller");
       CREATE INDEX IF NOT EXISTS "${model}_indexed_at_idx" ON "${model}" ("indexed_at");`;
 
-      console.log("createTableQuery:", createTableQuery);
+    console.log("createTableQuery:", createTableQuery);
 
     const client = await this.adminPool.connect();
     try {
       // Execute the table creation query
       await client.query(createTableQuery);
-      
+
       // Keep track of new table name
       this.mapTableName(model, uniqueFormattedTitle);
 
-
       // Will refresh GraphQL schema
-      refreshGraphQLSchema(this, this.slot);
+      if (this.slot) {
+        refreshGraphQLSchema(this, this.slot);
+      }
 
       // Will trigger a callback if provided by the parent function
       if (callback) {
@@ -917,7 +973,6 @@ export default class Postgre {
     }
   }
 
-
   /** Will run any query and return the results */
   async query(userQuery, params) {
     const defaultLimit = 100;
@@ -982,19 +1037,23 @@ export default class Postgre {
 
     // Base query
     let queryText = `SELECT * FROM ${table}`;
-    
+
     // Add filtering by context if context is provided
-    if (context && context != "global" && table != "kh4q0ozorrgaq2mezktnrmdwleo1d") {
-        queryText += ` WHERE _metadata_context = ${context}`;
+    if (
+      context &&
+      context != "global" &&
+      table != "kh4q0ozorrgaq2mezktnrmdwleo1d"
+    ) {
+      queryText += ` WHERE _metadata_context = ${context}`;
     }
 
     // Add ordering and pagination
     if (orderByIndexedAt) {
-        queryText += ` ORDER BY indexed_at DESC`;
+      queryText += ` ORDER BY indexed_at DESC`;
     }
 
     queryText += ` LIMIT ${records} OFFSET ${offset}`;
-  
+
     // Query for total count
     const countQuery = `SELECT COUNT(*) FROM ${table}`;
 
@@ -1080,3 +1139,4 @@ export default class Postgre {
     }
   }
 }
+
