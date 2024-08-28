@@ -94,9 +94,12 @@ async function startServer(databases) {
 
   // Setup GraphQL
   // Register GraphQL routes for all databases
+  const gqlSchemaPromises = [];
   for (const [slot, db] of Object.entries(databases)) {
-    await registerGraphQLRoute(slot, db);
+    gqlSchemaPromises.push(registerGraphQLRoute(slot, db));
   }
+
+  const gqlSchemaResults = await Promise.allSettled(gqlSchemaPromises);
 
   if (!dev) {
     // Serve static files from Next.js production build
