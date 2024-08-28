@@ -1,5 +1,5 @@
 import Fastify from "fastify";
-import mercurius from 'mercurius';
+import mercurius from "mercurius";
 
 import cors from "@fastify/cors";
 import fastifySensible from "@fastify/sensible";
@@ -26,7 +26,11 @@ import Ceramic from "./ceramic/config.js";
 import Postgre from "./db/postgre.js";
 import HookHandler from "./utils/hookHandler.js";
 
-import { cleanDidPath, getOrbisDBSettings, isSchemaValid } from "./utils/helpers.js";
+import {
+  cleanDidPath,
+  getOrbisDBSettings,
+  isSchemaValid,
+} from "./utils/helpers.js";
 import logger from "./logger/index.js";
 
 /** Initialize dirname */
@@ -53,7 +57,7 @@ async function startServer(databases) {
     bodyLimit: 50000000,
     ignoreTrailingSlash: true,
   });
-  
+
   // We're running in production and there's no NextJS build output
   if (
     !dev &&
@@ -125,7 +129,6 @@ async function startServer(databases) {
     port: PORT,
   });
 
-
   logger.info(
     cliColors.text.cyan,
     "📞 OrbisDB UI ready on",
@@ -171,9 +174,9 @@ export async function refreshGraphQLSchema(db, slot) {
   try {
     console.log(`Refreshing GraphQL schema for path: ${path}...`);
     const newSchema = await db.generateGraphQLSchema();
-    
+
     // Update the schema in the map
-    schemaMap[path] = newSchema; 
+    schemaMap[path] = newSchema;
 
     const instance = mercuriusInstances[path];
     if (instance) {
@@ -216,7 +219,7 @@ export async function startIndexing() {
       globalDbConfig.password,
       globalDbConfig.host,
       globalDbConfig.port,
-      null
+      "global"
     );
   } else {
     logger.error(
@@ -226,6 +229,15 @@ export async function startIndexing() {
   }
 
   if (settings.is_shared) {
+    const databasePromises = [];
+    const resolvePromiseWithKey = async (key, promise) => {
+      try {
+        const database = await promise;
+        return [key, database];
+      } catch (err) {
+        throw `Error initializing database for ${key}: ${err}`;
+      }
+    };
     /** Create one postgre and ceramic object per slot */
     if (settings.slots) {
       for (const [key, slot] of Object.entries(settings.slots)) {
@@ -233,16 +245,20 @@ export async function startIndexing() {
         if (slot.configuration) {
           /** Instantiate the database to use for this slot */
           let slotDbConfig = slot.configuration.db;
-          let database = await Postgre.initialize(
-            globalDbConfig.user,
-            slotDbConfig.database,
-            globalDbConfig.password,
-            globalDbConfig.host,
-            globalDbConfig.port,
-            key
-          );
 
-          databases[key] = database;
+          databasePromises.push(
+            resolvePromiseWithKey(
+              key,
+              Postgre.initialize(
+                globalDbConfig.user,
+                slotDbConfig.database,
+                globalDbConfig.password,
+                globalDbConfig.host,
+                globalDbConfig.port,
+                key
+              )
+            )
+          );
 
           /** Instantiate the Ceramic object with node's url from config's slot */
           let seed = slot.configuration.ceramic.seed;
@@ -260,6 +276,18 @@ export async function startIndexing() {
           );
         }
       }
+    }
+
+    const resolvedPromises = await Promise.allSettled(databasePromises);
+    for (const result of resolvedPromises) {
+      if (result.status === "rejected") {
+        console.error(result.reason);
+        continue;
+      }
+
+      const [key, database] = result.value;
+      databases[key] = database;
+      console.log(`Initialized slot ${key}`);
     }
   }
 
@@ -292,3 +320,4 @@ export async function startIndexing() {
 
 /** Initialize indexing service */
 startIndexing();
+
