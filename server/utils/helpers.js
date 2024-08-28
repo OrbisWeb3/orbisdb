@@ -96,7 +96,7 @@ export function getOrbisDBSettings(slot) {
     );
     orbisdbSettings = {}; // Set a default value or handle the error as per your requirement
   }
-  if (slot && orbisdbSettings?.is_shared) {
+  if (slot && slot !== "global" && orbisdbSettings?.is_shared) {
     return orbisdbSettings.slots ? orbisdbSettings.slots[slot] : {};
   } else {
     return orbisdbSettings;
@@ -264,15 +264,15 @@ export function updateOrAddPlugin(settings, newPlugin) {
 /** This will convert the path entered by the user into the actual stream key value */
 export function getValueByPath(obj, path) {
   // Split the path by '.' to get individual keys
-  const keys = path.split('.');
+  const keys = path.split(".");
   // Reduce the keys to access the nested property
   const result = keys.reduce((currentObject, key) => {
-      // Check if the current level is valid to avoid errors
-      if (currentObject && currentObject.hasOwnProperty(key)) {
-          return currentObject[key];
-      }
-      // Return undefined or any fallback value if the path is invalid
-      return undefined;
+    // Check if the current level is valid to avoid errors
+    if (currentObject && currentObject.hasOwnProperty(key)) {
+      return currentObject[key];
+    }
+    // Return undefined or any fallback value if the path is invalid
+    return undefined;
   }, obj);
   return result;
 }
