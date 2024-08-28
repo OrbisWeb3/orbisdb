@@ -13,17 +13,18 @@ import Button from "../components/Button";
 import { STATUS } from "../utils";
 import { OrbisDBLogo } from "../components/Icons";
 import ConfigurationPreset from "../components/ConfigurationPreset";
-import TimeAgo from 'javascript-time-ago'
-import en from 'javascript-time-ago/locale/en'
+import TimeAgo from "javascript-time-ago";
+import en from "javascript-time-ago/locale/en";
 
 // Customize the locale
 en.long.minute = {
   current: "now",
-  future: {one: '{0} min.', other: '{0} mins.'},
-  past: {one: '{0} min. ago', other: '{0} mins. ago'}
-}
+  future: { one: "{0} min.", other: "{0} mins." },
+  past: { one: "{0} min. ago", other: "{0} mins. ago" },
+};
 
-TimeAgo.addDefaultLocale(en)
+TimeAgo.setDefaultLocale(en.locale);
+TimeAgo.addLocale(en);
 
 export default function App({ Component, pageProps }) {
   return (
@@ -209,14 +210,14 @@ const ConfigurationSharedSetup = () => {
     setStatus(STATUS.LOADING);
     try {
       let rawResponse = await fetch("/api/setup/shared", {
-        method: 'POST',
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${sessionJwt}`,
         },
         body: JSON.stringify({
-          presets: presets
-        })
+          presets: presets,
+        }),
       });
 
       const response = await rawResponse.json();
@@ -238,7 +239,9 @@ const ConfigurationSharedSetup = () => {
       <div className="w-1/3 flex flex-col mt-6 bg-white border border-slate-200 p-6 rounded-md">
         <p className="font-medium text-center">You are new here!</p>
         <p className="text-base text-slate-600 mb-1 text-center">
-          To get started, let's configure your personal OrbisDB instance by selecting the preset you want to use. Select none to start from scratch.
+          To get started, let's configure your personal OrbisDB instance by
+          selecting the preset you want to use. Select none to start from
+          scratch.
         </p>
 
         {/** If shared instance we display the user's did */}
@@ -286,3 +289,4 @@ function ConfigurationSetup() {
     </div>
   );
 }
+
