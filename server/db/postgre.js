@@ -24,7 +24,7 @@ import {
   getTableModelId,
 } from "../utils/helpers.js";
 import logger from "../logger/index.js";
-import { refreshGraphQLSchema } from "../index.js";
+import { refreshGraphQLSchema } from "../routes/graphql/index.js";
 
 const pgErrorToCode = (_message) => {
   const message_to_code = {
@@ -674,7 +674,7 @@ export default class Postgre {
     /** If stream is a model we trigger the indexing */
     if (model == "kh4q0ozorrgaq2mezktnrmdwleo1d") {
       console.log("Stream is a model, we index the model.");
-      this.indexModel(content.stream_id);
+      await this.indexModel(content.stream_id);
     }
 
     /** Try to insert stream in the corresponding table */
@@ -696,7 +696,7 @@ export default class Postgre {
       console.log("Error inserting stream:", e);
       if (e.code === "42P01" && model != "kh4q0ozorrgaq2mezktnrmdwleo1d") {
         // Trigger indexing of new model with a callback to retry indexing this stream
-        this.indexModel(model);
+        await this.indexModel(model);
       } else {
         logger.error(
           cliColors.text.red,

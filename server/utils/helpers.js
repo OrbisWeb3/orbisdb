@@ -292,3 +292,4 @@ export function cleanDidPath(did) {
   let path = did.replaceAll(":", "_");
   return path;
 }
+

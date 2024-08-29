@@ -1,5 +1,4 @@
 import Fastify from "fastify";
-import mercurius from "mercurius";
 
 import cors from "@fastify/cors";
 import fastifySensible from "@fastify/sensible";
@@ -26,12 +25,10 @@ import Ceramic from "./ceramic/config.js";
 import Postgre from "./db/postgre.js";
 import HookHandler from "./utils/hookHandler.js";
 
-import {
-  cleanDidPath,
-  getOrbisDBSettings,
-  isSchemaValid,
-} from "./utils/helpers.js";
+import { getOrbisDBSettings } from "./utils/helpers.js";
 import logger from "./logger/index.js";
+
+import { registerGraphQLRoute } from "./routes/graphql/index.js";
 
 /** Initialize dirname */
 const __filename = fileURLToPath(import.meta.url);
@@ -46,17 +43,17 @@ const nextJs = next({
 
 // Initialize the main Fastify instance
 global.server;
-const schemaMap = {}; // Store schemas by route
-const mercuriusInstances = {}; // Store Mercurius instances by route
 
 const PORT = process.env.PORT || 7008;
 
 async function startServer(databases) {
   /** Start the Fastify server */
-  global.server = new Fastify({
+  const server = new Fastify({
     bodyLimit: 50000000,
     ignoreTrailingSlash: true,
   });
+
+  global.server = server;
 
   // We're running in production and there's no NextJS build output
   if (
@@ -82,9 +79,9 @@ async function startServer(databases) {
   await nextJs.prepare();
   const nextRequestHandler = nextJs.getRequestHandler();
 
-  await global.server.register(cors, {});
-  await global.server.register(fastifySensible, {});
-  await global.server.register(fastifyMultipart, {
+  await server.register(cors, {});
+  await server.register(fastifySensible, {});
+  await server.register(fastifyMultipart, {
     limits: {
       fileSize: 50000000,
     },
@@ -96,7 +93,7 @@ async function startServer(databases) {
   // Register GraphQL routes for all databases
   const gqlSchemaPromises = [];
   for (const [slot, db] of Object.entries(databases)) {
-    gqlSchemaPromises.push(registerGraphQLRoute(slot, db));
+    gqlSchemaPromises.push(registerGraphQLRoute(server, slot, db));
   }
 
   const gqlSchemaResults = await Promise.allSettled(gqlSchemaPromises);
@@ -104,12 +101,12 @@ async function startServer(databases) {
   if (!dev) {
     // Serve static files from Next.js production build
     logger.debug("Using production build.");
-    global.server.register(fastifyStatic, {
+    server.register(fastifyStatic, {
       prefix: "/public/",
       root: path.join(__dirname, "../client/public"),
     });
 
-    global.server.register(fastifyStatic, {
+    server.register(fastifyStatic, {
       root: path.join(__dirname, "../client/.next"),
       prefix: "/_next/",
       decorateReply: false,
@@ -117,7 +114,7 @@ async function startServer(databases) {
   }
 
   // Default catch-all handler to allow Next.js to handle all other routes:
-  global.server.route({
+  server.route({
     method: ["GET", "POST", "PATCH", "PUT", "DELETE"],
     exposesHeadRoute: false,
     url: "*",
@@ -138,59 +135,6 @@ async function startServer(databases) {
     cliColors.reset,
     hostInformation
   );
-}
-
-// Helper function to register a GraphQL schema
-async function registerSchema(instance, schema, path) {
-  await instance.register(mercurius, {
-    schema,
-    path, // Set the path dynamically based on the slot
-  });
-  return instance.graphql;
-}
-
-/** Will register a graphQL endpoint for each slot */
-export async function registerGraphQLRoute(path, database) {
-  const schema = await database.generateGraphQLSchema();
-  let _path = `/${cleanDidPath(path)}/graphql`;
-  console.log("Registering path:", _path);
-
-  schemaMap[_path] = schema; // Store the schema in a map to be re-used when refreshing schema
-
-  // Will make sure schema is valid before registering it
-  if (!isSchemaValid(schema)) {
-    console.error(`Invalid schema for path: ${_path}. Skipping registration.`);
-    return;
-  }
-
-  await global.server.register(async (instance) => {
-    const graphqlInstance = await registerSchema(instance, schema, _path);
-    mercuriusInstances[_path] = graphqlInstance; // Store the instance in the map
-  });
-}
-
-/** Will refresh the schema to make sure it takes into account the last changes (relations, new models, etc) */
-export async function refreshGraphQLSchema(db, slot) {
-  let path = `/${cleanDidPath(slot)}/graphql`;
-  console.log("In refreshGraphQLSchema() path:", path);
-
-  try {
-    console.log(`Refreshing GraphQL schema for path: ${path}...`);
-    const newSchema = await db.generateGraphQLSchema();
-
-    // Update the schema in the map
-    schemaMap[path] = newSchema;
-
-    const instance = mercuriusInstances[path];
-    if (instance) {
-      instance.replaceSchema(newSchema);
-      console.log(`GraphQL schema for path ${path} refreshed successfully.`);
-    } else {
-      console.error(`Failed to find GraphQL instance for path: ${path}`);
-    }
-  } catch (error) {
-    console.error(`Failed to refresh GraphQL schema for path ${path}:`, error);
-  }
 }
 
 /** Initialize the app by loading all of the required plugins while initializing those and start the indexing service */

@@ -1,9 +1,12 @@
 import { adminDidAuthMiddleware } from "../../../middleware/didAuthMiddleware.js";
 
 import { SelectStatement } from "@useorbis/db-sdk/query";
-import { getOrbisDBSettings, getTableName, updateOrbisDBSettings } from "../../../utils/helpers.js";
+import {
+  getOrbisDBSettings,
+  updateOrbisDBSettings,
+} from "../../../utils/helpers.js";
 import logger from "../../../logger/index.js";
-import { refreshGraphQLSchema } from "../../../index.js";
+import { refreshGraphQLSchema } from "../../graphql/index.js";
 
 // Prefixed with /api/db/
 export default async function (server, opts) {
@@ -100,7 +103,7 @@ export default async function (server, opts) {
     });
 
     /** Will return the schema for a database */
-    server.get('/schema', async (req, res) => {
+    server.get("/schema", async (req, res) => {
       console.log("Enter /schema");
 
       // Retrieve admin
@@ -128,7 +131,7 @@ export default async function (server, opts) {
         return {
           data: response.data,
           totalCount: response.totalCount,
-          title: response.title, 
+          title: response.title,
         };
       } catch (error) {
         console.error(error);
@@ -138,7 +141,6 @@ export default async function (server, opts) {
         };
       }
     });
-
 
     /** Will force index a model */
     server.post("/index/model", async (req, res) => {
@@ -167,7 +169,7 @@ export default async function (server, opts) {
         }
 
         return {
-          message: "Indexed model " + model_id + " with success."
+          message: "Indexed model " + model_id + " with success.",
         };
       } catch (error) {
         logger.error(error);
@@ -177,20 +179,26 @@ export default async function (server, opts) {
       }
     });
 
-
     /** Will add a new relation (used in graphql) */
-    server.post('/foreign-key', async (req, res) => {
+    server.post("/foreign-key", async (req, res) => {
       console.log("Enter /foreign-key");
-    
+
       // Retrieve admin
       const adminDid = req.adminDid;
-    
+
       // Retrieve global settings
       const globalSettings = getOrbisDBSettings();
       let settings = getOrbisDBSettings(adminDid);
-    
-      const { table, column, referenceName, referencedTable, referencedColumn, referencedType } = req.body;
-    
+
+      const {
+        table,
+        column,
+        referenceName,
+        referencedTable,
+        referencedColumn,
+        referencedType,
+      } = req.body;
+
       try {
         // Update the settings instead of altering the database
         const updatedRelation = {
@@ -208,9 +216,9 @@ export default async function (server, opts) {
         if (!settings.relations[table]) {
           settings.relations[table] = [];
         }
-    
+
         settings.relations[table].push(updatedRelation);
-    
+
         // Update the settings file
         updateOrbisDBSettings(settings, adminDid);
 
@@ -219,40 +227,51 @@ export default async function (server, opts) {
         if (adminDid && globalSettings.is_shared) {
           database = global.indexingService.databases[adminDid];
         }
-        refreshGraphQLSchema(database, globalSettings.is_shared ? adminDid : "global");
-    
+        refreshGraphQLSchema(
+          database,
+          globalSettings.is_shared ? adminDid : "global"
+        );
+
         return { success: true, settings: settings };
       } catch (err) {
-        console.error('Error updating settings:', err);
-        return { success: false, message: 'Error updating settings' };
+        console.error("Error updating settings:", err);
+        return { success: false, message: "Error updating settings" };
       }
     });
 
     /** Will update an existing relation */
-    server.put('/foreign-key', async (req, res) => {
-      const { table, column, referenceName, referencedTable, referencedColumn, referencedType, index } = req.body;
+    server.put("/foreign-key", async (req, res) => {
+      const {
+        table,
+        column,
+        referenceName,
+        referencedTable,
+        referencedColumn,
+        referencedType,
+        index,
+      } = req.body;
 
       // Retrieve admin
       const adminDid = req.adminDid;
-    
+
       try {
         // Retrieve global settings
         const globalSettings = getOrbisDBSettings();
         let settings = getOrbisDBSettings(adminDid);
-        
+
         if (!settings.relations[table] || !settings.relations[table][index]) {
-          return { success: false, message: 'Relation not found' };
+          return { success: false, message: "Relation not found" };
         }
-    
+
         settings.relations[table][index] = {
           table,
           column,
           referenceName,
           referencedTable,
           referencedColumn,
-          referencedType
+          referencedType,
         };
-    
+
         updateOrbisDBSettings(settings, adminDid);
 
         /** Refresh GraphQL schema for this db to make sure it reflects those changes */
@@ -260,12 +279,15 @@ export default async function (server, opts) {
         if (adminDid && globalSettings.is_shared) {
           database = global.indexingService.databases[adminDid];
         }
-        refreshGraphQLSchema(database, globalSettings.is_shared ? adminDid : "global");
+        refreshGraphQLSchema(
+          database,
+          globalSettings.is_shared ? adminDid : "global"
+        );
 
         return { success: true, settings };
       } catch (err) {
-        console.error('Error updating relation:', err);
-        return { success: false, message: 'Error updating relation' };
+        console.error("Error updating relation:", err);
+        return { success: false, message: "Error updating relation" };
       }
     });
   });
@@ -309,6 +331,5 @@ export default async function (server, opts) {
       res.internalServerError("Internal server error while querying table.");
     }
   });
-
-
 }
+
