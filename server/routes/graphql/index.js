@@ -47,7 +47,7 @@ export async function refreshGraphQLSchema(db, _slot) {
 }
 
 export default async function (server, opts) {
-  app.route({
+  server.route({
     url: "/:slot/graphql",
     method: ["GET", "POST", "OPTIONS"],
     handler: async (req, reply) => {
