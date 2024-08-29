@@ -127,6 +127,7 @@ export default class Postgre {
       );
 
       await postgre.checkReadOnlyUser(database, host, port);
+      await postgre.bootstrapTables();
 
       logger.debug(
         cliColors.text.cyan,
@@ -625,27 +626,10 @@ export default class Postgre {
     return {};
   }
 
-  /** Will try to insert variable in the model table */
-  async upsert(model, content, pluginsData) {
-    let variables;
-    if (model != "kh4q0ozorrgaq2mezktnrmdwleo1d") {
-      // Generate variables to insert
-      variables = {
-        ...content,
-        plugins_data: pluginsData,
-      };
-    } else {
-      // Inserting a model in our models_indexed table
-      variables = {
-        stream_id: content.stream_id,
-        controller: content.controller,
-        name: content.name ? content.name : content.title,
-        mapped_name: content.mapped_name,
-        content: content,
-      };
-    }
+  async upsertRaw(tableName, variables) {
+    // Helper function to quote all column names
+    const quoteField = (field) => `"${field}"`;
 
-    // Extracting field names and values from data
     const fields = Object.keys(variables);
     const values = Object.values(variables).map((value) =>
       typeof value === "object" && value !== null
@@ -653,14 +637,7 @@ export default class Postgre {
         : value
     );
 
-    // Define which fields to update in case of conflict
     const updateFields = fields.filter((field) => field !== "stream_id");
-
-    // Retrieving table name from mapping
-    let tableName = model;
-
-    // Helper function to quote all column names
-    const quoteField = (field) => `"${field}"`;
 
     // Building the query
     const queryText = `
@@ -671,17 +648,45 @@ export default class Postgre {
       RETURNING *;
     `;
 
-    /** If stream is a model we trigger the indexing */
-    if (model == "kh4q0ozorrgaq2mezktnrmdwleo1d") {
-      console.log("Stream is a model, we index the model.");
-      await this.indexModel(content.stream_id);
-    }
-
-    /** Try to insert stream in the corresponding table */
-    let res;
     const client = await this.adminPool.connect();
     try {
-      res = await client.query(queryText, values);
+      await client.query(queryText, values);
+      return true;
+    } catch (e) {
+      if (e.code === "42P01") {
+        throw "TABLE_NOT_FOUND";
+      }
+
+      throw e;
+    } finally {
+      // Release the client back to the pool
+      client.release();
+    }
+  }
+
+  /** Will try to insert variable in the model table */
+  async upsert(model, content, pluginsData) {
+    if (model === "kh4q0ozorrgaq2mezktnrmdwleo1d") {
+      console.log("Stream is a model, we index the model.");
+      const indexed = await this.indexModel(content.stream_id);
+      if (!indexed) {
+        return false;
+      }
+
+      return true;
+    }
+
+    const variables = {
+      ...content,
+      plugins_data: pluginsData,
+    };
+
+    // Retrieving table name from mapping
+    const tableName = model;
+
+    /** Try to insert stream in the corresponding table */
+    try {
+      await this.upsertRaw(tableName, variables);
       logger.debug(
         cliColors.text.green,
         `✅ Upserted stream `,
@@ -692,11 +697,25 @@ export default class Postgre {
         cliColors.reset,
         tableName
       );
+      return true;
     } catch (e) {
-      console.log("Error inserting stream:", e);
-      if (e.code === "42P01" && model != "kh4q0ozorrgaq2mezktnrmdwleo1d") {
+      if (
+        e === "TABLE_NOT_FOUND" &&
+        model !== "kh4q0ozorrgaq2mezktnrmdwleo1d"
+      ) {
         // Trigger indexing of new model with a callback to retry indexing this stream
-        await this.indexModel(model);
+        try {
+          await this.indexModel(model);
+        } catch (err) {
+          console.error(
+            `Error inserting stream ${variables.stream_id}`,
+            `Reason: Error indexing model: ${model}`,
+            err
+          );
+          return false;
+        }
+
+        return this.upsert(model, content, pluginsData);
       } else {
         logger.error(
           cliColors.text.red,
@@ -706,16 +725,9 @@ export default class Postgre {
           e.message
         );
       }
-    } finally {
-      // Release the client back to the pool
-      client.release();
     }
 
-    if (res) {
-      return true;
-    } else {
-      return false;
-    }
+    return false;
   }
 
   /** Will create a new database */
@@ -733,73 +745,87 @@ export default class Postgre {
     }
   }
 
-  /** Will prepare the indexing of a model by creating the corresponding table in our database */
-  async indexModel(model, callback = null, forced = false) {
-    let content;
-    let title;
-    let uniqueFormattedTitle;
-    let fields;
-
-    if (model != "kh4q0ozorrgaq2mezktnrmdwleo1d") {
-      // Step 1: Load model details if not genesis stream
-      let stream =
-        await global.indexingService.ceramic.client.loadStream(model);
-      content = stream.content;
-      if (content?.schema?.properties) {
-        let postgresFields = this.jsonSchemaToPostgresFields(
-          content.schema.properties
-        );
-        title = content.name ? content.name : content.title;
-
-        // Generate a unique table name
-        uniqueFormattedTitle = await this.generateUniqueTableName(title);
-
-        // Step 2: Convert model variables in SQL columns
-        fields = [
+  async bootstrapTables() {
+    const tables = [
+      {
+        model: "kh4q0ozorrgaq2mezktnrmdwleo1d",
+        title: "models_indexed",
+        uniqueFormattedTitle: "models_indexed",
+        fields: [
           { name: "stream_id", type: "TEXT PRIMARY KEY" }, // Added automatically
           { name: "controller", type: "TEXT" }, // Added automatically
-          ...postgresFields,
-          { name: "_metadata_context", type: "TEXT" }, // Added automatically
-          { name: "plugins_data", type: "JSONB" }, // Added automatically
+          { name: "name", type: "TEXT" },
+          { name: "mapped_name", type: "TEXT" },
+          { name: "content", type: "JSONB" },
           { name: "indexed_at", type: "TIMESTAMP DEFAULT CURRENT_TIMESTAMP" }, // Added automatically
-        ];
-      } else {
-        logger.debug(
-          "This stream is either not valid or not a supported model:",
-          content
+        ],
+      },
+    ];
+
+    for (const table of tables) {
+      try {
+        await this.createTable(
+          table.model,
+          table.fields,
+          table.uniqueFormattedTitle
+        );
+      } catch (err) {
+        console.error(
+          `Error bootstrapping table ${table.title || table.uniqueFormattedTitle}: `,
+          err
         );
       }
-    } else {
-      title = "models_indexed";
-      uniqueFormattedTitle = "models_indexed";
-      fields = [
-        { name: "stream_id", type: "TEXT PRIMARY KEY" }, // Added automatically
-        { name: "controller", type: "TEXT" }, // Added automatically
-        { name: "name", type: "TEXT" },
-        { name: "mapped_name", type: "TEXT" },
-        { name: "content", type: "JSONB" },
-        { name: "indexed_at", type: "TIMESTAMP DEFAULT CURRENT_TIMESTAMP" }, // Added automatically
-      ];
     }
+  }
+
+  /** Will prepare the indexing of a model by creating the corresponding table in our database */
+  async indexModel(model, callback = null) {
+    if (model === "kh4q0ozorrgaq2mezktnrmdwleo1d") {
+      return true;
+    }
+
+    // Step 1: Load model details if not genesis stream
+    const stream =
+      await global.indexingService.ceramic.client.loadStream(model);
+
+    const content = stream.content;
+    if (!content?.schema?.properties) {
+      logger.debug(
+        "This stream is either not valid or not a supported model:",
+        content
+      );
+
+      return false;
+    }
+
+    const postgresFields = this.jsonSchemaToPostgresFields(
+      content.schema.properties
+    );
+
+    const title = content.name ? content.name : content.title;
+    const uniqueFormattedTitle = await this.generateUniqueTableName(title);
+
+    // Step 2: Convert model variables in SQL columns
+    const fields = [
+      { name: "stream_id", type: "TEXT PRIMARY KEY" }, // Added automatically
+      { name: "controller", type: "TEXT" }, // Added automatically
+      ...postgresFields,
+      { name: "_metadata_context", type: "TEXT" }, // Added automatically
+      { name: "plugins_data", type: "JSONB" }, // Added automatically
+      { name: "indexed_at", type: "TIMESTAMP DEFAULT CURRENT_TIMESTAMP" }, // Added automatically
+    ];
 
     // Step 3: Build SQL query and run
     console.log("In indexModel, callback is:", callback);
     await this.createTable(model, fields, uniqueFormattedTitle, callback);
 
-    // Step 4: Insert new row in models_indexed table
-    if (model == "kh4q0ozorrgaq2mezktnrmdwleo1d" && !forced) {
-      /*this.upsert(
-        "kh4q0ozorrgaq2mezktnrmdwleo1d",
-        {
-          stream_id: model,
-          controller: content.controller,
-          name: title,
-          mapped_name: uniqueFormattedTitle,
-          content: content,
-        },
-        null
-      );*/
-    }
+    await this.upsertRaw("kh4q0ozorrgaq2mezktnrmdwleo1d", {
+      stream_id: stream.id.toString(),
+      controller: stream.metadata.controller,
+      name: content.name ? content.name : content.title,
+      mapped_name: content.mapped_name,
+      content: content,
+    });
 
     return true;
   }
@@ -833,7 +859,7 @@ export default class Postgre {
 
       // Will refresh GraphQL schema
       if (this.slot) {
-        refreshGraphQLSchema(this, this.slot);
+        await refreshGraphQLSchema(this, this.slot);
       }
 
       // Will trigger a callback if provided by the parent function
@@ -848,13 +874,23 @@ export default class Postgre {
         cliColors.reset,
         uniqueFormattedTitle
       );
+
+      return true;
     } catch (err) {
+      if (Number(err.code) === 23505) {
+        // Concurrent CREATE TABLE (caused by /index/model call together with discovery)
+        // Assume the table has been created
+        return true;
+      }
+
       logger.error(
         cliColors.text.red,
         "Error creating new table.",
         cliColors.reset,
         err.stack
       );
+
+      return false;
     } finally {
       // Release the client back to the pool
       client.release();
