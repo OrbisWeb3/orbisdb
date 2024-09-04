@@ -64,7 +64,7 @@ export default class Ceramic {
         cliColors.reset,
         e
       );
-    }
+    }    
   }
 }
 
@@ -75,8 +75,8 @@ function cleanNodeUrl(url) {
 
 /** Model for OrbisDB contexts */
 /**
- * StreamID Mainnet: kjzl6hvfrbw6c6zdvwmwqx9wd361witgc0qtbjx8763d16espkxtybag1ylv3tc
- * StreamID Testnet: kjzl6hvfrbw6c6zdvwmwqx9wd361witgc0qtbjx8763d16espkxtybag1ylv3tc
+ * StreamID Mainnet: kjzl6hvfrbw6c6lqihb9i25vyr4hob667w8otxyzw7fohetbaqkjqrgjvll1h4b
+ * StreamID Recon: kjzl6hvfrbw6c6lqihb9i25vyr4hob667w8otxyzw7fohetbaqkjqrgjvll1h4b
  * */
 const orbisdbContextModelDefinition = {
   name: "OrbisDBContext",
