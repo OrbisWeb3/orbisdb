@@ -11,6 +11,9 @@ OrbisDB is a fully open-source relational database designed for onchain builders
     - [x]  Select. [Docs](https://www.notion.so/869d600cf7d04ae58d0b1c4821b1d35e?pvs=21)
 - [x]  Dashboard. [Docs](https://www.notion.so/Data-f0f4cdef9f5e4fffb8c298e4b5176b72?pvs=21)
 
+> [!IMPORTANT]  
+> 🚨 Hosted service provided by Orbis, register for closed beta access to [OrbisDB Studio](https://app.formo.so/hJ5VGyugmGigyVFyqdHJa)
+
 <img src="https://github.com/user-attachments/assets/63c50d1b-1c14-4555-b701-63eb9404823f" height="80%" width="80%" >
 
 ## Documentation & Community
@@ -40,7 +43,7 @@ As is the case with other web services, OrbisDB can be hosted locally, in the cl
 ### 🌟 Recommended - Managed + Studio
 
 > [!IMPORTANT]  
-> 🚨 Register here to get early access of [OrbisDB Studio](https://studio.useorbis.com/), a hosted service provided by Orbis.
+> 🚨 Register here to get early access of [OrbisDB Studio](https://app.formo.so/hJ5VGyugmGigyVFyqdHJa), a hosted service provided by Orbis.
 
 Orbis offers a free [shared OrbisDB instance](https://www.notion.so/Overview-fbc65a9a0356485a993b0cab190779f3?pvs=21) managed by Orbis. This means you don’t have to worry about any of the backend requirements - just set up your environment via our UI and get started with decentralized data.
 
