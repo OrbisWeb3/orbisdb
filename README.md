@@ -19,7 +19,7 @@ OrbisDB is a fully open-source relational database designed for onchain builders
 ## Documentation & Community
 - Full [Documentation](https://www.notion.so/OrbisDB-Docs-e77a592361b74e66a45404ca1cbc517b?pvs=21)
 - [YouTube](https://www.youtube.com/@orbisdb) channel with step-by-step videos
-- [Discord](https://discord.gg/s74dCEKc) to ask all your technical questions
+- [Discord](https://discord.gg/jmnzGYfhHt) to ask all your technical questions 
 - [Twitter](https://x.com/useOrbis) to get latest updates on OrbisDB
   
 
