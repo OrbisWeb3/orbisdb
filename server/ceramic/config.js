@@ -76,7 +76,7 @@ export default class Ceramic {
 
     /** Create Stream */
     await sleep(2000);
-    try {
+    /*try {
       let result = await this.orbisdb.insert('kjzl6hvfrbw6c6crcw5tvydjrgtjatrty8dge1u295gm7yo402htt6bp19qw641').value({
         name: "Node 3",
         description: "I am Node 3, a very good node!",
@@ -84,7 +84,7 @@ export default class Ceramic {
       }).run();      
     } catch(e) {
       console.log("Error creating stream:", e);
-    }
+    } */
   }
 }
 
