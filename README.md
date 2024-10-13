@@ -1,76 +1,37 @@
 # OrbisDB
+<img src="https://github.com/user-attachments/assets/cd407120-c733-4b0b-b9e7-aa622677bb05" height="80%" width="80%" >
 
-Driven by developer feedback and a new role as core developers in the Ceramic ecosystem, [Orbis](https://useorbis.com) is expanding its focus beyond social to offer a simple and efficient gateway for storing and managing open data on Ceramic.
+OrbisDB is a fully open-source relational database designed for onchain builders. Stored data inherits verifiable, permissionless and mutable properties of [Ceramic](https://www.ceramic.network), while providing a highly scalable way of querying data via SQL, GraphQL and a built-in Dashboard.
 
-OrbisDB provides a developer-friendly interface to explore data with the ease of SQL and a plugin store to save development time on crypto-specific features; from data migration and gating mechanisms to automated blockchain interactions.
+- [x]  Hosted Postgres Database. [Docs](https://www.notion.so/Managed-Studio-be33efc2124e4f3583ab10a1639c45b1?pvs=21)
+- [x]  Authentication. [Docs](https://www.notion.so/Accounts-DIDs-b936223c995f432682bc4c648e52a892?pvs=21)
+- [x]  Crypto Plugins. [Docs](https://www.notion.so/Building-a-plugin-9255e4f7ca044f91831548a9179d6bcd?pvs=21)
+- [x]  Database functions
+    - [x]  Insert. [Docs](https://www.notion.so/Writing-data-INSERT-8d1fae8016d94393ad439feeb3c9f7ff?pvs=21)
+    - [x]  Select. [Docs](https://www.notion.so/869d600cf7d04ae58d0b1c4821b1d35e?pvs=21)
+- [x]  Dashboard. [Docs](https://www.notion.so/Data-f0f4cdef9f5e4fffb8c298e4b5176b72?pvs=21)
+- [X]  OrbisDB SDK [Github](https://github.com/OrbisWeb3/db-sdk)
 
-OrbisDB is based on the upcoming Firehose API developed by Ceramic which means that **your Ceramic node must be running at least** on `v5.3.0`.
+> [!IMPORTANT]  
+> 🚨 Hosted service provided by Orbis, register for closed beta access to [OrbisDB Studio](https://app.formo.so/hJ5VGyugmGigyVFyqdHJa)
 
-    npm i -g @ceramicnetwork/cli@^5.3.0
+> [!NOTE]  
+> ⚡️  Quickly start with a [Forum Template](https://github.com/mzkrasner/deforum-lite)
 
-> [!WARNING]  
-> The Ceramic Firehose API is still in beta so we recommend using it only on testing nodes for now.
+<img src="https://github.com/user-attachments/assets/63c50d1b-1c14-4555-b701-63eb9404823f" height="80%" width="80%" >
 
-## Component Overview
+## Documentation & Community
+- Full [Documentation](https://www.notion.so/OrbisDB-Docs-e77a592361b74e66a45404ca1cbc517b?pvs=21)
+- [YouTube](https://www.youtube.com/@orbisdb) channel with step-by-step videos
+- [Discord](https://discord.gg/jmnzGYfhHt) to ask all your technical questions 
+- [Twitter](https://x.com/useOrbis) to get latest updates on OrbisDB
+  
 
-OrbisDB is divided into two main components - **core** and **plugins**.
-
-This allows us to focus on stability and performance of core functions, while expanding functionality via the plugin system.
-
-- **Core:**
-  - Dedicated to read/write operation of the indexing service
-  - Listens to stream changes of specific models being used by developers and indexes the content in a Postgres database.
-- **Plugins:**
-  - Optional and designed to perform operations beyond the core’s scope.
-  - Divided **into 4 categories** (`Create streams`, `Add metadata`, `Validate` and `Post process`). More details about plugins are below.
-
-## Usage
-
-To get started with OrbisDB we recommend downloading this repository locally and running it as a simple NodeJS program.
-
-    npm install
-
-
-    npm run dev
-
-Your OrbisDB instance will then be running on port `7008`, allowing you to access it through your browser by navigating to `http://localhost:7008/`. If this is your first time using it, you will be prompted to enter the details of your Ceramic node as well as your database credentials, which are necessary for indexing.
-
-## Architecture Overview
-
-OrbisDB is built on top of Ceramic protocol and PostgreSQL (both of which are a requirement in order to run OrbisDB).
-
-### Ceramic
-
-Ceramic is used for stream discovery, modeling, network communications and writes.
-We moved away from Tile Documents (used by Orbis Social) and are using Model Instance Documents used by ComposeDB, offering interoperability.
-
-For model definition, we use standard Ceramic models, employing a JSON schema (unlike ComposeDB’s GraphQL approach).
-
-### PostgreSQL
-
-We chose PostgreSQL as our indexing database due to its extensibility, maturity and open-source values.
-Postgres is used to index and query data from Ceramic, offering scalable performance and the benefits of traditional scaling methods.
-
-### OrbisDB
-
-OrbisDB is the MIT-licensed brains of the operation.
-An OrbisDB node is responsible for Ceramic <> Postgres interactions, as well as exposing a REST API and a NextJS-powered UI to manage the node and data stored on it.
-
-### OrbisDB SDK (@useorbis/db-sdk)
-
-[OrbisDB SDK](https://github.com/OrbisWeb3/db-sdk) exposes a familiar user authentication interface, combined with an ORM-like approach to managing data.
-It features a custom-built query builder and an abstraction for Ceramic interactions.
-
-## Data lifecycle
-
-All data is always stored on Ceramic and only then does it get indexed and stored in OrbisDB.
-
-This ensures data ownership, integrity and composability with minimal performance sacrifices.
+## How it works
+OrbisDB is a relational database built on top of [Ceramic Network](https://www.ceramic.network), a verifiable and decentralized event store. Data inherits transparency, user ownership and permissionless capabilities while ensuring high throughput and low costs. OrbisDB leverages PostgreSQL for querying, offering a robust and scalable indexing solution. Finally, the OrbisDB software orchestrates data storage, management, and access, providing a robust and scalable database solution.
 
 ## Plugins
-
-As explained before, each OrbisDB instance can be enhanced with plugins. Plugins can use four different hooks:
-
+OrbisDB Plugins allow users to customize and enrich the behavior of their instance.
 - `generate` to **Create streams**: Automatically create new streams based on external data sources (ie. blockchain event, a local CSV file or an API data source).
 - `add_metadata` to **Add metadata**: Modifies or enhances the stream content before indexing (ie. classify the content using AI, fetch the ENS name of the stream’s controller)
 - `validate` to **Validate / Gate:** Checks the stream details and decides whether it should be indexed or not (for moderation, token gating or sybil resistance)
@@ -78,152 +39,54 @@ As explained before, each OrbisDB instance can be enhanced with plugins. Plugins
 
 You can find multiple examples of plugins in the `server/plugins` directory.
 
-### Plugin structure
+<img src="https://github.com/user-attachments/assets/d939cb03-15ce-4687-a87c-08166ffbb82a" height="80%" width="80%" >
 
-Here is a very simple example of what a `HelloWorld` plugin looks like:
+## Setting up
+As is the case with other web services, OrbisDB can be hosted locally, in the cloud or via a managed hosting provider. This is true for each separate component, as they don’t have to be hosted on a single server.
 
-```javascript
-export default class HelloWorldPlugin {
-  /**
-   * This will initialize all of the hooks used by this plugin.
-   * A plugin can register multiple hooks, each hook being linked to a function that will be executed when the hook is triggered
-   */
-  async init() {
-    return {
-      HOOKS: {
-        generate: () => this.start(),
-        validate: (stream) => this.isValid(stream),
-        add_metadata: (stream) => this.hello(stream),
-      },
-      ROUTES: {
-        hello: this.helloApi,
-        "hello-html": this.helloHtmlApi,
-      },
-    };
-  }
+### 🌟 Recommended - Managed + Studio
 
-  /** Will kickstart the generation of a new stream */
-  async start() {
-    console.log(
-      "Start subscription in HelloWorld plugin to generate a new stream every " +
-        this.secs_interval +
-        " seconds"
-    );
+> [!IMPORTANT]  
+> 🚨 Register here to get early access of [OrbisDB Studio](https://app.formo.so/hJ5VGyugmGigyVFyqdHJa), a hosted service provided by Orbis.
 
-    // Perform first call
-    this.createStream();
+Orbis offers a free [shared OrbisDB instance](https://www.notion.so/Overview-fbc65a9a0356485a993b0cab190779f3?pvs=21) managed by Orbis. This means you don’t have to worry about any of the backend requirements - just set up your environment via our UI and get started with decentralized data.
 
-    // Start the interval function
-    if (this.secs_interval) {
-      this.interval = setInterval(() => {
-        this.createStream();
-      }, this.secs_interval * 1000);
-    } else {
-      console.log("The interval hasn't been specified.");
-    }
-  }
+With a shared instance, each developer gets their own isolated database and environment - however, the underlying hardware is shared. Once your application starts scaling you should consider a dedicated instance. 
 
-  /** Will stop the plugin's interval */
-  async stop() {
-    console.log("Stopping plugin:", this.uuid);
-    if (this.interval) {
-      clearInterval(this.interval);
-      this.interval = null; // Clear the stored interval ID
-    }
-  }
+You also have other partners who can enable managed services for you like hirenodes.io
 
-  async createStream() {
-    console.log("Enter createStream in HelloWorld plugin.");
-    this.model_id =
-      "kjzl6hvfrbw6c646f9as8ecl9ni6l5qh06hxnx1gbectvymjwjiz48dtlkadyrp";
+### Local
 
-    /** We then create the stream in Ceramic with the updated content */
-    try {
-      let stream = await global.indexingService.ceramic.orbisdb
-        .insert(this.model_id)
-        .value({
-          body: "hello world!",
-          mention: "",
-        })
-        .context(this.context)
-        .run();
-      console.log("Stream created in HelloWorld plugin.");
-    } catch (e) {
-      console.log("Error creating stream with model:" + this.model_id + ":", e);
-    }
-  }
+If you want to run OrbisDB Locally, you are able to easily do it by following this guide [here](https://www.notion.so/Local-d3e9dd97e97b4c00a530b6ada20a8536?pvs=21) and our latest YouTube video [here](https://www.youtube.com/watch?v=8embizFvI-U). 
 
-  /** Will mark al of the streams as valid */
-  isValid() {
-    return true;
-  }
+This means all OrbisDB nodes will be hosted locally, including PostgreSQL, Ceramic and OrbisDB Node itself.
 
-  /** Returns a simple hello:world key value pair which will be added to the plugins_data field */
-  async hello(stream) {
-    return {
-      hello: "world",
-    };
-  }
+### Self-hosted
 
-  /** Example of an API route returning a simple json object. The routes declared by a plugin are automatically exposed by the OrbisDB instance */
-  helloApi(req, res) {
-    res.json({
-      hello: "world",
-    });
-  }
+Self-hosting OrbisDB allows for full control over each component. 
 
-  /** Example of an API route returning a simple HTML page. The routes declared by a plugin are automatically exposed by the OrbisDB instance */
-  helloHtmlApi(req, res) {
-    res.send(`<!DOCTYPE html>
-      <html>
-        <head>
-          <title>Simple Page</title>
-        </head>
-        <body>
-          <h1>Hello, this is a simple HTML page</h1>
-          <p>More content here...</p>
-        </body>
-      </html>`);
-  }
-}
+Each component can be isolated on a separate server or hosted on a single instance.
+
+Check out our self-hosting guide [here](https://www.notion.so/Self-hosted-603eb88f811f4bd596c2af38d187ac81?pvs=21).
+
+### Hybrid
+
+Because each OrbisDB component can be hosted separately, this allows for a hybrid hosting environment. You can choose to run the OrbisDB node yourself, but delegate database and Ceramic hosting to a managed provider. 
+
+Configure your setup to your needs to strike your own balance of control and convenience.
+
+For more details, you can visit the [full documentation](https://www.notion.so/Architecture-4b4ca402cb1a44e58b9a2884bdc02f04?pvs=21).
+
+## Running this repository
+To get started with OrbisDB locally, we recommend downloading this repository locally and running it as a simple NodeJS program.
+
+Full guide [here](https://www.notion.so/Local-d3e9dd97e97b4c00a530b6ada20a8536?pvs=21). 
+
+```
+npm install
+
+npm run dev
+
 ```
 
-As you can see plugins can use `hooks` and expose `routes`:
-
-- **Hooks**: Those hooks are being called during the lifecycle of a stream within OrbisDB. Sometimes **before** the indexing (`validate` and `add_metadata` hooks) in order to enhance the stream with additional metadata or validate a stream against rules specified by the plugin or **after** the indexing (`post_process` hook) to perform specific actions (such as trigger an email notification). The `generate` hook can even be used to create Ceramic streams automatically. Plugin developers can have their plugin perform any action they want within those hooks.
-- **Routes**: Plugins can expose their own routes which can be used as API endpoints or even HTML pages. For example, the `csv-uploader` plugin exposes a simple HTML route to display a **Select file** button to have users upload their CSV file.
-
-The `hooks` and `routes` must be initiated in the `init()` function the same way we do in the example above.
-
-Plugins must have settings located in a `settings.json` file within the plugin's directory, for our `HelloWorld` example the settings look like this.
-
-```json
-{
-  "id": "hello-world",
-  "name": "Hello World",
-  "logo": "/img/hello-world-logo.png",
-  "description": "Useless demo plugin. Don't use.",
-  "hooks": ["add_metadata", "generate", "validate"],
-  "variables": [
-    {
-      "name": "Interval",
-      "description": "Interval in seconds to create a new test stream.",
-      "id": "secs_interval",
-      "type": "integer",
-      "per_context": true
-    }
-  ]
-}
-```
-
-Settings expose some key details of the plugin which will be used in the OrbisDB UI as well as **variables**. Those variables will be applied when the user installs the plugin. Here are some types of variables that we started using in our plugins:
-
-- API keys
-- The model ID to use by the plugin
-- Interval in seconds to wait before generating a new stream
-- API endpoint to call for a moderation plugin
-- And any other variables that could be required by the plugin
-
-If you want to explore more complex variables we recommend looking into the [`chat-gpt` plugin](https://github.com/OrbisWeb3/orbisdb/tree/master/server/plugins/chat-gpt).
-
-Plugins can access global variables from OrbisDB such as `global.indexingService.ceramic.orbisdb`. Which means that plugins can both query existing data from the OrbisDB instance using `const result = await global.indexingService.ceramic.orbisdb.select().from(<MODEL_ID>).context(<CONTEXT_ID>).limit(10).run();` as well as create new streams using `const document = await global.indexingService.ceramic.orbisdb.insert(<MODEL_ID>).value({body: "gm"}).context(<CONTEXT_ID>).run();` which can unlock a lot of cool new use cases for Ceramic.
+Your OrbisDB instance will then be running on port `7008`, allowing you to access it through your browser by navigating to `http://localhost:7008/`. If this is your first time using it, you will be prompted to enter the details of your Ceramic node as well as your database credentials, which are necessary for indexing.
