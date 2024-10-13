@@ -24,9 +24,9 @@ import "ace-builds/src-noconflict/theme-sqlserver";
 import "ace-builds/src-min-noconflict/ext-language_tools";
 import { cleanDidPath, copyToClipboard, getCleanTableName } from "../../utils";
 import { ContextDropdown } from "../../components/Modals/AssignContext";
-import { createGraphiQLFetcher } from '@graphiql/create-fetcher';
-import { GraphiQL } from 'graphiql';
-import 'graphiql/graphiql.css';
+import { createGraphiQLFetcher } from "@graphiql/create-fetcher";
+import { GraphiQL } from "graphiql";
+import "graphiql/graphiql.css";
 import ManageDataRelations from "../../components/Modals/ManageDataRelations";
 
 export default function Data() {
@@ -56,7 +56,7 @@ export default function Data() {
 
   useEffect(() => {
     console.log("selectedContextIds:", selectedContextIds);
-  }, [selectedContextIds])
+  }, [selectedContextIds]);
 
   /** Will be called everytime the selected table or page changes */
   useEffect(() => {
@@ -80,7 +80,7 @@ export default function Data() {
           Authorization: `Bearer ${sessionJwt}`,
         },
       });
-    
+
       const result = await rawResponse.json();
       console.log("result schema:", result);
       if (rawResponse.status === 200) {
@@ -88,17 +88,23 @@ export default function Data() {
           .filter((item) => item.type === "TABLE")
           .map((item) => ({
             id: item.table_name,
-            columns: item.columns.map(col => ({ name: col.column_name, dataType: col.data_type })),
+            columns: item.columns.map((col) => ({
+              name: col.column_name,
+              dataType: col.data_type,
+            })),
           }));
-    
+
         const fetchedViews = result.data
           .filter((item) => item.type === "VIEW")
           .map((item) => ({
             id: item.table_name,
             viewDefinition: item.view_definition,
-            columns: item.columns.map(col => ({ name: col.column_name, dataType: col.data_type })),
+            columns: item.columns.map((col) => ({
+              name: col.column_name,
+              dataType: col.data_type,
+            })),
           }));
-    
+
         setSchemaLoading(false);
         setTables(fetchedTables);
         setViews(fetchedViews);
@@ -113,7 +119,6 @@ export default function Data() {
       setTables([]);
       setViews([]);
     }
-    
   }
 
   async function loadData() {
@@ -155,7 +160,7 @@ export default function Data() {
   function resetResults(e) {
     console.log("Error retrieving data:", e);
     setLoading(false);
-    setData({data: [], columns: []});
+    setData({ data: [], columns: [] });
     setCountTotalResults(0);
     setTitle(null);
   }
@@ -268,21 +273,21 @@ export default function Data() {
         {/** Display selected table content */}
         <div className="flex flex-1 flex-col bg-white h-full overflow-y-scroll">
           <Content
-              selectedTable={selectedTable}
-              selectedTableName={selectedTableName}
-              refresh={loadData}
-              title={title}
-              countResults={data ? data.length : 0}
-              countTotalResults={countTotalResults}
-              page={page}
-              setPage={setPage}
-              loading={loading}
-              data={data}
-              sqlValue={sqlValue}
-              setSqlValue={setSqlValue}
-              viewDefinition={viewDefinition}
-              setIsFKModalOpen={setIsFKModalOpen}
-            />
+            selectedTable={selectedTable}
+            selectedTableName={selectedTableName}
+            refresh={loadData}
+            title={title}
+            countResults={data ? data.length : 0}
+            countTotalResults={countTotalResults}
+            page={page}
+            setPage={setPage}
+            loading={loading}
+            data={data}
+            sqlValue={sqlValue}
+            setSqlValue={setSqlValue}
+            viewDefinition={viewDefinition}
+            setIsFKModalOpen={setIsFKModalOpen}
+          />
         </div>
       </div>
 
@@ -290,15 +295,15 @@ export default function Data() {
       {addModalVis && <AddViewModal hide={() => setAddModalVis(false)} />}
 
       {/** Will display the modal to add a new foreign key */}
-      {isFKModalOpen &&
+      {isFKModalOpen && (
         <ManageDataRelations
           isOpen={isFKModalOpen}
           selectedTable={selectedTable}
           selectedTableName={selectedTableName}
           onClose={() => setIsFKModalOpen(false)}
-          schema={{tables: tables}}
+          schema={{ tables: tables }}
         />
-      }
+      )}
     </>
   );
 }
@@ -314,7 +319,13 @@ const Content = (props) => {
       return (
         <>
           <TableCTAs {...props} />
-          <TableData {...props} sqlResult={{ columns: props?.data?.columns, data: props?.data?.data }} />
+          <TableData
+            {...props}
+            sqlResult={{
+              columns: props?.data?.columns,
+              data: props?.data?.data,
+            }}
+          />
         </>
       );
   }
@@ -327,7 +338,7 @@ const Editor = (props) => {
 
   function getEndpointUrl() {
     let _url;
-    if(isShared) {
+    if (isShared) {
       _url = `${baseUrl}/${cleanDidPath(adminSession)}/graphql`;
     } else {
       _url = `${baseUrl}/global/graphql`;
@@ -336,21 +347,24 @@ const Editor = (props) => {
   }
 
   const EndpointUrl = () => {
-    return(
-      <button className="bg-slate-100 rounded-md hover:bg-slate-200 px-2.5 py-0.5 space-x-1 flex flex-row items-center space-x-1.5" onClick={() => copyToClipboard(url)}><span>{url}</span> <CopyIcon /></button>
-    )
-  }
+    return (
+      <button
+        className="bg-slate-100 rounded-md hover:bg-slate-200 px-2.5 py-0.5 space-x-1 flex flex-row items-center space-x-1.5"
+        onClick={() => copyToClipboard(url)}
+      >
+        <span>{url}</span> <CopyIcon />
+      </button>
+    );
+  };
 
-  switch(type) {
+  switch (type) {
     case "sql":
-      return(
-        <SqlEditor type={type} setType={setType} {...props} />
-      );
+      return <SqlEditor type={type} setType={setType} {...props} />;
     case "graphql":
-      return(
+      return (
         <>
           <div className="w-full text-[12px] table-data -mt-px -ml-px font-mono px-2 p-2 justify-start flex flex-row space-x-2 items-center border-b border-slate-200">
-            <Toggle type={type} setType={setType}  />
+            <Toggle type={type} setType={setType} />
 
             {/** Show create view CTAs */}
             <div className="flex flex-1 justify-end space-x-1 items-center">
@@ -367,14 +381,12 @@ const Editor = (props) => {
         </>
       );
   }
-}
+};
 
-const GraphiQLContent = ({endpoint}) => {
+const GraphiQLContent = ({ endpoint }) => {
   const fetcher = createGraphiQLFetcher({ url: endpoint });
-  return(
-    <GraphiQL fetcher={fetcher} />
-  )
-}
+  return <GraphiQL fetcher={fetcher} />;
+};
 const TableCTAs = ({
   selectedTableName,
   refresh,
@@ -386,7 +398,7 @@ const TableCTAs = ({
   title,
   selectedTable,
   viewDefinition,
-  setIsFKModalOpen
+  setIsFKModalOpen,
 }) => {
   function filter() {
     alert("Filters are coming soon.");
@@ -439,7 +451,7 @@ const TableCTAs = ({
                   <EyeIcon /> <span>View definition</span>
                 </button>
               )}
-              
+
               <button
                 className="bg-slate-100 rounded-md hover:bg-slate-200 px-2.5 py-0.5 space-x-1.5 flex flex-row items-center"
                 onClick={() => setIsFKModalOpen(true)}
@@ -512,7 +524,6 @@ const SqlEditorCTAs = ({ runQuery, loading, type, setType }) => {
     </div>
   );
 };
-
 
 /** SQL Editor */
 const SqlEditor = (props) => {
@@ -612,9 +623,9 @@ const TableData = ({ sqlResult, showSuccessIfEmpty }) => {
   // Function to extract headers (keys) from the columns in the data object
   const getHeaders = (data) => {
     if (!data || !data.columns || data.columns.length === 0) return [];
-    return data.columns.map(column => ({
-        name: column.name,
-        dataTypeID: column.dataTypeID
+    return data.columns.map((column) => ({
+      name: column.name,
+      dataTypeID: column.dataTypeID,
     }));
   };
 
@@ -664,7 +675,9 @@ const TableData = ({ sqlResult, showSuccessIfEmpty }) => {
               <th key={index} className="cursor-pointer hover:bg-slate-200">
                 <span className="flex items-center justify-center space-x-1.5">
                   <span className="flex-1">{header.name}</span>{" "}
-                  <span className="font-mono text-[10px] bg-white font-normal rounded-full border border-slate-200 px-2 py-0.5">{pgTypeIDMapping[header.dataTypeID]}</span>
+                  <span className="font-mono text-[10px] bg-white font-normal rounded-full border border-slate-200 px-2 py-0.5">
+                    {pgTypeIDMapping[header.dataTypeID]}
+                  </span>
                   <CaretDown className="text-slate-500" />
                 </span>
               </th>
@@ -672,17 +685,17 @@ const TableData = ({ sqlResult, showSuccessIfEmpty }) => {
           </tr>
         </thead>
         <tbody>
-          {sqlResult?.data?.length > 0 ?
+          {sqlResult?.data?.length > 0 ? (
             sqlResult.data.map((item, rowIndex) => (
               <tr key={rowIndex}>
                 {headers.map((header, columnIndex) => {
                   const cellValue = item[header.name];
                   const displayValue = isObjectOrArray(cellValue)
                     ? JSON.stringify(cellValue)
-                    : cellValue;
+                    : String(cellValue);
                   return (
                     <td
-                      className="hover:bg-slate-50 cursor-pointer"
+                      className={`hover:bg-slate-50 hover:opacity-100 cursor-pointer ${(cellValue === null && "opacity-25") || ""}`}
                       onClick={() => copyToClipboard(displayValue)}
                       key={columnIndex}
                     >
@@ -692,18 +705,18 @@ const TableData = ({ sqlResult, showSuccessIfEmpty }) => {
                 })}
               </tr>
             ))
-          :
-          <tr>
-            <td colspan={headers.length} className="border-transparent">
-              <div className="py-6 px-24 max-w-lg">
-                <Alert
-                  title={"There isn't any data in this table."}
-                  className="font-mono text-[12px]"
-                />
-              </div>
-            </td>
-          </tr>
-          }
+          ) : (
+            <tr>
+              <td colspan={headers.length} className="border-transparent">
+                <div className="py-6 px-24 max-w-lg">
+                  <Alert
+                    title={"There isn't any data in this table."}
+                    className="font-mono text-[12px]"
+                  />
+                </div>
+              </td>
+            </tr>
+          )}
         </tbody>
       </table>
     </>
@@ -749,21 +762,39 @@ const TablesListNav = ({ selectedTable, select, items, type }) => {
   });
 };
 
-const Toggle = ({type, setType}) => {
-  return(
+const Toggle = ({ type, setType }) => {
+  return (
     <div className="flex items-center text-xs font-normal mr-3">
       <span className="ml-2 mr-3 text-xxs" id="graphql-editor-label">
-        <span className={`${type == "graphql" ? "font-bold text-active" : "text-slate-500"}`}>GraphQL</span>
+        <span
+          className={`${type == "graphql" ? "font-bold text-active" : "text-slate-500"}`}
+        >
+          GraphQL
+        </span>
       </span>
-      <button type="button" className={`relative inline-flex h-6 w-11 px-0.5 items-center flex-shrink-0 cursor-pointer rounded-full bg-slate-50 border border-slate-200 hover:border-slate-400 transition-colors duration-200 ease-in-out ${type == "graphql" ? "justify-start" : "justify-end"}`} role="switch" aria-checked="false" aria-labelledby="annual-billing-label" onClick={() => setType(type == "graphql" ? "sql" : "graphql")}>
-        <span aria-hidden="true" className="pointer-events-none inline-block h-5 w-5 translate-x-0 transform rounded-full bg-active shadow ring-0 transition duration-200 ease-in-out"></span>
+      <button
+        type="button"
+        className={`relative inline-flex h-6 w-11 px-0.5 items-center flex-shrink-0 cursor-pointer rounded-full bg-slate-50 border border-slate-200 hover:border-slate-400 transition-colors duration-200 ease-in-out ${type == "graphql" ? "justify-start" : "justify-end"}`}
+        role="switch"
+        aria-checked="false"
+        aria-labelledby="annual-billing-label"
+        onClick={() => setType(type == "graphql" ? "sql" : "graphql")}
+      >
+        <span
+          aria-hidden="true"
+          className="pointer-events-none inline-block h-5 w-5 translate-x-0 transform rounded-full bg-active shadow ring-0 transition duration-200 ease-in-out"
+        ></span>
       </button>
       <span className="ml-3 text-xxs" id="sql-editor-label">
-        <span className={`${type == "sql" ? "font-bold text-active" : "text-slate-500"}`}>SQL</span>
+        <span
+          className={`${type == "sql" ? "font-bold text-active" : "text-slate-500"}`}
+        >
+          SQL
+        </span>
       </span>
     </div>
-  )
-}
+  );
+};
 
 const pgTypeIDMapping = {
   16: "bool",
@@ -857,5 +888,6 @@ const pgTypeIDMapping = {
   1561: "_bit",
   1563: "_varbit",
   2951: "_uuid",
-  3221: "_pg_lsn"
+  3221: "_pg_lsn",
 };
+
