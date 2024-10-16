@@ -10,9 +10,13 @@ OrbisDB is a fully open-source relational database designed for onchain builders
     - [x]  Insert. [Docs](https://www.notion.so/Writing-data-INSERT-8d1fae8016d94393ad439feeb3c9f7ff?pvs=21)
     - [x]  Select. [Docs](https://www.notion.so/869d600cf7d04ae58d0b1c4821b1d35e?pvs=21)
 - [x]  Dashboard. [Docs](https://www.notion.so/Data-f0f4cdef9f5e4fffb8c298e4b5176b72?pvs=21)
+- [X]  OrbisDB SDK [Github](https://github.com/OrbisWeb3/db-sdk)
 
 > [!IMPORTANT]  
 > 🚨 Hosted service provided by Orbis, register for closed beta access to [OrbisDB Studio](https://app.formo.so/hJ5VGyugmGigyVFyqdHJa)
+
+> [!NOTE]  
+> ⚡️  Quickly start with a [Forum Template](https://github.com/mzkrasner/deforum-lite)
 
 <img src="https://github.com/user-attachments/assets/63c50d1b-1c14-4555-b701-63eb9404823f" height="80%" width="80%" >
 

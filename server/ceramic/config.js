@@ -64,6 +64,7 @@ export default class Ceramic {
         cliColors.reset,
         e
       );
+<<<<<<< HEAD
     }
 
     /** Create social models 
@@ -85,6 +86,9 @@ export default class Ceramic {
     } catch(e) {
       console.log("Error creating stream:", e);
     } */
+=======
+    }    
+>>>>>>> 9566d9954ca801a0ad690418be99e6fb677c0539
   }
 }
 
@@ -95,8 +99,8 @@ function cleanNodeUrl(url) {
 
 /** Model for OrbisDB contexts */
 /**
- * StreamID Mainnet: kjzl6hvfrbw6c6zdvwmwqx9wd361witgc0qtbjx8763d16espkxtybag1ylv3tc
- * StreamID Testnet: kjzl6hvfrbw6c6zdvwmwqx9wd361witgc0qtbjx8763d16espkxtybag1ylv3tc
+ * StreamID Mainnet: kjzl6hvfrbw6c6lqihb9i25vyr4hob667w8otxyzw7fohetbaqkjqrgjvll1h4b
+ * StreamID Recon: kjzl6hvfrbw6c6lqihb9i25vyr4hob667w8otxyzw7fohetbaqkjqrgjvll1h4b
  * */
 const orbisdbContextModelDefinition = {
   name: "OrbisDBContext",
@@ -376,8 +380,8 @@ const profileModelDefinition = {
 };
 
 /** Model for Orbis reactions */
-/** 
- * StreamID Mainnet: kjzl6hvfrbw6caca84g61qjl4v4zyhlnzfknowvaitq1c35gl54yb6jg71gxohc 
+/**
+ * StreamID Mainnet: kjzl6hvfrbw6caca84g61qjl4v4zyhlnzfknowvaitq1c35gl54yb6jg71gxohc
  * StreamID Recon: kjzl6hvfrbw6caca84g61qjl4v4zyhlnzfknowvaitq1c35gl54yb6jg71gxohc
  * */
 const reactionsModelDefinition = {
@@ -406,8 +410,8 @@ const reactionsModelDefinition = {
 };
 
 /** Model for Orbis follow */
-/** 
- * StreamID Mainnet: kjzl6hvfrbw6c7m2zwttqjjrh9uibh3im0qmxab3apf7wq37lrjid26iyu137jt 
+/**
+ * StreamID Mainnet: kjzl6hvfrbw6c7m2zwttqjjrh9uibh3im0qmxab3apf7wq37lrjid26iyu137jt
  * StreamID Recon: kjzl6hvfrbw6c93uuh5e5h0twvqdtm0aynhywdmvixefiy54dzalx74eocfkqfk
  * */
 const followModelDefinition = {
@@ -528,31 +532,31 @@ export const socialEncryptedEmailSchema = {
         type: "object",
         properties: {
           encryptedString: {
-            type: "string"
+            type: "string",
           },
           encryptedSymmetricKey: {
-            type: "string"
+            type: "string",
           },
           accessControlConditions: {
-            type: "string"
-          }
+            type: "string",
+          },
         },
-        additionalProperties: false
-      }
+        additionalProperties: false,
+      },
     },
-    additionalProperties: false
+    additionalProperties: false,
   },
   version: "2.0",
   interface: false,
   implements: [],
   accountRelation: {
-    type: "single"
-  }
+    type: "single",
+  },
 };
 
 /**** NOT IMPLEMENTED YET ****/
-/** 
- * Schema for the Orbis conversations 
+/**
+ * Schema for the Orbis conversations
  * StreamID Mainnet: kjzl6hvfrbw6c8ynorxt2tp766711479zupiaq6ai80wgsgbr256hbap4mpspt3
  * StreamID Recon: kjzl6hvfrbw6cabk4x5rqdanaaxf164iu8n3vrzz2zfspk1g44d2zbmkbsvuz6k
  * */
@@ -561,47 +565,36 @@ export const socialConversationSchema = {
   schema: {
     type: "object",
     $schema: "https://json-schema.org/draft/2020-12/schema",
-    required: [
-      "recipients"
-    ],
+    required: ["recipients"],
     properties: {
       name: {
-        type: [
-          "string",
-          "null"
-        ]
+        type: ["string", "null"],
       },
       context: {
-        type: [
-          "string",
-          "null"
-        ]
+        type: ["string", "null"],
       },
       recipients: {
         type: "array",
         items: {
-          type: "string"
-        }
+          type: "string",
+        },
       },
       description: {
-        type: [
-          "string",
-          "null"
-        ]
-      }
+        type: ["string", "null"],
+      },
     },
-    additionalProperties: false
+    additionalProperties: false,
   },
   version: "2.0",
   interface: false,
   implements: [],
   accountRelation: {
-    type: "list"
-  }
+    type: "list",
+  },
 };
 
 /**
- *  Schema for the Orbis messages 
+ *  Schema for the Orbis messages
  * StreamID Mainnet: kjzl6hvfrbw6cav5vj5fmqxxt95gjlkuxroafdl4elues1il176flbixrcaq9bv
  * StreamID Recon: kjzl6hvfrbw6ca08skivz4p240lk31ga73hg4t95p85p6vlpf4i0njdcccmwgdo
  * */
@@ -610,70 +603,56 @@ export const socialPrivateMessageSchema = {
   schema: {
     type: "object",
     $schema: "https://json-schema.org/draft/2020-12/schema",
-    required: [
-      "conversation_id"
-    ],
+    required: ["conversation_id"],
     properties: {
       master: {
-        type: [
-          "string",
-          "null"
-        ]
+        type: ["string", "null"],
       },
       reply_to: {
-        type: [
-          "string",
-          "null"
-        ]
+        type: ["string", "null"],
       },
       conversation_id: {
-        "type": "string"
+        type: "string",
       },
       encryptedMessage: {
-        type: [
-          "object",
-          "null"
-        ],
+        type: ["object", "null"],
         properties: {
           encryptedString: {
-            type: "string"
+            type: "string",
           },
           encryptedSymmetricKey: {
-            type: "string"
+            type: "string",
           },
           accessControlConditions: {
-            type: "string"
-          }
+            type: "string",
+          },
         },
-        additionalProperties: false
+        additionalProperties: false,
       },
       encryptedMessageSolana: {
-        type: [
-          "object",
-          "null"
-        ],
+        type: ["object", "null"],
         properties: {
           encryptedString: {
-            type: "string"
+            type: "string",
           },
           solRpcConditions: {
-            type: "string"
+            type: "string",
           },
           encryptedSymmetricKey: {
-            type: "string"
-          }
+            type: "string",
+          },
         },
-        additionalProperties: false
-      }
+        additionalProperties: false,
+      },
     },
-    additionalProperties: false
+    additionalProperties: false,
   },
   version: "2.0",
   interface: false,
   implements: [],
   accountRelation: {
-    type: "list"
-  }
+    type: "list",
+  },
 };
 
 /** Schema for the Orbis settings notifications */
@@ -688,3 +667,4 @@ export const socialSettingsNotificationsRead = {
   },
   required: ["last_notifications_read_time"],
 };
+

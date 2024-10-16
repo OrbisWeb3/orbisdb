@@ -1,6 +1,18 @@
 import postgresql from "pg";
-import { buildSchema, GraphQLObjectType, GraphQLString, GraphQLInt, GraphQLFloat, GraphQLBoolean, GraphQLList, GraphQLInputObjectType, GraphQLNonNull, GraphQLSchema, GraphQLEnumType } from 'graphql';
-import { GraphQLJSONObject } from 'graphql-scalars';
+import {
+  buildSchema,
+  GraphQLObjectType,
+  GraphQLString,
+  GraphQLInt,
+  GraphQLFloat,
+  GraphQLBoolean,
+  GraphQLList,
+  GraphQLInputObjectType,
+  GraphQLNonNull,
+  GraphQLSchema,
+  GraphQLEnumType,
+} from "graphql";
+import { GraphQLJSONObject } from "graphql-scalars";
 
 import { snakeCase } from "change-case";
 import { cliColors } from "../utils/cliColors.js";
@@ -12,7 +24,7 @@ import {
   getTableModelId,
 } from "../utils/helpers.js";
 import logger from "../logger/index.js";
-import { refreshGraphQLSchema } from "../index.js";
+import { refreshGraphQLSchema } from "../routes/graphql/index.js";
 
 const pgErrorToCode = (_message) => {
   const message_to_code = {
@@ -115,6 +127,7 @@ export default class Postgre {
       );
 
       await postgre.checkReadOnlyUser(database, host, port);
+      await postgre.bootstrapTables();
 
       logger.debug(
         cliColors.text.cyan,
@@ -286,7 +299,6 @@ export default class Postgre {
     }
   }
 
-
   // Fetch DB schema to create GraphQL schema for the database
   async fetchDBSchema() {
     const client = await this.adminPool.connect();
@@ -314,20 +326,20 @@ export default class Postgre {
   // Helper function to map field types to GraphQL types
   getGraphQLType(fieldType) {
     switch (fieldType) {
-      case 'character varying':
-      case 'text':
+      case "character varying":
+      case "text":
         return GraphQLString;
-      case 'integer':
+      case "integer":
         return GraphQLInt;
-      case 'boolean':
+      case "boolean":
         return GraphQLBoolean;
-      case 'float8':
+      case "float8":
         return GraphQLFloat;
-      case 'json':
-      case 'jsonb':
+      case "json":
+      case "jsonb":
         return GraphQLJSONObject;
       default:
-        if (fieldType.startsWith('_')) {
+        if (fieldType.startsWith("_")) {
           const elementType = this.getGraphQLType(fieldType.substring(1));
           return new GraphQLList(elementType || GraphQLString);
         } else {
@@ -371,8 +383,8 @@ export default class Postgre {
       name: `${typeName}OrderByEnum`,
       values: {
         ...orderByEnumValues,
-        ASC: { value: 'ASC' },
-        DESC: { value: 'DESC' },
+        ASC: { value: "ASC" },
+        DESC: { value: "DESC" },
       },
     });
 
@@ -413,8 +425,14 @@ export default class Postgre {
         fields,
       });
 
-      inputTypeDefs[`${typeName}Filter`] = this.createFilterInputType(typeName, fields);
-      orderByTypeDefs[`${typeName}OrderBy`] = this.createOrderByInputType(typeName, fields);
+      inputTypeDefs[`${typeName}Filter`] = this.createFilterInputType(
+        typeName,
+        fields
+      );
+      orderByTypeDefs[`${typeName}OrderBy`] = this.createOrderByInputType(
+        typeName,
+        fields
+      );
     }
 
     // Define GraphQL Object Types with possible relations
@@ -430,11 +448,16 @@ export default class Postgre {
 
           if (relations[modelId]) {
             for (const relation of relations[modelId]) {
-              const relatedTypeName = modelsMapping[relation.referencedTable] || relation.referencedTable;
+              const relatedTypeName =
+                modelsMapping[relation.referencedTable] ||
+                relation.referencedTable;
               const relatedType = finalTypeDefs[relatedTypeName];
 
               relFields[relation.referenceName] = {
-                type: relation.referencedType === "list" ? new GraphQLList(relatedType) : relatedType,
+                type:
+                  relation.referencedType === "list"
+                    ? new GraphQLList(relatedType)
+                    : relatedType,
                 resolve: async (source) => {
                   const client = await this.adminPool.connect();
                   try {
@@ -462,31 +485,43 @@ export default class Postgre {
                   } finally {
                     client.release();
                   }
-                }
+                },
               };
             }
           }
           return { ...fields.fields, ...relFields }; // Combine relational fields with regular fields
-        }
+        },
       });
     }
 
     // Construct the main query type with resolve functions
-    const queryFields = this.prepareQueryFields(modelsMapping, dbSchema, finalTypeDefs, inputTypeDefs, orderByTypeDefs);
+    const queryFields = this.prepareQueryFields(
+      modelsMapping,
+      dbSchema,
+      finalTypeDefs,
+      inputTypeDefs,
+      orderByTypeDefs
+    );
 
     // Return the fully constructed GraphQL schema
     const queryType = new GraphQLObjectType({
-      name: 'Query',
-      fields: queryFields
+      name: "Query",
+      fields: queryFields,
     });
 
     return new GraphQLSchema({
-      query: queryType
+      query: queryType,
     });
   }
 
   // Method to prepare query fields
-  prepareQueryFields(modelsMapping, dbSchema, finalTypeDefs, inputTypeDefs, orderByTypeDefs) {
+  prepareQueryFields(
+    modelsMapping,
+    dbSchema,
+    finalTypeDefs,
+    inputTypeDefs,
+    orderByTypeDefs
+  ) {
     const queryFields = {};
     Object.entries(dbSchema).forEach(([modelId]) => {
       const typeName = modelsMapping[modelId] || modelId;
@@ -509,37 +544,57 @@ export default class Postgre {
               if (filter) {
                 Object.entries(filter).forEach(([field, value], index) => {
                   if (Array.isArray(value)) {
-                    whereClauses.push(`${field} IN (${value.map((v, i) => `$${index + i + 1}`).join(', ')})`);
+                    whereClauses.push(
+                      `${field} IN (${value.map((v, i) => `$${index + i + 1}`).join(", ")})`
+                    );
                     params.push(...value);
-                  } else if (typeof value === 'string' && value.includes('%')) {
+                  } else if (typeof value === "string" && value.includes("%")) {
                     whereClauses.push(`${field} ILIKE $${index + 1}`);
                     params.push(value);
-                  } else if (field.endsWith('_eq')) {
-                    whereClauses.push(`${field.replace('_eq', '')} = $${index + 1}`);
+                  } else if (field.endsWith("_eq")) {
+                    whereClauses.push(
+                      `${field.replace("_eq", "")} = $${index + 1}`
+                    );
                     params.push(value);
-                  } else if (field.endsWith('_ne')) {
-                    whereClauses.push(`${field.replace('_ne', '')} != $${index + 1}`);
+                  } else if (field.endsWith("_ne")) {
+                    whereClauses.push(
+                      `${field.replace("_ne", "")} != $${index + 1}`
+                    );
                     params.push(value);
-                  } else if (field.endsWith('_gt')) {
-                    whereClauses.push(`${field.replace('_gt', '')} > $${index + 1}`);
+                  } else if (field.endsWith("_gt")) {
+                    whereClauses.push(
+                      `${field.replace("_gt", "")} > $${index + 1}`
+                    );
                     params.push(value);
-                  } else if (field.endsWith('_lt')) {
-                    whereClauses.push(`${field.replace('_lt', '')} < $${index + 1}`);
+                  } else if (field.endsWith("_lt")) {
+                    whereClauses.push(
+                      `${field.replace("_lt", "")} < $${index + 1}`
+                    );
                     params.push(value);
-                  } else if (field.endsWith('_gte')) {
-                    whereClauses.push(`${field.replace('_gte', '')} >= $${index + 1}`);
+                  } else if (field.endsWith("_gte")) {
+                    whereClauses.push(
+                      `${field.replace("_gte", "")} >= $${index + 1}`
+                    );
                     params.push(value);
-                  } else if (field.endsWith('_lte')) {
-                    whereClauses.push(`${field.replace('_lte', '')} <= $${index + 1}`);
+                  } else if (field.endsWith("_lte")) {
+                    whereClauses.push(
+                      `${field.replace("_lte", "")} <= $${index + 1}`
+                    );
                     params.push(value);
-                  } else if (field.endsWith('_like')) {
-                    whereClauses.push(`${field.replace('_like', '')} LIKE $${index + 1}`);
+                  } else if (field.endsWith("_like")) {
+                    whereClauses.push(
+                      `${field.replace("_like", "")} LIKE $${index + 1}`
+                    );
                     params.push(value);
-                  } else if (field.endsWith('_in')) {
-                    whereClauses.push(`${field.replace('_in', '')} IN (${value.map((v, i) => `$${index + i + 1}`).join(', ')})`);
+                  } else if (field.endsWith("_in")) {
+                    whereClauses.push(
+                      `${field.replace("_in", "")} IN (${value.map((v, i) => `$${index + i + 1}`).join(", ")})`
+                    );
                     params.push(...value);
-                  } else if (field.endsWith('_nin')) {
-                    whereClauses.push(`${field.replace('_nin', '')} NOT IN (${value.map((v, i) => `$${index + i + 1}`).join(', ')})`);
+                  } else if (field.endsWith("_nin")) {
+                    whereClauses.push(
+                      `${field.replace("_nin", "")} NOT IN (${value.map((v, i) => `$${index + i + 1}`).join(", ")})`
+                    );
                     params.push(...value);
                   } else {
                     whereClauses.push(`${field} = $${index + 1}`);
@@ -547,7 +602,7 @@ export default class Postgre {
                   }
                 });
                 if (whereClauses.length > 0) {
-                  query += ` WHERE ${whereClauses.join(' AND ')}`;
+                  query += ` WHERE ${whereClauses.join(" AND ")}`;
                 }
               }
               if (orderBy) {
@@ -571,27 +626,10 @@ export default class Postgre {
     return {};
   }
 
-  /** Will try to insert variable in the model table */
-  async upsert(model, content, pluginsData) {
-    let variables;
-    if (model != "kh4q0ozorrgaq2mezktnrmdwleo1d") {
-      // Generate variables to insert
-      variables = {
-        ...content,
-        plugins_data: pluginsData,
-      };
-    } else {
-      // Inserting a model in our models_indexed table
-      variables = {
-        stream_id: content.stream_id,
-        controller: content.controller,
-        name: content.name ? content.name : content.title,
-        mapped_name: content.mapped_name,
-        content: content,
-      };
-    }
+  async upsertRaw(tableName, variables) {
+    // Helper function to quote all column names
+    const quoteField = (field) => `"${field}"`;
 
-    // Extracting field names and values from data
     const fields = Object.keys(variables);
     const values = Object.values(variables).map((value) =>
       typeof value === "object" && value !== null
@@ -599,35 +637,56 @@ export default class Postgre {
         : value
     );
 
-    // Define which fields to update in case of conflict
     const updateFields = fields.filter((field) => field !== "stream_id");
-
-    // Retrieving table name from mapping
-    let tableName = model;
-
-    // Helper function to quote all column names
-    const quoteField = (field) => `"${field}"`;
 
     // Building the query
     const queryText = `
       INSERT INTO ${tableName} (${fields.map(quoteField).join(", ")})
       VALUES (${fields.map((_, index) => `$${index + 1}`).join(", ")})
       ON CONFLICT (stream_id)
-      DO UPDATE SET ${updateFields.map(field => `${quoteField(field)} = EXCLUDED.${quoteField(field)}`).join(", ")}
+      DO UPDATE SET ${updateFields.map((field) => `${quoteField(field)} = EXCLUDED.${quoteField(field)}`).join(", ")}
       RETURNING *;
     `;
 
-    /** If stream is a model we trigger the indexing */
-    if (model == "kh4q0ozorrgaq2mezktnrmdwleo1d") {
-      console.log("Stream is a model, we index the model.");
-      this.indexModel(content.stream_id);
-    }
-
-    /** Try to insert stream in the corresponding table */
-    let res;
     const client = await this.adminPool.connect();
     try {
-      res = await client.query(queryText, values);
+      await client.query(queryText, values);
+      return true;
+    } catch (e) {
+      if (e.code === "42P01") {
+        throw "TABLE_NOT_FOUND";
+      }
+
+      throw e;
+    } finally {
+      // Release the client back to the pool
+      client.release();
+    }
+  }
+
+  /** Will try to insert variable in the model table */
+  async upsert(model, content, pluginsData) {
+    if (model === "kh4q0ozorrgaq2mezktnrmdwleo1d") {
+      console.log("Stream is a model, we index the model.");
+      const indexed = await this.indexModel(content.stream_id);
+      if (!indexed) {
+        return false;
+      }
+
+      return true;
+    }
+
+    const variables = {
+      ...content,
+      plugins_data: pluginsData,
+    };
+
+    // Retrieving table name from mapping
+    const tableName = model;
+
+    /** Try to insert stream in the corresponding table */
+    try {
+      await this.upsertRaw(tableName, variables);
       logger.debug(
         cliColors.text.green,
         `✅ Upserted stream `,
@@ -638,11 +697,25 @@ export default class Postgre {
         cliColors.reset,
         tableName
       );
+      return true;
     } catch (e) {
-      console.log("Error inserting stream:", e);
-      if (e.code === "42P01" && model != "kh4q0ozorrgaq2mezktnrmdwleo1d") {
+      if (
+        e === "TABLE_NOT_FOUND" &&
+        model !== "kh4q0ozorrgaq2mezktnrmdwleo1d"
+      ) {
         // Trigger indexing of new model with a callback to retry indexing this stream
-        this.indexModel(model);
+        try {
+          await this.indexModel(model);
+        } catch (err) {
+          console.error(
+            `Error inserting stream ${variables.stream_id}`,
+            `Reason: Error indexing model: ${model}`,
+            err
+          );
+          return false;
+        }
+
+        return this.upsert(model, content, pluginsData);
       } else {
         logger.error(
           cliColors.text.red,
@@ -652,16 +725,9 @@ export default class Postgre {
           e.message
         );
       }
-    } finally {
-      // Release the client back to the pool
-      client.release();
     }
 
-    if (res) {
-      return true;
-    } else {
-      return false;
-    }
+    return false;
   }
 
   /** Will create a new database */
@@ -679,72 +745,87 @@ export default class Postgre {
     }
   }
 
-  /** Will prepare the indexing of a model by creating the corresponding table in our database */
-  async indexModel(model, callback = null, forced = false) {
-    let content;
-    let title;
-    let uniqueFormattedTitle;
-    let fields;
-
-    if (model != "kh4q0ozorrgaq2mezktnrmdwleo1d") {
-      // Step 1: Load model details if not genesis stream
-      let stream = await global.indexingService.ceramic.client.loadStream(model);
-      content = stream.content;
-      if (content?.schema?.properties) {
-        let postgresFields = this.jsonSchemaToPostgresFields(
-          content.schema.properties
-        );
-        title = content.name ? content.name : content.title;
-
-        // Generate a unique table name
-        uniqueFormattedTitle = await this.generateUniqueTableName(title);
-
-        // Step 2: Convert model variables in SQL columns
-        fields = [
+  async bootstrapTables() {
+    const tables = [
+      {
+        model: "kh4q0ozorrgaq2mezktnrmdwleo1d",
+        title: "models_indexed",
+        uniqueFormattedTitle: "models_indexed",
+        fields: [
           { name: "stream_id", type: "TEXT PRIMARY KEY" }, // Added automatically
           { name: "controller", type: "TEXT" }, // Added automatically
-          ...postgresFields,
-          { name: "_metadata_context", type: "TEXT" }, // Added automatically
-          { name: "plugins_data", type: "JSONB" }, // Added automatically
+          { name: "name", type: "TEXT" },
+          { name: "mapped_name", type: "TEXT" },
+          { name: "content", type: "JSONB" },
           { name: "indexed_at", type: "TIMESTAMP DEFAULT CURRENT_TIMESTAMP" }, // Added automatically
-        ];
-      } else {
-        logger.debug(
-          "This stream is either not valid or not a supported model:",
-          content
+        ],
+      },
+    ];
+
+    for (const table of tables) {
+      try {
+        await this.createTable(
+          table.model,
+          table.fields,
+          table.uniqueFormattedTitle
+        );
+      } catch (err) {
+        console.error(
+          `Error bootstrapping table ${table.title || table.uniqueFormattedTitle}: `,
+          err
         );
       }
-    } else {
-      title = "models_indexed";
-      uniqueFormattedTitle = "models_indexed";
-      fields = [
-        { name: "stream_id", type: "TEXT PRIMARY KEY" }, // Added automatically
-        { name: "controller", type: "TEXT" }, // Added automatically
-        { name: "name", type: "TEXT" },
-        { name: "mapped_name", type: "TEXT" },
-        { name: "content", type: "JSONB" },
-        { name: "indexed_at", type: "TIMESTAMP DEFAULT CURRENT_TIMESTAMP" }, // Added automatically
-      ];
     }
+  }
+
+  /** Will prepare the indexing of a model by creating the corresponding table in our database */
+  async indexModel(model, callback = null) {
+    if (model === "kh4q0ozorrgaq2mezktnrmdwleo1d") {
+      return true;
+    }
+
+    // Step 1: Load model details if not genesis stream
+    const stream =
+      await global.indexingService.ceramic.client.loadStream(model);
+
+    const content = stream.content;
+    if (!content?.schema?.properties) {
+      logger.debug(
+        "This stream is either not valid or not a supported model:",
+        content
+      );
+
+      return false;
+    }
+
+    const postgresFields = this.jsonSchemaToPostgresFields(
+      content.schema.properties
+    );
+
+    const title = content.name ? content.name : content.title;
+    const uniqueFormattedTitle = await this.generateUniqueTableName(title);
+
+    // Step 2: Convert model variables in SQL columns
+    const fields = [
+      { name: "stream_id", type: "TEXT PRIMARY KEY" }, // Added automatically
+      { name: "controller", type: "TEXT" }, // Added automatically
+      ...postgresFields,
+      { name: "_metadata_context", type: "TEXT" }, // Added automatically
+      { name: "plugins_data", type: "JSONB" }, // Added automatically
+      { name: "indexed_at", type: "TIMESTAMP DEFAULT CURRENT_TIMESTAMP" }, // Added automatically
+    ];
 
     // Step 3: Build SQL query and run
     console.log("In indexModel, callback is:", callback);
     await this.createTable(model, fields, uniqueFormattedTitle, callback);
 
-    // Step 4: Insert new row in models_indexed table
-    if (model == "kh4q0ozorrgaq2mezktnrmdwleo1d" && !forced) {
-      /*this.upsert(
-        "kh4q0ozorrgaq2mezktnrmdwleo1d",
-        {
-          stream_id: model,
-          controller: content.controller,
-          name: title,
-          mapped_name: uniqueFormattedTitle,
-          content: content,
-        },
-        null
-      );*/
-    }
+    await this.upsertRaw("kh4q0ozorrgaq2mezktnrmdwleo1d", {
+      stream_id: stream.id.toString(),
+      controller: stream.metadata.controller,
+      name: content.name ? content.name : content.title,
+      mapped_name: content.mapped_name,
+      content: content,
+    });
 
     return true;
   }
@@ -766,19 +847,20 @@ export default class Postgre {
       CREATE INDEX IF NOT EXISTS "${model}_controller_idx" ON "${model}" ("controller");
       CREATE INDEX IF NOT EXISTS "${model}_indexed_at_idx" ON "${model}" ("indexed_at");`;
 
-      console.log("createTableQuery:", createTableQuery);
+    console.log("createTableQuery:", createTableQuery);
 
     const client = await this.adminPool.connect();
     try {
       // Execute the table creation query
       await client.query(createTableQuery);
-      
+
       // Keep track of new table name
       this.mapTableName(model, uniqueFormattedTitle);
 
-
       // Will refresh GraphQL schema
-      refreshGraphQLSchema(this, this.slot);
+      if (this.slot) {
+        await refreshGraphQLSchema(this, this.slot);
+      }
 
       // Will trigger a callback if provided by the parent function
       if (callback) {
@@ -792,13 +874,23 @@ export default class Postgre {
         cliColors.reset,
         uniqueFormattedTitle
       );
+
+      return true;
     } catch (err) {
+      if (Number(err.code) === 23505) {
+        // Concurrent CREATE TABLE (caused by /index/model call together with discovery)
+        // Assume the table has been created
+        return true;
+      }
+
       logger.error(
         cliColors.text.red,
         "Error creating new table.",
         cliColors.reset,
         err.stack
       );
+
+      return false;
     } finally {
       // Release the client back to the pool
       client.release();
@@ -917,7 +1009,6 @@ export default class Postgre {
     }
   }
 
-
   /** Will run any query and return the results */
   async query(userQuery, params) {
     const defaultLimit = 100;
@@ -982,19 +1073,23 @@ export default class Postgre {
 
     // Base query
     let queryText = `SELECT * FROM ${table}`;
-    
+
     // Add filtering by context if context is provided
-    if (context && context != "global" && table != "kh4q0ozorrgaq2mezktnrmdwleo1d") {
-        queryText += ` WHERE _metadata_context = ${context}`;
+    if (
+      context &&
+      context != "global" &&
+      table != "kh4q0ozorrgaq2mezktnrmdwleo1d"
+    ) {
+      queryText += ` WHERE _metadata_context = ${context}`;
     }
 
     // Add ordering and pagination
     if (orderByIndexedAt) {
-        queryText += ` ORDER BY indexed_at DESC`;
+      queryText += ` ORDER BY indexed_at DESC`;
     }
 
     queryText += ` LIMIT ${records} OFFSET ${offset}`;
-  
+
     // Query for total count
     const countQuery = `SELECT COUNT(*) FROM ${table}`;
 
@@ -1080,3 +1175,4 @@ export default class Postgre {
     }
   }
 }
+

@@ -34,6 +34,7 @@ const sanitizeColors = (messages) => {
   return sanitized;
 };
 
+// TODO: make it relative via dirname
 const logsDir = "./server/logs";
 
 const errorFileRotate = new DailyRotateFile({
@@ -99,3 +100,4 @@ const logger = {
 };
 
 export default logger;
+

@@ -43,7 +43,7 @@ export default function ContextSettings({
       res = await orbisdb.update(context.stream_id).replace(content).run();
     } else {
       res = await orbisdb
-        .insert("kjzl6hvfrbw6c6zdvwmwqx9wd361witgc0qtbjx8763d16espkxtybag1ylv3tc")
+        .insert("kjzl6hvfrbw6c6lqihb9i25vyr4hob667w8otxyzw7fohetbaqkjqrgjvll1h4b")
         .value(content)
         .run();
     }

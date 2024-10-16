@@ -179,8 +179,12 @@ export default class IndexingService {
 
     // Loop through all plugins instances and stop them
     this.plugins.map(async (plugin) => {
-      if (plugin.stop) {
-        await plugin.stop();
+      if (plugin?.stop) {
+        try {
+          await plugin.stop();
+        } catch(e) {
+          console.log("Error stopping plugin:", e);
+        }
       }
     });
 
@@ -192,7 +196,7 @@ export default class IndexingService {
   async stop() {
     // Loop through all plugins instances and stop them
     this.plugins.map(async (plugin) => {
-      if (plugin.stop) {
+      if (plugin?.stop) {
         try {
           await plugin.stop();
         } catch(e) {
