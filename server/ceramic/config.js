@@ -64,7 +64,31 @@ export default class Ceramic {
         cliColors.reset,
         e
       );
+<<<<<<< HEAD
+    }
+
+    /** Create social models 
+    try {
+        let model = await this.orbisdb.ceramic.createModel(orbisdbContextModelDefinition);
+        console.log("model:", model); 
+    } catch(e) {
+        console.log(cliColors.text.red, "Error creating model:", cliColors.reset, e);
+    }*/
+
+    /** Create Stream */
+    await sleep(2000);
+    /*try {
+      let result = await this.orbisdb.insert('kjzl6hvfrbw6c6crcw5tvydjrgtjatrty8dge1u295gm7yo402htt6bp19qw641').value({
+        name: "Node 3",
+        description: "I am Node 3, a very good node!",
+        id: "node-3"
+      }).run();      
+    } catch(e) {
+      console.log("Error creating stream:", e);
+    } */
+=======
     }    
+>>>>>>> 9566d9954ca801a0ad690418be99e6fb677c0539
   }
 }
 
