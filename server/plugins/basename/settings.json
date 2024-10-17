@@ -1,0 +1,50 @@
+{
+  "id": "basename",
+  "name": "Base Identity",
+  "logo": "/img/base-event-listener.png",
+  "description": "Convert a base identity to an address or an address to a base identity.",
+  "hooks": ["add_metadata"],
+  "variables": [
+    {
+      "name": "RPC URL",
+      "description": "The RPC URL to use to communicate with Base.",
+      "id": "rpc_url",
+      "type": "string",
+      "per_context": false
+    },
+    {
+      "name": "Action",
+      "description": "Which action should the plugin perform?",
+      "id": "action",
+      "type": "select",
+      "options": [
+        { "value": "name_to_address", "label": "Name to Address" },
+        { "value": "address_to_name", "label": "Address to Name" }
+      ],
+      "per_context": true
+    },
+    {
+      "name": "Field",
+      "description": "Which field do you want to use to do the conversion? The stream's fields are under the 'content' object and generic fields are parents fields (like 'controller').",
+      "id": "field",
+      "type": "string",
+      "per_context": true
+    },
+    {
+      "name": "Apply only on a specific model?",
+      "description": "Should this plugin be used only on a specific model?",
+      "id": "only_model",
+      "type": "select",
+      "options": [{"value": "no", "label": "No"}, {"value": "yes", "label": "Yes"}],
+      "per_context": true
+    },
+    {
+      "name": "Model ID",
+      "description": "Paste the model ID on which this plugin should be used.",
+      "id": "model_id",
+      "type": "string",
+      "conditions": [{"id": "only_model", "value": "yes"}],
+      "per_context": true
+    }
+  ]
+}

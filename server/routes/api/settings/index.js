@@ -162,4 +162,17 @@ export default async function (server, opts) {
       return res.internalServerError("Failed to read settings.");
     }
   });
+
+  // Get Analytics for this instance
+  server.get("/analytics", async (req, res) => {
+    try {
+      const globalSettings = getOrbisDBSettings();
+      return {
+        count_slots: globalSettings.slots ? globalSettings.slots.length : 0
+      };
+    } catch (err) {
+      logger.error(err);
+      return res.internalServerError("Failed to read settings.");
+    }
+  });
 }
