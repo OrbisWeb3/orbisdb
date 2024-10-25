@@ -25,14 +25,14 @@ export default class HookHandler {
   }
 
   // Execute the hook or returns an error
-  async safeExecute(handler, data, contextId) {
+  async safeExecute(handler, data) {
     try {
       const { pluginsData, ...dataToPass } = data;
       // Execute hook
       return await handler(dataToPass);
     } catch (e) {
       logger.error("Error executing hook:", e);
-      return { e };
+      return { error: e };
     }
   }
 
@@ -79,18 +79,28 @@ export default class HookHandler {
       }
       handlers = Object.entries(this.hooks[hookName]);
     }
-    console.log("handlers:", handlers);
 
     // Loop through all handlers to execute them.
-    for (const [pluginId, contextualizedPlugin] of handlers) {
-
-      let _pluginId = "";
-    
+    for (const [pluginId, contextualizedPlugin] of handlers) {    
       // Safely execute the hook.
-      const result = await this.safeExecute(
-        contextualizedPlugin.handler,
-        JSON.parse(JSON.stringify(data))
-      );
+      let result;
+      try {
+        if(hookName == "generate") {
+          result = this.safeExecute(
+            contextualizedPlugin.handler,
+            JSON.parse(JSON.stringify(data))
+          );
+        } else {
+          result = await this.safeExecute(
+            contextualizedPlugin.handler,
+            JSON.parse(JSON.stringify(data))
+          );
+        }
+        
+      } catch(e) {
+        console.log("Error executing hook:", e);
+      }
+      
       // Handle hook executed based on its type
       if (result?.error) {
         logger.error(
@@ -108,7 +118,6 @@ export default class HookHandler {
           } else {
             hookData.pluginsData[contextualizedPlugin.pluginId] = [result]
           }
-          
           break;
         case "validate":
           if (result == false) {
@@ -116,7 +125,10 @@ export default class HookHandler {
           }
           break;
         case "update":
-          return result;
+          //return result;
+        case "generate":
+          console.log("Handling generate hook.");
+          break;
       }
     }
 
@@ -164,8 +176,6 @@ export default class HookHandler {
 
   // This is registering a hook in order execute them at the right time
   registerHook(hookName, opts) {
-    console.log("in registerHook:",hookName);
-    console.log("in registerHook opts:",opts)
     if (!this.registeredHooks[hookName]) {
       this.registeredHooks[hookName] = opts;
     }

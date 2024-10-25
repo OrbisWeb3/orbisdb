@@ -5,6 +5,8 @@ export default function Alert({
 }) {
   function getStyle() {
     switch (color) {
+      case "sky":
+        return "bg-sky-50 border-sky-200 text-sky-800";
       case "amber":
         return "bg-amber-50 border-amber-200 text-amber-800";
       case "red":

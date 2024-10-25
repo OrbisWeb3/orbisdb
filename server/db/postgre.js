@@ -836,16 +836,21 @@ export default class Postgre {
   async createTable(model, fields, uniqueFormattedTitle, callback) {
     console.log("Enter createTable for model:", model);
     // Construct the columns part of the SQL statement
-    const columns = fields
-      .map((field) => `"${field.name}" ${field.type}`)
-      .join(", ");
+    // Construct the columns part of the SQL statement
+    const columns = fields.map((field) => {
+      // Add UNIQUE constraint if field.unique is true
+      const uniqueConstraint = field.unique ? " UNIQUE" : "";
+      return `"${field.name}" ${field.type}${uniqueConstraint}`;
+    })
+    .join(", ");
 
     // Construct the full SQL statement for table creation
-    const createTableQuery = `CREATE TABLE IF NOT EXISTS "${model}" (${columns});
-      
+    const createTableQuery = `
+      CREATE TABLE IF NOT EXISTS "${model}" (${columns});
       CREATE INDEX IF NOT EXISTS "${model}_stream_id_idx" ON "${model}" ("stream_id");
       CREATE INDEX IF NOT EXISTS "${model}_controller_idx" ON "${model}" ("controller");
-      CREATE INDEX IF NOT EXISTS "${model}_indexed_at_idx" ON "${model}" ("indexed_at");`;
+      CREATE INDEX IF NOT EXISTS "${model}_indexed_at_idx" ON "${model}" ("indexed_at");
+    `;
 
     console.log("createTableQuery:", createTableQuery);
 
@@ -1141,7 +1146,19 @@ export default class Postgre {
         postgresType = this.jsonTypeToPostgresType(value.type);
       }
 
-      postgresFields.push({ name: key, type: postgresType });
+      // Detect additional fields using the $comment field
+      let additionalParamaters;
+      let unique = false;
+      if(value.$comment) {
+        try {
+          additionalParamaters = JSON.parse(value.$comment);
+          unique = additionalParamaters.unique;
+        } catch(e) {
+          console.log("Error parsing $comment field:", e);
+        }
+      }
+
+      postgresFields.push({ name: key, type: postgresType, unique: unique });
     }
 
     return postgresFields;

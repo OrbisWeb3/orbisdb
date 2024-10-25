@@ -41,7 +41,7 @@ export default class IndexingService {
 
   // Map each plugin to the init promise and execute it
   async initializePlugins() {
-    // Retrive all plugins installed
+    // Retrieve all plugins installed
     this.plugins = await loadAndInitPlugins();
 
     // Loads all plugins installed
@@ -170,7 +170,7 @@ export default class IndexingService {
   }
 
   // Triggered after a new plugin install
-  async resetPlugins() {
+  async restartPlugins(pluginToReset) {
     logger.info(
       cliColors.text.cyan,
       "🤖 Resetting all plugins.",
@@ -179,11 +179,21 @@ export default class IndexingService {
 
     // Loop through all plugins instances and stop them
     this.plugins.map(async (plugin) => {
+      /** Stop plugins */
       if (plugin?.stop) {
         try {
           await plugin.stop();
         } catch(e) {
           console.log("Error stopping plugin:", e);
+        }
+      }
+
+      /** Reset the specified plugin's settings */
+      if(pluginToReset && plugin?.uuid == pluginToReset && plugin?.reset) {
+        try {
+          await plugin.reset();
+        } catch(e) {
+          console.log("Error resetting plugin:", e);
         }
       }
     });

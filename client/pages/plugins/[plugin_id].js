@@ -318,6 +318,38 @@ export default function PluginDetails() {
 const OneContext = ({ plugin_id, context, setSelectedContext, pluginDetails }) => {
   console.log("pluginDetails context:", context);
   const { settings, setSettings, sessionJwt } = useGlobal();
+  const [dynamicVariables, setDynamicVariables] = useState(0);
+
+  useEffect(() => {
+
+    async function loadDynamicVariables() {
+      try {
+        let rawResponse = await fetch(`/api/plugins/${context.uuid}/dynamic-variables`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${sessionJwt}`,
+          },
+        });
+        const result = await rawResponse.json();
+        console.log("Plugin dynamic variables:", result);
+        if(result && result.dynamic_variables) {
+          setDynamicVariables(result.dynamic_variables);
+        }
+      } catch(e) {
+        console.log("Couldn't load plugin dynamic variables:", e)
+      }
+    }
+
+    // Load dynamic variables on start
+    loadDynamicVariables();
+
+    // Call loadDynamicVariables every 2.5 seconds
+    const intervalId = setInterval(loadDynamicVariables, 2500);
+
+    // Cleanup interval function 
+    return () => clearInterval(intervalId);
+  }, [])
 
   async function deletePlugin(context) {
     if (confirm('Are you sure you want to delete this plugin from this context?')) {
@@ -393,6 +425,39 @@ const OneContext = ({ plugin_id, context, setSelectedContext, pluginDetails }) =
         </div>
       )}
 
+      {/** Display dynamic variables if any */}
+      {(dynamicVariables != null && dynamicVariables.length > 0) &&
+        <div className="border-t border-slate-100 divide-y divide-slate-100" >
+          {dynamicVariables.map((dynamic_variable, index) => (
+            <div key={index} className="flex flex-col  p-3">
+               {/** Handle string */}
+               {(dynamic_variable.type == "string" || !dynamic_variable.type) &&
+                <div className="flex flex-col">
+                  <span className="font-medium text-xs mb-1">{dynamic_variable.name}: <span className="text-slate-600">{dynamic_variable.value}</span></span>
+                </div>
+              }
+             
+              {/** Handle type progress bar */}
+              {dynamic_variable.type == "slider" &&
+                <ProgressBarVariable dynamic_variable={dynamic_variable} />
+              }
+
+              {/** Hanlde type logs */}
+              {dynamic_variable.type == "logs" && dynamic_variable.value.length  > 0 &&
+              <>
+                <span className="font-medium text-xs mb-2">{dynamic_variable.name}:</span>
+                <div className="flex flex-col-reverse space-y-1.5 space-y-reverse max-h-90 overflow-y-scroll" >
+                  {dynamic_variable.value.map((log, index) => (
+                    <Alert key={index} color={log.color} title={log.title} className="text-xs break-words" />
+                  ))}
+                </div>
+              </>
+              }
+            </div>
+          ))}
+      </div>
+      }
+        
       {/** Display active routes if any */}
       {pluginDetails.routes && (
         <div className="flex flex-row bg-white text-slate-600 text-sm cursor-pointer border-t border-slate-200 space-x-1 px-3 py-1.5 items-center justify-center">
@@ -433,3 +498,27 @@ const OneContext = ({ plugin_id, context, setSelectedContext, pluginDetails }) =
     </div>
   );
 };
+
+
+const ProgressBarVariable = ({dynamic_variable}) => {
+  // Will return a different bar color based on the current progress
+  function getBarColor() {
+    let progress = parseInt(dynamic_variable.progress);
+    if(progress == 100) {
+      return "bg-green-400";
+    } else if(progress > 20) {
+      return "bg-sky-400";
+    } else {
+      return "bg-amber-400";
+    }
+  }
+  return(
+    <div className="flex flex-col">
+        <span className="font-medium text-xs mb-1">{dynamic_variable.name}: <span className="text-slate-600">{dynamic_variable.progress}%</span></span>
+        <div className="w-full bg-slate-100 rounded-full h-2 rounded-full">
+          <div className={`${getBarColor(dynamic_variable.progress)} h-2 rounded-full`}
+            style={{ width: `${dynamic_variable.progress}%` }}></div>
+        </div>
+      </div>
+  )
+}

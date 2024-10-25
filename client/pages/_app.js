@@ -129,10 +129,6 @@ function AppContent({ Component, pageProps }) {
     );
   } else if (settings?.configuration?.admins && !isShared) {
     /** User has finalized configuration, render app */
-    console.log(
-      "settings?.configuration?.admins:",
-      settings?.configuration?.admins
-    );
     return (
       <div className="h-full w-full flex flex-col">
         <Header showItems={true} />

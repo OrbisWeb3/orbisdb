@@ -19,14 +19,15 @@ export default class CustomInterface {
         } catch(e) {
             console.log("Error listening to contract:", e);
         }
-
-        
     }
 
     /** This parse function will return a formatted JSON object per event type */
     parse(event) {
+        let blockNumber = event.blockNumber.toString();
+        blockNumber = parseInt(blockNumber);
         let content = {
             _auto_type: event.event,
+            _auto_block_number: blockNumber,
             _auto_contract: this.address,
             _auto_hash: event.transactionHash,
         };

@@ -46,13 +46,14 @@ export default async function (server, opts) {
   await server.register(async function (server) {
     await server.addHook("onRequest", adminDidAuthMiddleware);
 
+    /** Will return the details for a specific plugin (not uuid but plugin like "evm-blockchain-listener") */
     server.get("/:plugin_id", async (req, res) => {
       const { plugin_id } = req.params;
 
       try {
         const plugins = await loadPlugins(); // This loads all available plugins
         const plugin = plugins.find((p) => p.id === plugin_id); // Find the plugin with the corresponding id
-
+        
         // If no plugin matches the provided id, send an appropriate response
         if (!plugin) {
           return res.notFound(`Plugin with id "${plugin_id}" not found.`);
@@ -65,6 +66,32 @@ export default async function (server, opts) {
         logger.error(error);
         return res.internalServerError(
           `Internal server error while loading plugin ${plugin_id}.`
+        );
+      }
+    });
+
+    /** Will return the dynamic variables for a plugin */
+    server.get("/:plugin_uuid/dynamic-variables", async (req, res) => {
+      const { plugin_uuid } = req.params;
+
+      try {
+        const pluginDetails = await loadPlugin(plugin_uuid);
+
+        // If no plugin matches the provided id, send an appropriate response
+        if (!pluginDetails) {
+          return res.notFound(`Plugin instance with id "${plugin_uuid}" not found.`);
+        }
+
+        // Retrieve plugin dynamic variables
+        let { results: dynamic_variables } = await pluginDetails.getDynamicVariables();
+
+        return {
+          dynamic_variables
+        };
+      } catch (error) {
+        logger.error(error);
+        return res.internalServerError(
+          `Internal server error while loading plugin ${plugin_uuid}.`
         );
       }
     });
@@ -180,13 +207,11 @@ export default async function (server, opts) {
           }
         }
 
-        logger.debug("settings:", settings);
-
         // Write the updated settings back to the file
         updateOrbisDBSettings(settings, adminDid);
 
-        // Reset plugins
-        global.indexingService.resetPlugins();
+        // Restart plugins
+        global.indexingService.restartPlugins(uuid);
 
         // Return results
         return {
@@ -229,7 +254,7 @@ export default async function (server, opts) {
             updateOrbisDBSettings(settings, adminDid);
     
             // Reset plugins
-            global.indexingService.resetPlugins();
+            global.indexingService.restartPlugins();
     
             // Return results
             return {

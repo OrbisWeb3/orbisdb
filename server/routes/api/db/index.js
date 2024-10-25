@@ -113,7 +113,6 @@ export default async function (server, opts) {
       let settings = getOrbisDBSettings();
 
       // If this is a shared instance we select the right db to query or use the global one
-      console.log("global.indexingService:", global.indexingService);
       let database = global.indexingService.databases["global"];
       if (adminDid && settings.is_shared) {
         database = global.indexingService.databases[adminDid];

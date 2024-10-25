@@ -1,10 +1,11 @@
 {
   "id": "evm-blockchain-listener",
-  "name": "Base Event Listener",
-  "logo": "/img/base-event-listener.png",
-  "description": "Listen to and store any smart contract event from Base Mainnet or Testnet.",
+  "name": "EVM Event Listener",
+  "logo": "/img/evm-event-listener.png",
+  "description": "Listen to and store any smart contract event from any EVM Blockchain. This can be useful to perform simple indexing tasks.",
   "hooks": ["generate"],
   "visible": true,
+  "has_dynamic_variables": true,
   "variables": [
     {
       "name": "WebSocket RPC URL",
@@ -30,6 +31,26 @@
       "description": "Which smart contract event do you want to start tracking?",
       "id": "event_name",
       "type": "select_custom_event",
+      "per_context": true
+    },
+    {
+      "name": "From Block Number",
+      "description": "Which block do you want to start the indexing from?",
+      "id": "from_block",
+      "type": "select",
+      "options": [
+        { "value": "latest", "label": "Latest" },
+        { "value": "custom", "label": "Custom" },
+        { "value": "genesis", "label": "Genesis " }
+      ],
+      "per_context": true
+    },
+
+    {
+      "name": "Custom Block Number",
+      "description": "Enter the custom block number you want to start with.",
+      "id": "custom_block_number",
+      "conditions": [{ "id": "from_block", "value": "custom" }],
       "per_context": true
     }
   ]

@@ -50,6 +50,10 @@ let loadedPlugins = [];
 
 /** Will load all of the plugins being specified in the settings file and init them with their respective variables */
 export async function loadAndInitPlugins() {
+  // Reset loaded plugins
+  loadedPlugins = [];
+
+  // Retrieve settings
   let settings = getOrbisDBSettings();
 
   const pluginsBaseDir = path.join(__dirname, "../plugins"); // Adjust the path as necessary
@@ -130,5 +134,45 @@ export async function loadPlugin(plugin_uuid) {
     }
   }
 
+  return null;
+}
+
+/** Will retrieve the plugin id based on the uuid */
+export function getPluginIdByUUID(settings, pluginUUID) {
+  // Check if settings and pluginUUID are provided
+  if (!settings || !pluginUUID) {
+    throw new Error("Both settings object and plugin UUID must be provided");
+  }
+
+  // Get all contexts
+  const contexts = settings.contexts || [];
+  const slots = settings.slots || {};
+
+  // Check in global plugins
+  const globalPlugins = settings.plugins || [];
+  for (let plugin of globalPlugins) {
+    const pluginContexts = plugin.contexts || [];
+    for (let context of pluginContexts) {
+      if (context.uuid === pluginUUID) {
+        return plugin.plugin_id;
+      }
+    }
+  }
+
+  // Check in slot-specific plugins
+  for (let slotKey in slots) {
+    const slot = slots[slotKey];
+    const slotPlugins = slot.plugins || [];
+    for (let plugin of slotPlugins) {
+      const pluginContexts = plugin.contexts || [];
+      for (let context of pluginContexts) {
+        if (context.uuid === pluginUUID) {
+          return plugin.plugin_id;
+        }
+      }
+    }
+  }
+
+  // If plugin not found, return null
   return null;
 }
