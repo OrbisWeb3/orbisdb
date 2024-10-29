@@ -13,9 +13,9 @@ const __dirname = path.dirname(__filename);
 
 const blocksIndexedFilePath = path.join(__dirname, 'blocks-indexed.json');
 
-let custom_computing = [
-  {
-    name: "erc1155_balances",
+let custom_computing = {
+  "erc1155_balance": {
+    name: "erc1155_balance",
     code: `
       let balances = {};
       // Array to store the results to be returned
@@ -62,8 +62,8 @@ let custom_computing = [
         name: "balance"
       }
     ]
-  },
-]
+  }
+}
 
 export default class EthereumEventPlugin {
   interface;
@@ -90,28 +90,18 @@ export default class EthereumEventPlugin {
       title: `Initializing plugin with ${this.contract_type} contract type.`
     });
 
-    /*
     // Loop through all custom computing functions in order to create a custom table for those
-    if(custom_computing && custom_computing.length > 0) {
+    if(this.use_custom_computing == "yes" && this.custom_computing_id) {
       this.addLog(
         {
           color: "sky",
-          title: `Identified ${custom_computing.length} custom computing actions to perform. Creating / loading a model for each ones`
+          title: `Identified ${this.custom_computing_id} custom computing action to perform. Creating / loading a model for it.`
         }
       );
-    } else {
-      this.addLog(
-        {
-          color: "sky",
-          title: `Plugin not using any custom computing function.`
-        }
-      );
+
+      // Create model for this custom action
+      await this.createCustomModel(custom_computing[this.custom_computing_id]);
     }
-    
-    // Looping through each custom computing action to create or load a model for each one
-    for (const action of custom_computing) {
-      await this.createCustomModel(action);
-    */
 
     // Will pick which interface to use based on the type of smart contract being listened to (ex: ERC20, ERC721 etc)
     switch (this.contract_type) {
@@ -363,16 +353,7 @@ export default class EthereumEventPlugin {
             .value(_event.content)
             .context(this.context)
             .run();
-
-          /** 
-          // Run custom computing code
-          if(custom_computing && custom_computing.length > 0) {
-            // Loop through all custom computings
-            for (const action of custom_computing) {
-              await this.customCompute(_event, action);
-            }
-          }
-          */
+          
 
           // Save latest block number in block settings file
           if(saveBlockNumberIndexed) {  
@@ -384,6 +365,12 @@ export default class EthereumEventPlugin {
           
         } catch (e) {
           console.log("Error creating stream:", e);
+        }
+
+        // Run custom computing code
+        if(this.use_custom_computing == "yes" && this.custom_computing_id) {
+          // Loop through all custom computings
+          await this.customCompute(_event, custom_computing[this.custom_computing_id]);
         }
       }
     }

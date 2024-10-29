@@ -1,10 +1,14 @@
 {
   "8ef17db6-29bf-4331-9401-c19a8817a6b1": {
-    "latestBlockIndexed": 16411394,
-    "countEventsIndexed": 0
+    "latestBlockIndexed": 21710363,
+    "countEventsIndexed": 1051
   },
   "e1755f5d-8578-467d-94ce-a4329ee302e3": {
-    "latestBlockIndexed": 9412259,
-    "countEventsIndexed": 7273
+    "latestBlockIndexed": 9414063,
+    "countEventsIndexed": 40675
+  },
+  "c262370d-c5e2-4ed7-8944-7889a5486693": {
+    "latestBlockIndexed": 18417233,
+    "countEventsIndexed": 115
   }
 }

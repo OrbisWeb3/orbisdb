@@ -45,13 +45,35 @@
       ],
       "per_context": true
     },
-
     {
       "name": "Custom Block Number",
       "description": "Enter the custom block number you want to start with.",
       "id": "custom_block_number",
       "conditions": [{ "id": "from_block", "value": "custom" }],
       "per_context": true
+    },
+    {
+      "name": "Use Custom Computing Function",
+      "type": "select",
+      "options": [
+        { "value": "no", "label": "No" },
+        { "value": "yes", "label": "Yes" }
+      ],
+      "description": "Select Yes if you want to use custom computing functions on those events (limited to a specific set of functions for now)",
+      "id": "use_custom_computing",
+      "per_context": true
+    },
+    {
+      "name": "Custom Computing Function (Experimental)",
+      "description": "Select the function you want to apply to the events retrieved.",
+      "id": "custom_computing_id",
+      "conditions": [{ "id": "use_custom_computing", "value": "yes" }],
+      "per_context": true,
+      "type": "select",
+      "options": [
+        { "value": 0, "label": "None" },
+        { "value": "erc1155_balance", "label": "ERC1155 Balances" }
+      ]
     }
   ]
 }
