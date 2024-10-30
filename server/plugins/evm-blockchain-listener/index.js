@@ -151,8 +151,8 @@ export default class EthereumEventPlugin {
             accountRelation: {
               type: "list",
             },
-            interface: false, // Assuming this field is part of your ModelDefinitionV2
-            implements: [], // Example field for ModelDefinitionV2
+            interface: false, 
+            implements: [], 
             schema: properties,
           };
 
@@ -166,13 +166,14 @@ export default class EthereumEventPlugin {
           } catch (e) {
             console.log(
               cliColors.text.red,
-              "Error creating model:",
+              "Error creating model for schema:",
+              JSON.stringify(schema),
               cliColors.reset,
               e
             );
             this.addLog({
               color: "red",
-              title: `Error creating ore retrieving model for this plugin: ${e.message}`
+              title: `Error creating or retrieving model for this plugin: ${e}`
             });
           }
         }
@@ -223,7 +224,7 @@ export default class EthereumEventPlugin {
       try {
         console.log(`Enter loop to make sure we index every blocks in batches.`)
         while (fromBlock <= currentBlockNumber) {
-          console.log(`Current batch => fromBlock: ${fromBlock} and toBlock: ${toBlock}`);
+          //console.log(`Current batch => fromBlock: ${fromBlock} and toBlock: ${toBlock}`);
           
           // Check if the stop flag is set
           if (this.should_stop_indexing_past_events) {
@@ -261,7 +262,7 @@ export default class EthereumEventPlugin {
           }
 
           // Log the total number of events found
-          console.log(`Total ${events.length} events found and indexed in this batch.`);
+          //console.log(`Total ${events.length} events found and indexed in this batch.`);
 
           // Move to the next batch
           fromBlock = toBlock + 1;
@@ -378,9 +379,6 @@ export default class EthereumEventPlugin {
 
   /** Will perform custom computing on top of the formatted event in order to have a more advanced indexing */
   async customCompute(event, action) { 
-    // Loop through all custom computings
-    console.log(`Executing custom computing for: ${action.name}`);
-
     // Require model id
     const modelId = this.customModels[action.name];
     if (!modelId) {
@@ -391,9 +389,7 @@ export default class EthereumEventPlugin {
     try {
       // Dynamically create a function from the code string and execute it
       const computeFunction = new Function('event', action.code);
-      console.log("computeFunction:", computeFunction);
       const actionResults = computeFunction(event);
-      console.log("actionResults:", actionResults);
 
       // Validate and store the results
       if (Array.isArray(actionResults)) {
@@ -638,7 +634,7 @@ export default class EthereumEventPlugin {
         {
           name: "Indexing Progress",
           type: "slider",
-          progress: this.completed_historical_syncing ? 100: progress,
+          progress: this.completed_historical_syncing ? 100: progress ? progress : 0,
           value: currentBlockIndexed,
           start: from_block_number,
           end: currentBlockNumber
@@ -750,8 +746,9 @@ function createJsonSchemaForEvent(event) {
   event.inputs.forEach((input) => {
     schema.properties[input.name] = {
       type: getType(input.type),
-      description: input.internalType,
+      description: input.internalType ? input.internalType : "",
     };
+    
     // Assuming all inputs are required
     schema.required.push(input.name);
   });
@@ -771,7 +768,9 @@ function getType(solidityType) {
       return "boolean";
     case "bytes":
     case "string":
+      return "string";
     case "uint256":
+      return "string";
     case "int256":
       return "string";
     default:
