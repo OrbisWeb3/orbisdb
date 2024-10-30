@@ -11,6 +11,7 @@ lerna-debug.log*
 
 # Excluding settings
 orbisdb-settings.json
+server/plugins/evm-blockchain-listener/blocks-indexed.json
 .DS_Store
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
