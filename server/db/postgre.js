@@ -873,7 +873,7 @@ export default class Postgre {
         callback();
       }
 
-      logger.debug(
+      console.log(
         cliColors.text.cyan,
         `🧩 Created table:`,
         cliColors.reset,
@@ -888,7 +888,7 @@ export default class Postgre {
         return true;
       }
 
-      logger.error(
+      console.log(
         cliColors.text.red,
         "Error creating new table.",
         cliColors.reset,

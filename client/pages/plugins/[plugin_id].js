@@ -321,7 +321,6 @@ const OneContext = ({ plugin_id, context, setSelectedContext, pluginDetails }) =
   const [dynamicVariables, setDynamicVariables] = useState(0);
 
   useEffect(() => {
-
     async function loadDynamicVariables() {
       try {
         let rawResponse = await fetch(`/api/plugins/${context.uuid}/dynamic-variables`, {
@@ -386,6 +385,76 @@ const OneContext = ({ plugin_id, context, setSelectedContext, pluginDetails }) =
     }
   }
 
+  const handleAction = (actionName) => {
+    try {
+       // Create a hidden file input dynamically
+       const input = document.createElement('input');
+       input.type = 'file';
+       input.accept = '.csv';
+       input.style.display = 'none';
+ 
+       // Set up the file selection handler
+       input.addEventListener('change', async function () {
+         if (input.files.length > 0) {
+           const file = input.files[0];
+           const reader = new FileReader();
+ 
+           reader.onload = async (event) => {
+             // Parse CSV data using PapaParse
+             const csvData = Papa.parse(event.target.result, { header: true }).data;
+ 
+             // Send parsed CSV data to server
+             try {
+               const response = await fetch(`/api/plugins/${context.uuid}/parse`, {
+                 method: 'POST',
+                 headers: { 'Content-Type': 'application/json' },
+                 body: JSON.stringify({ data: csvData, sessionId: context.uuid })
+               });
+               const result = await response.json();
+               console.log('Upload result:', result);
+             } catch (error) {
+               console.error('Upload error:', error);
+             }
+           };
+ 
+           // Read file as text
+           reader.readAsText(file);
+         }
+       });
+ 
+       // Append input, trigger click, and clean up
+       document.body.appendChild(input);
+       input.click();
+       document.body.removeChild(input);
+    } catch(e) {
+      console.log("Error executing CSV upload")
+    }
+    
+    /*if (actionName === 'upload') {
+      // Trigger the action endpoint to open the file upload dialog
+      fetch(`/api/plugins/${context.uuid}/actions/upload`)
+        .then(response => response.text())
+        .then(script => {
+          // Execute the JavaScript received from the server
+          eval(script);
+        })
+        .catch(error => console.error('Error triggering upload:', error));
+    }*/
+  };
+
+  const openRouteInPopup = (routeUrl) => {
+    const width = 600;
+    const height = 600;
+    const left = (window.screen.width - width) / 2;
+    const top = (window.screen.height - height) / 2;
+  
+    window.open(
+      routeUrl,
+      '_blank', // Target: open in a new window
+      `width=${width},height=${height},top=${top},left=${left},resizable,scrollbars`
+    );
+  };
+
   return (
     <div className="rounded-md bg-white border border-slate-200 flex flex-col overflow-hidden mb-3 mr-3 min-w-[170px] max-w-[350px]">
       {/** Context details */}
@@ -442,16 +511,24 @@ const OneContext = ({ plugin_id, context, setSelectedContext, pluginDetails }) =
                 <ProgressBarVariable dynamic_variable={dynamic_variable} />
               }
 
+              {/** Handle type badge */}
+              {dynamic_variable.type == "badge" &&
+                <div className="flex flex-row items-center space-x-1.5">
+                  <span className="font-medium text-xs">{dynamic_variable.name}:</span>
+                  <div className={dynamic_variable.className}>{dynamic_variable.value}</div>
+                </div>
+              }
+
               {/** Hanlde type logs */}
               {dynamic_variable.type == "logs" && dynamic_variable.value.length  > 0 &&
-              <>
-                <span className="font-medium text-xs mb-2">{dynamic_variable.name}:</span>
-                <div className="flex flex-col-reverse space-y-1.5 space-y-reverse max-h-90 overflow-y-scroll" >
-                  {dynamic_variable.value.map((log, index) => (
-                    <Alert key={index} color={log.color} title={log.title} className="text-xs break-words" />
-                  ))}
-                </div>
-              </>
+                <>
+                  <span className="font-medium text-xs mb-2">{dynamic_variable.name}:</span>
+                  <div className="flex flex-col-reverse space-y-1.5 space-y-reverse max-h-90 overflow-y-scroll" >
+                    {dynamic_variable.value.map((log, index) => (
+                      <Alert key={index} color={log.color} title={log.title} className="text-xs break-words" />
+                    ))}
+                  </div>
+                </>
               }
             </div>
           ))}
@@ -473,6 +550,27 @@ const OneContext = ({ plugin_id, context, setSelectedContext, pluginDetails }) =
                 <ExternalLinkIcon />
                 <span className="font-mono">/{route}</span>
               </Link>
+            ))}
+          </>
+        </div>
+      )}
+
+      {/* Display popups CTA if any */}
+      {pluginDetails.actions && (
+        <div className="flex flex-row bg-white text-slate-600 text-sm cursor-pointer border-t border-slate-200 space-x-1 px-3 py-1.5 items-center justify-center">
+          <div className="mr-1 font-medium">Actions:</div>
+          <>
+            {pluginDetails.actions.map((action, index) => (
+              /** If popup */
+              action.type === "popup" && (
+                <button
+                  onClick={() => openRouteInPopup(`/api/plugins/${context.uuid}/routes/${action.route}`)}
+                  className="bg-white border border-slate-200 hover:border-[#4483FD] rounded-md px-3 py-2 text-xs font-medium text-slate-800 space-x-1 flex flex-row items-center"
+                  key={index}
+                >
+                  <span>{action.label}</span>
+                </button>
+              )
             ))}
           </>
         </div>

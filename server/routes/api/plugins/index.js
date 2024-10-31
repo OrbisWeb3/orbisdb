@@ -83,11 +83,16 @@ export default async function (server, opts) {
         }
 
         // Retrieve plugin dynamic variables
-        let { results: dynamic_variables } = await pluginDetails.getDynamicVariables();
+        if(pluginDetails.getDynamicVariables) {
+          let { results: dynamic_variables } = await pluginDetails.getDynamicVariables();
+          return {
+            dynamic_variables
+          };
+        } else {
+          return []
+        }
 
-        return {
-          dynamic_variables
-        };
+        
       } catch (error) {
         logger.error(error);
         return res.internalServerError(

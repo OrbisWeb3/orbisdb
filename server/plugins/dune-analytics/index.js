@@ -1,10 +1,10 @@
 import { DuneClient, ColumnType, ContentType } from "@duneanalytics/client-sdk";
 import logger from "../../logger/index.js";
+import { Parser } from 'json2csv';
+import cron from "node-cron";
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { Parser } from 'json2csv';
-import cron from "node-cron";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

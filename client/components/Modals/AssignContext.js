@@ -200,7 +200,7 @@ export default function AssignContextModal({
               per_context={true}
             />
           ) : (
-            <div className="bg-amber-100 rounded-md border-dashed border border-amber-200 w-full py-2 justify-center flex mb-4">
+            <div className="bg-amber-50 rounded-md border-dashed border border-amber-200 w-full py-2 justify-center flex mb-4">
               <span className="text-center text-amber-800 text-base">
                 There aren't any contextualized variables to setup for this
                 plugin.
