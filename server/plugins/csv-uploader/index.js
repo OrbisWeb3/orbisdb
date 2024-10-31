@@ -195,10 +195,22 @@ export default class CSVUploaderPlugin {
             
             <!-- Input fields for file upload or message for already processing -->
             ${uploadHtmlCode}
+
+            <!-- Display Existing model details -->
+            <div id="existingModelDetails" class="hidden items-center flex-col">
+              <div class="flex w-full space-x-2 px-4 py-2">
+                <div class="mt-4 flex flex-col w-full">
+                  <p class="text-base text-center font-medium text-gray-900 mb-2">MODEL:</p>
+                  <div id="existingModelDetailsId" class="flex flex-col space-y-1 text-center items-center">
+                  </div>
+                </div>
+              </div>
+            </div>
+
             
             <div id="fieldsMappingContainer" class="hidden items-center flex flex-col">
               <!-- Let user change model name -->
-              <div id="columnNamesContainer" class="mt-4 flex flex-col w-full px-4 py-2">
+              <div id="modelNameContainer" class="mt-4 flex flex-col w-full px-4 py-2">
                 <p class="text-base text-center font-medium text-gray-900 mb-2">MODEL NAME:</p>
                 <input
                   type="text"
@@ -233,6 +245,8 @@ export default class CSVUploaderPlugin {
           let dataToUpload = [];
           let JsonSchemaProperties = {};
           let modelName = "";
+          let model_id = "${this.use_existing_model == 'yes' ? this.model_id : ''}";
+          console.log("model_id:", model_id);
 
           function handleFileSelect() {
             const fileInput = document.getElementById('csvFileInput');
@@ -258,61 +272,73 @@ export default class CSVUploaderPlugin {
                 
                 // Show upload btn
                 document.getElementById('upload-btn-container').style.display = 'flex'; 
-
-                // Get row elements
-                document.getElementById('fieldsMappingContainer').classList.remove('hidden');
-                const columnNamesRow = document.getElementById('columnNamesRow');
+                
                 // Set the default value of model name
                 modelName = modelName.substring(0, modelName.lastIndexOf(".")) || modelName; // Remove extension
                 document.getElementById("modelNameInput").value = modelName;
                 document.getElementById("modelNameInput").addEventListener('change', (e) => {
                     console.log("New model name is: " + e.target.value);
                     modelName = e.target.value;
-                  });
+                });
 
                 // For each column name, create a div element and append it to the row
-                results.meta.fields.forEach(fieldName => {
-                  // Create a div container for each field
-                  const fieldContainer = document.createElement('div');
-                  fieldContainer.classList.add('px-4', 'py-2', 'border-2', 'border-transparent', 'text-left', 'text-base', 'font-medium', 'text-gray-500', 'rounded-md', 'bg-gray-50', 'flex', 'items-center', 'space-x-2');
+                console.log("model_id:", model_id);
+                console.log("model_id is null:", model_id == null );
+                console.log("model_id is NOT null:", model_id != null );
+                if(model_id == null || model_id == "") {
+                  console.log("Should display fields details.");
+                  // Show Fields 
+                  document.getElementById('fieldsMappingContainer').classList.remove('hidden');
+                  const columnNamesRow = document.getElementById('columnNamesRow');
 
-                  // Add the field name as text
-                  const fieldNameElement = document.createElement('span');
-                  fieldNameElement.textContent = fieldName;
-                  fieldContainer.appendChild(fieldNameElement);
+                  results.meta.fields.forEach(fieldName => {
+                    // Create a div container for each field
+                    const fieldContainer = document.createElement('div');
+                    fieldContainer.classList.add('px-4', 'py-2', 'border-2', 'border-transparent', 'text-left', 'text-base', 'font-medium', 'text-gray-500', 'rounded-md', 'bg-gray-50', 'flex', 'items-center', 'space-x-2');
 
-                  // Create the select dropdown
-                  const select = document.createElement('select');
-                  select.classList.add('bg-white', 'border', 'border-slate-200', 'rounded-md', 'shadow-sm', 'px-3', 'py-1.5', 'text-sm', 'font-medium', 'text-slate-900');
+                    // Add the field name as text
+                    const fieldNameElement = document.createElement('span');
+                    fieldNameElement.textContent = fieldName;
+                    fieldContainer.appendChild(fieldNameElement);
 
-                  // Add other options for field types
-                  const options = ['string', 'number', 'boolean', 'object', 'array', 'did', 'datetime'];
-                  options.forEach(type => {
-                    const option = document.createElement('option');
-                    option.value = type;
-                    option.textContent = type.charAt(0).toUpperCase() + type.slice(1); // Capitalize first letter
-                    if (type === 'string') {
-                      option.selected = true; // Set "string" as the default selected option
-                    }
-                    select.appendChild(option);
+                    // Create the select dropdown
+                    const select = document.createElement('select');
+                    select.classList.add('bg-white', 'border', 'border-slate-200', 'rounded-md', 'shadow-sm', 'px-3', 'py-1.5', 'text-sm', 'font-medium', 'text-slate-900');
+
+                    // Add other options for field types
+                    const options = ['string', 'number', 'boolean', 'object', 'array', 'did', 'datetime'];
+                    options.forEach(type => {
+                      const option = document.createElement('option');
+                      option.value = type;
+                      option.textContent = type.charAt(0).toUpperCase() + type.slice(1); // Capitalize first letter
+                      if (type === 'string') {
+                        option.selected = true; // Set "string" as the default selected option
+                      }
+                      select.appendChild(option);
+                    });
+
+                    // Initialize field with default type in the schema properties
+                    JsonSchemaProperties[fieldName] = { type: "string" };
+
+                    // Event handler for selection changes (optional: customize as needed)
+                    select.addEventListener('change', (e) => {
+                      console.log("Field " + fieldName + " update to " + e.target.value);
+                      // Update the schema with the selected type for this field
+                      JsonSchemaProperties[fieldName] = { type: e.target.value };
+                    });
+
+                    // Append the select dropdown to the field container
+                    fieldContainer.appendChild(select);
+
+                    // Append the field container to the row element
+                    columnNamesRow.appendChild(fieldContainer);
                   });
-
-                  // Initialize field with default type in the schema properties
-                  JsonSchemaProperties[fieldName] = { type: "string" };
-
-                  // Event handler for selection changes (optional: customize as needed)
-                  select.addEventListener('change', (e) => {
-                    console.log("Field " + fieldName + " update to " + e.target.value);
-                    // Update the schema with the selected type for this field
-                    JsonSchemaProperties[fieldName] = { type: e.target.value };
-                  });
-
-                  // Append the select dropdown to the field container
-                  fieldContainer.appendChild(select);
-
-                  // Append the field container to the row element
-                  columnNamesRow.appendChild(fieldContainer);
-                });
+                } else {
+                  console.log("Should display model details.");
+                  document.getElementById('existingModelDetails').classList.remove('hidden');
+                  document.getElementById('existingModelDetailsId').textContent = "We will be using this existing model: ${this.model_id}";
+                }
+                
 
                 // Send data to the server
                 dataToUpload = results;
@@ -368,9 +394,9 @@ export default class CSVUploaderPlugin {
     }
 
     let stream_ids = [];
+    let jsonProperties;
 
     const { data, sessionId, properties, modelName } = req.body;
-    console.log("properties:", properties);
 
     // Log
     this.addLog({
@@ -379,42 +405,62 @@ export default class CSVUploaderPlugin {
     });
 
     // Build schema
-    let cleanModelName = modelName.replace(/[^a-zA-Z0-9]/g, '');
-    let schema = {
-      name: cleanModelName,
-      version: "1.0",
-      accountRelation: {
-        type: "list",
-      },
-      schema: {
-        type: "object",
-        $schema: "https://json-schema.org/draft/2020-12/schema",
-        additionalProperties: false,
-        properties: properties,
-        required: []
-      }
-    };
-    console.log("schema:", JSON.stringify(schema));
+    let model_id;
+    if(this.use_existing_model == "yes" || (!this.use_existing_model && this.model_id)) {
+      // Assign selected model id
+      model_id = this.model_id;
 
-    // Create model
-    let model;
-    try {
-      model = await this.orbisdb.ceramic.createModel(schema);
-      console.log("model created:", model);
+      // Retrieve properties for existing model
+      let model_details = await this.orbisdb.ceramic.getModel(this.model_id);
+      console.log("model_details:", model_details);
+      jsonProperties = model_details.schema.schema.properties;
+      console.log("properties:", jsonProperties);
+
       this.addLog({
         color: "sky",
-        title: `Model created for dataset: ${model.id}.`
-      });
-    } catch(e) {
-      console.log("Error creating model:", e);
-      this.addLog({
-        color: "red",
-        title: `Error creating model ${e.message}.`
+        title: `Using existing model: ${this.model_id}`
       });
     }
+    else {
+      jsonProperties = properties;
+      let cleanModelName = modelName.replace(/[^a-zA-Z0-9]/g, '');
+      let schema = {
+        name: cleanModelName,
+        version: "1.0",
+        accountRelation: {
+          type: "list",
+        },
+        schema: {
+          type: "object",
+          $schema: "https://json-schema.org/draft/2020-12/schema",
+          additionalProperties: false,
+          properties: jsonProperties,
+          required: []
+        }
+      };
+
+      console.log("schema:", JSON.stringify(schema));
+
+      // Create model
+      try {
+        let model = await this.orbisdb.ceramic.createModel(schema);
+        console.log("model created:", model);
+        model_id = model.id;
+        this.addLog({
+          color: "sky",
+          title: `Model created for dataset: ${model_id}.`
+        });
+      } catch(e) {
+        console.log("Error creating model:", e);
+        this.addLog({
+          color: "red",
+          title: `Error creating model ${e.message}.`
+        });
+      }
+    } 
 
     // If model created with success we proceed computing the streams
-    if(model) {
+    if(model_id) {
       logger.debug("Received CSV Data:", data);
 
       // Reset progress and errors 
@@ -434,17 +480,17 @@ export default class CSVUploaderPlugin {
           try {
             // Filter __content and convert numbers to their respective typed objects
             let filteredContent = Object.keys(content)
-              .filter((key) => key in properties) // Filter keys based on properties
+              .filter((key) => key in jsonProperties) // Filter keys based on properties
               .reduce((obj, key) => {
                 const value = content[key];
-                obj[key] = this.convertToTypedObject(key, value, properties); // Convert and assign the value
+                obj[key] = this.convertToTypedObject(key, value, jsonProperties); // Convert and assign the value
                 logger.debug("obj[key]:", obj[key]);
                 return obj;
               }, {});
 
             /** We then create the stream in Ceramic with the updated content */
             let stream = await this.orbisdb
-              .insert(model.id)
+              .insert(model_id)
               .value(filteredContent)
               .context(this.context)
               .run();

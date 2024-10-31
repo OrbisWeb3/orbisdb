@@ -8,5 +8,26 @@
     "type": "popup",
     "label": "Upload",
     "route": "upload" 
-  }]
+  }],
+  "variables": [
+    {
+      "name": "Do you want to use a specific model?",
+      "description": "If you don't we will automatically create a model based on your CSV fields.",
+      "id": "use_existing_model",
+      "type": "select",
+      "options": [
+        { "value": "no", "label": "No" },
+        { "value": "yes", "label": "Yes" }
+      ],
+      "per_context": true
+    },
+    {
+     "name": "Model",
+      "type": "string",
+      "description": "The model used by the streams created by the plugin. It must fit the columns names of your CSV file.",
+      "id": "model_id",
+      "conditions": [{ "id": "use_existing_model", "value": "yes" }],
+      "per_context": true
+    }
+  ]
 }

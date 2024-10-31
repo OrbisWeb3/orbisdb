@@ -456,7 +456,7 @@ const OneContext = ({ plugin_id, context, setSelectedContext, pluginDetails }) =
   };
 
   return (
-    <div className="rounded-md bg-white border border-slate-200 flex flex-col overflow-hidden mb-3 mr-3 min-w-[170px] max-w-[350px]">
+    <div className="rounded-md bg-white border border-slate-200 flex flex-col overflow-hidden mb-3 mr-3 min-w-[230px] max-w-[350px]">
       {/** Context details */}
       <div className="flex flex-row px-4 py-3 items-center space-x-1.5">
         {context.path.map((context_id, index) => {
