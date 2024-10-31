@@ -280,7 +280,7 @@ export default class CSVUploaderPlugin {
               console.log("Enter interval fetching in startProgressUpdates");
               try {
                 let response = await fetch("./progress/${sessionId}");
-                let progress = response.json();
+                let progress = response.ok ? await response.json() : {};
 
                 console.log('Progress:', progress);
 
@@ -401,7 +401,6 @@ export default class CSVUploaderPlugin {
             processedRows: i,
             failedRows: iErrors,
           };
-          
         }
       }
     }
@@ -417,15 +416,19 @@ export default class CSVUploaderPlugin {
   convertToTypedObject(key, value, properties) {
     const type = properties[key]?.type;
 
-    if(type) {
+    if (type) {
       if (type.includes("integer")) {
         return parseInt(value, 10);
       }
-  
-      if (type.includes("float") || type.includes("numeric") || type.includes("number")) {
+
+      if (
+        type.includes("float") ||
+        type.includes("numeric") ||
+        type.includes("number")
+      ) {
         return parseFloat(value, 10);
       }
-  
+
       if (type.includes("array") || type.includes("object")) {
         return JSON.parse(value);
       }
