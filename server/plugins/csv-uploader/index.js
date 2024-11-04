@@ -102,6 +102,13 @@ export default class CSVUploaderPlugin {
     const authHeader = req.headers["authorization"];
     logger.debug("authHeader:", authHeader);
 
+    const model_details = await this.orbisdb.ceramic.getModel(this.model_id);
+    logger.debug("model_details:", model_details);
+    const properties = model_details.schema.schema.properties;
+    logger.debug("properties:", properties);
+    // Serialize the properties object to a JSON string
+    const propertiesJson = JSON.stringify(properties);
+
     // Generate HTML code to handle situation when plugin is already processing another file
     let uploadHtmlCode = ``;
     if(this.status == 0) {
@@ -208,9 +215,9 @@ export default class CSVUploaderPlugin {
             </div>
 
             
-            <div id="fieldsMappingContainer" class="hidden items-center flex flex-col">
+            <div id="csvDetails" class="hidden items-center flex flex-col">
               <!-- Let user change model name -->
-              <div id="modelNameContainer" class="mt-4 flex flex-col w-full px-4 py-2">
+              <div id="modelNameContainer" class="hidden mt-4 flex flex-col w-full px-4 py-2">
                 <p class="text-base text-center font-medium text-gray-900 mb-2">MODEL NAME:</p>
                 <input
                   type="text"
@@ -226,6 +233,27 @@ export default class CSVUploaderPlugin {
                   <div id="columnNamesRow" class="flex flex-col space-y-1 items-center">
                   </div>
                 </div>
+              </div>
+
+              <!-- Display Fields mapping -->
+              <div id="fieldsMappingContainer" class="hidden flex w-full space-x-2 px-4 py-2">
+                <div class="flex flex-row space-x-2 w-full mt-4 mb-3">
+             
+                <!-- Display column names -->
+                <div id="fieldsMappingColumnNamesContainer" class="mt-4 flex w-1/2 flex-col">
+                  <p class="text-xs text-center font-medium text-gray-900 mb-2">CSV FIELDS:</p>
+                  <div id="fieldsMappingColumnNamesRow" class="flex flex-col space-y-1">
+                  </div>
+                </div>
+              
+                <!-- Display model fields -->
+                <div id="modelFieldsContainer" class="mt-4 flex w-1/2 flex-col">
+                  <p class="text-xs text-center font-medium text-gray-900 mb-2">MODEL FIELDS:</p>
+                  <div id="modelFieldsRow" class="flex flex-col space-y-1">
+                    <!-- Model fields will be appended here -->
+                  </div>
+                </div>
+
               </div>
             </div>
             
@@ -272,26 +300,31 @@ export default class CSVUploaderPlugin {
                 
                 // Show upload btn
                 document.getElementById('upload-btn-container').style.display = 'flex'; 
-                
-                // Set the default value of model name
-                modelName = modelName.substring(0, modelName.lastIndexOf(".")) || modelName; // Remove extension
-                document.getElementById("modelNameInput").value = modelName;
-                document.getElementById("modelNameInput").addEventListener('change', (e) => {
-                    console.log("New model name is: " + e.target.value);
-                    modelName = e.target.value;
-                });
+
+                // Get row elements
+                document.getElementById('csvDetails').classList.remove('hidden');
 
                 // For each column name, create a div element and append it to the row
                 console.log("model_id:", model_id);
                 console.log("model_id is null:", model_id == null );
                 console.log("model_id is NOT null:", model_id != null );
                 if(model_id == null || model_id == "") {
-                  console.log("Should display fields details.");
+                  console.log("Should display fields details for pre-selected model.");
+                
+                  // Set the default value of model name
+                  modelName = modelName.substring(0, modelName.lastIndexOf(".")) || modelName; // Remove extension
+                  document.getElementById("modelNameInput").value = modelName;
+                  document.getElementById("modelNameInput").addEventListener('change', (e) => {
+                      console.log("New model name is: " + e.target.value);
+                      modelName = e.target.value;
+                  });
+                  
                   // Show Fields 
-                  document.getElementById('fieldsMappingContainer').classList.remove('hidden');
+                  document.getElementById('modelNameContainer').classList.remove('hidden');
                   const columnNamesRow = document.getElementById('columnNamesRow');
 
                   results.meta.fields.forEach(fieldName => {
+                    console.log("Should display row:", fieldName);
                     // Create a div container for each field
                     const fieldContainer = document.createElement('div');
                     fieldContainer.classList.add('px-4', 'py-2', 'border-2', 'border-transparent', 'text-left', 'text-base', 'font-medium', 'text-gray-500', 'rounded-md', 'bg-gray-50', 'flex', 'items-center', 'space-x-2');
@@ -334,6 +367,52 @@ export default class CSVUploaderPlugin {
                     columnNamesRow.appendChild(fieldContainer);
                   });
                 } else {
+                  console.log("Using an existing model, map fields to csv headers");
+                  console.log('Model field names:', ${propertiesJson}); 
+                  let modelFieldNames = Object.keys(${propertiesJson});
+
+                  // Get the table and make it visible
+                  document.getElementById('fileUploadContainer').classList.add("hidden");
+                  const fieldsMappingContainer = document.getElementById('fieldsMappingContainer');
+                  fieldsMappingContainer.classList.remove('hidden');
+
+                  // Get the container for model fields
+                  const modelFieldsRow = document.getElementById('modelFieldsRow');
+                  const fieldsMappingColumnNamesRow  = document.getElementById('fieldsMappingColumnNamesRow');
+
+                  // Clear previous model fields
+                  modelFieldsRow.innerHTML = '';
+
+                  // Loop through properties object and append each field name
+                  modelFieldNames.forEach(fieldName => {
+                    const el = document.createElement('div');
+                    el.textContent = fieldName;
+                    el.classList.add('px-4', 'py-2', 'border-2', 'border-transparent', 'text-left', 'text-xs', 'font-medium', 'text-gray-500', 'rounded-md', 'bg-gray-50');
+                    
+                    // Check if fieldName is also in CSV fields and add green border if so
+                    if (results.meta.fields.includes(fieldName)) {
+                      el.classList.add('highligted-green');
+                    }
+                    
+                    modelFieldsRow.appendChild(el);
+                  });
+
+                  // For each column name, create a div element and append it to the row
+                  results.meta.fields.forEach(fieldName => {
+                    const el = document.createElement('div');
+                    el.textContent = fieldName;
+                    el.classList.add('px-4', 'py-2', 'border-2', 'border-transparent', 'text-left', 'text-xs', 'font-medium', 'text-gray-500', 'rounded-md', 'bg-gray-50');
+                    
+                    // Check if fieldName is also in model fields and add green border if so
+                    if (modelFieldNames.includes(fieldName)) {
+                      el.classList.add('highligted-green');
+                    } else {
+                      el.classList.add('rejected-red');
+                    }
+                    
+                    fieldsMappingColumnNamesRow.appendChild(el);
+                  });
+
                   console.log("Should display model details.");
                   document.getElementById('existingModelDetails').classList.remove('hidden');
                   document.getElementById('existingModelDetailsId').textContent = "We will be using this existing model: ${this.model_id}";
@@ -474,7 +553,7 @@ export default class CSVUploaderPlugin {
       });
 
       // Loop through all rows and
-      for (const content of data) {
+      for (const [index, content] of data.entries()) {
         // Check if the content is not empty
         if (Object.keys(content).length > 0) {
           try {
@@ -513,13 +592,8 @@ export default class CSVUploaderPlugin {
 
             this.addLog({
               color: "red",
-              title: `Error creating stream: ${e.message}.`
+              title: `Error creating stream (row #${index + 1}): ${e.message}.`
             });
-            this.progressStore[sessionId] = {
-              totalRows: data.length,
-              processedRows: i,
-              failedRows: iErrors,
-            };
           }
         }
       }
