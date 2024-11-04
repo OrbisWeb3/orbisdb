@@ -105,12 +105,21 @@ export default class CSVUploaderPlugin {
     // If using an existing model ID we parse it to retrieve fields name
     let propertiesJson;
     if(this.model_id && this.use_existing_model == 'yes') {
-      const model_details = await this.orbisdb.ceramic.getModel(this.model_id);
-      logger.debug("model_details:", model_details);
-      const properties = model_details.schema.schema.properties;
-      logger.debug("properties:", properties);
-      // Serialize the properties object to a JSON string
-      propertiesJson = JSON.stringify(properties);
+      try {
+        const model_details = await this.orbisdb.ceramic.getModel(this.model_id);
+        logger.debug("model_details:", model_details);
+        const properties = model_details.schema.schema.properties;
+        logger.debug("properties:", properties);
+        // Serialize the properties object to a JSON string
+        propertiesJson = JSON.stringify(properties);
+      } catch(e) {
+        console.log("Error loading model details:", e.message);
+        this.addLog({
+          color: "red",
+          title: `Error loading model details (ID: ${this.model_id}): ${e.message}.`
+        });
+      }
+      
     }
    
 
