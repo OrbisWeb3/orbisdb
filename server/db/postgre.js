@@ -1149,12 +1149,25 @@ export default class Postgre {
       // Detect additional fields using the $comment field
       let additionalParamaters;
       let unique = false;
+      let convert_to;
+
       if(value.$comment) {
+        // Try to parse comment field
         try {
-          additionalParamaters = JSON.parse(value.$comment);
-          unique = additionalParamaters.unique;
+          additionalParamaters = JSON.parse(value.$comment)
         } catch(e) {
           console.log("Error parsing $comment field:", e);
+        }
+        
+        if(additionalParamaters) {
+          // Handle Unique
+          unique = additionalParamaters.unique;
+
+          // Handle convert_to
+          convert_to = additionalParamaters.convert_to;
+          if(convert_to == "object" || convert_to == "array") {
+            postgresType = "JSONB";
+          }
         }
       }
 

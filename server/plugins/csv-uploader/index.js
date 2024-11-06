@@ -516,6 +516,24 @@ export default class CSVUploaderPlugin {
     }
     else {
       jsonProperties = properties;
+      console.log("properties:", properties);
+
+      // To finalize: Loop through properties in order to switch to string with "object" or "array" flag using the $comment field
+      /*for (const key in properties) {
+        if (properties.hasOwnProperty(key)) {
+          const type = properties[key].type;
+      
+          // Update $comment field based on type
+          if (type === 'object') {
+            properties[key].type = "string";
+            properties[key].$comment = '{ "convert_to": "object" }';
+          } else if (type === 'array') {
+            properties[key].type = "string";
+            properties[key].$comment = '{ "convert_to": "array" }';
+          }
+        }
+      }*/
+
       let cleanModelName = modelName.replace(/[^a-zA-Z0-9]/g, '');
       let schema = {
         name: cleanModelName,
@@ -577,7 +595,7 @@ export default class CSVUploaderPlugin {
               .reduce((obj, key) => {
                 const value = content[key];
                 obj[key] = this.convertToTypedObject(key, value, jsonProperties); // Convert and assign the value
-                logger.debug("obj[key]:", obj[key]);
+                console.log("obj[key]:", obj[key]);
                 return obj;
               }, {});
 
@@ -606,7 +624,7 @@ export default class CSVUploaderPlugin {
 
             this.addLog({
               color: "red",
-              title: `Error creating stream (row #${index + 1}): ${e.message}.`
+              title: `Error creating stream (row #${index}): ${e.message}.`
             });
           }
         }
@@ -647,19 +665,33 @@ export default class CSVUploaderPlugin {
 
     if(type) {
       if (type.includes("integer")) {
-        return parseInt(value, 10);
+        return parseInt(value, 10) || 0;
       }
   
+      // Trying to parse numerical values and return 0 if failing
       if (type.includes("float") || type.includes("numeric") || type.includes("number")) {
-        return parseFloat(value, 10);
+        return parseFloat(value) || 0;
       }
   
+      // Trying to parse array or object and return valid empty value if failing
       if (type.includes("array") || type.includes("object")) {
-        return JSON.parse(value);
+        try {
+          let parsedValue = JSON.parse(value);
+      
+          // Check if parsed value is an array or an object, and return accordingly
+          if (type.includes("array") && Array.isArray(parsedValue)) {
+            return parsedValue;
+          } else if (type.includes("object") && typeof parsedValue === "object" && !Array.isArray(parsedValue)) {
+            return parsedValue;
+          }
+        } catch (e) {
+          // Return an empty array or empty object based on the type if parsing fails
+          return type.includes("array") ? [] : {};
+        }
       }
     }
 
-    return value;
+    return value || "";
   }
 
   // Function to handle progress requests
