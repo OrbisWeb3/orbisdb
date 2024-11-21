@@ -1,0 +1,69 @@
+{
+  "id": "oamo-plugin",
+  "name": "Oamo Plugin",
+  "logo": "/img/oamo-plugin-logo.png",
+  "description": "Enhance your application with Oamo's profile and credential management capabilities.",
+  "full_description": "Oamo Plugin integrates seamlessly with your application to manage and validate profiles, credentials, and their relationships based on Oamo's comprehensive data models. It provides functionalities such as validating model instances to ensure data integrity and adding metadata to enrich your data streams. Leverage Oamo's decentralized identifiers (DIDs) and verifiable credentials to build a robust and secure user management system without compromising user privacy.",
+  "hooks": ["validate", "add_metadata"],
+  "variables": [
+    {
+      "name": "API Key",
+      "id": "api_key",
+      "description": "Your API key for authenticating with Oamo services.",
+      "type": "string",
+      "per_context": true
+    },
+    {
+      "name": "Action",
+      "description": "Select the action the plugin should perform.",
+      "id": "action",
+      "type": "select",
+      "options": [
+        { "value": "validate", "label": "Validate model instances" },
+        { "value": "add_metadata", "label": "Add metadata to model instances" }
+      ],
+      "per_context": true
+    },
+    {
+      "name": "Field",
+      "description": "Specify the field to use for the action. Fields under the 'content' object pertain to the model's properties, while generic fields like 'controller' are top-level.",
+      "id": "field",
+      "type": "string",
+      "per_context": true
+    },
+    {
+      "name": "Minimum Score",
+      "description": "The minimum score required for validation actions.",
+      "id": "min_score",
+      "type": "integer",
+      "per_context": true,
+      "conditions": [
+        { "id": "action", "value": "validate" }
+      ]
+    },
+    {
+      "name": "Oamo Environment",
+      "description": "Select the Oamo environment to connect to.",
+      "id": "environment",
+      "type": "select",
+      "options": [
+        { "value": "production", "label": "Production" },
+        { "value": "staging", "label": "Staging" },
+        { "value": "development", "label": "Development" }
+      ],
+      "per_context": true
+    },
+    {
+      "name": "Default Status",
+      "description": "Set the default document status for new entries.",
+      "id": "default_status",
+      "type": "select",
+      "options": [
+        { "value": "ACTIVE", "label": "Active" },
+        { "value": "INACTIVE", "label": "Inactive" },
+        { "value": "DELETED", "label": "Deleted" }
+      ],
+      "per_context": true
+    }
+  ]
+}
