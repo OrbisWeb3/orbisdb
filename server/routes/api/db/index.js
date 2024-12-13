@@ -15,7 +15,8 @@ export default async function (server, opts) {
 
     // API endpoint to query a table
     server.post("/query/all", async (req, res) => {
-      const { table, page, context, order_by_indexed_at } = req.body;
+      const { table, page, context, order_by_indexed_at, embedding_near } =
+        req.body;
 
       // Retrieve admin
       let adminDid = req.adminDid;
@@ -30,12 +31,18 @@ export default async function (server, opts) {
       }
 
       try {
-        let response = await database.queryGlobal(
-          table,
-          parseInt(page, 10),
-          true,
-          context
-        );
+        // Query database with vector similarity logic if embedding_near is provided
+        const response = embedding_near
+          ? await database.query(
+              `SELECT *, embedding <=> $1 AS similarity FROM ${table} ORDER BY similarity LIMIT 10`,
+              [embedding_near]
+            )
+          : await database.queryGlobal(
+              table,
+              parseInt(page, 10),
+              true,
+              context
+            );
         if (response && response.data) {
           return {
             columns: response.data.fields,
@@ -126,7 +133,13 @@ export default async function (server, opts) {
             error: `There wasn't any results returned from table.`,
           });
         }
-
+        response.data.forEach((table) => {
+          table.columns.forEach((column) => {
+            if (column.data_type === "vector") {
+              column._near = true; // Mark vector fields for special filters
+            }
+          });
+        });
         return {
           data: response.data,
           totalCount: response.totalCount,
@@ -160,10 +173,22 @@ export default async function (server, opts) {
 
       try {
         const response = await database.indexModel(model_id, null, true);
+        const content = response.content;
+        const embedding = content?.embedding || null;
         if (!response) {
           res.status(404);
           return {
             error: `Couldn't index this model: ` + model_id,
+          };
+        }
+        const updatedResponse = await database.upsert(model_id, {
+          ...response,
+          embedding,
+        });
+        if (!updatedResponse) {
+          res.status(404);
+          return {
+            error: `Couldn't index this model due to embedding: ` + model_id,
           };
         }
 
@@ -307,6 +332,12 @@ export default async function (server, opts) {
     let database = global.indexingService.databases["global"];
     if (slot && settings.is_shared) {
       database = global.indexingService.databases[slot];
+    }
+
+    if (jsonQuery.filter?.embedding_near) {
+      query += `, embedding <=> $1 AS similarity`;
+      query += ` ORDER BY similarity LIMIT 10`;
+      params.push(jsonQuery.filter.embedding_near);
     }
 
     try {
