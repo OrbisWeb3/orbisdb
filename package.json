@@ -23,11 +23,18 @@
   "scripts": {
     "build": "cd client && next build",
     "start": "cross-env NODE_ENV=production node index.js",
-    "dev": "node index.js",
+    "dev": "npm run docker:start && node index.js",
     "dev:debug": "cross-env LOG_LEVEL=debug node index.js",
     "dev:watch": "nodemon --ignore '*.json' index.js",
     "format": "prettier . --write",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "docker:build": "docker build -t postgres-with-pgvector .",
+    "docker:run": "docker run -d --name postgres-pgvector -e POSTGRES_PASSWORD=postgres -p 5432:5432 postgres-with-pgvector",
+    "docker:stop": "docker stop postgres-pgvector && docker rm postgres-pgvector",
+    "docker:restart": "npm run docker:stop && npm run docker:run",
+    "docker:start": "docker ps | grep postgres-pgvector || npm run docker:run",
+    "docker:status": "docker ps",
+    "docker:setup": "npm run docker:build && npm run docker:run"
   },
   "main": "index.js",
   "type": "module",
