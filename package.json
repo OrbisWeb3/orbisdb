@@ -29,7 +29,7 @@
     "format": "prettier . --write",
     "test": "echo \"Error: no test specified\" && exit 1",
     "docker:build": "docker build -t postgres-with-pgvector .",
-    "docker:run": "docker run -d --name postgres-pgvector -e POSTGRES_PASSWORD=postgres -p 5432:5432 postgres-with-pgvector",
+    "docker:run": "docker images | grep postgres-with-pgvector || npm run docker:build && docker run -d --name postgres-pgvector -e POSTGRES_PASSWORD=postgres -p 5432:5432 postgres-with-pgvector",
     "docker:stop": "docker stop postgres-pgvector && docker rm postgres-pgvector",
     "docker:restart": "npm run docker:stop && npm run docker:run",
     "docker:start": "docker ps | grep postgres-pgvector || npm run docker:run",
