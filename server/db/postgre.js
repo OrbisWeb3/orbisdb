@@ -1237,15 +1237,13 @@ ${indexes
   async jsonSchemaToPostgresFields(jsonSchema) {
     const postgresFields = [];
     const postgresIndexes = [];
-    const extensions = await this.fetchExtensions();
 
     for (const key in jsonSchema) {
       const value = jsonSchema[key];
 
       const customDefinition = await this.parseCustomFieldDefinition(
         key,
-        value,
-        extensions
+        value
       );
 
       if (customDefinition) {
@@ -1302,10 +1300,12 @@ ${indexes
     return [postgresFields, postgresIndexes];
   }
 
-  async #checkExtensionsRequirement(requiredExtensions, availableExtensions) {
+  async #checkExtensionsRequirement(requiredExtensions) {
     if (!requiredExtensions || !requiredExtensions.length) {
       return true;
     }
+
+    let availableExtensions = await this.fetchExtensions();
 
     for (const ext of requiredExtensions) {
       const exists = availableExtensions.find(
@@ -1319,7 +1319,12 @@ ${indexes
       if (!exists.installed) {
         try {
           await this.enableExtension(exists.name);
-          console.log("Enabled extension", exists.name);
+          console.log(
+            "Enabled extension:",
+            exists.name,
+            "| Refreshing extension list..."
+          );
+          availableExtensions = await this.fetchExtensions();
         } catch (e) {
           console.error("Failed to enable extension", e);
           return false;
@@ -1330,7 +1335,7 @@ ${indexes
     return true;
   }
 
-  async parseCustomFieldDefinition(name, definition, extensions) {
+  async parseCustomFieldDefinition(name, definition) {
     if (!definition.examples?.length) {
       return false;
     }
@@ -1351,8 +1356,7 @@ ${indexes
     }
 
     const extensionSupport = await this.#checkExtensionsRequirement(
-      customDefinition.extensions || [],
-      extensions
+      customDefinition.extensions || []
     );
 
     let customIndex;
