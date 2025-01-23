@@ -169,22 +169,10 @@ export default async function (server, opts) {
 
       try {
         const response = await database.indexModel(model_id, null, true);
-        const content = response.content;
-        const embedding = content?.embedding || null;
         if (!response) {
           res.status(404);
           return {
             error: `Couldn't index this model: ` + model_id,
-          };
-        }
-        const updatedResponse = await database.upsert(model_id, {
-          ...response,
-          embedding,
-        });
-        if (!updatedResponse) {
-          res.status(404);
-          return {
-            error: `Couldn't index this model due to embedding: ` + model_id,
           };
         }
 
