@@ -31,18 +31,14 @@ export default async function (server, opts) {
       }
 
       try {
-        // Query database with vector similarity logic if embedding_near is provided
-        const response = embedding_near
-          ? await database.query(
-              `SELECT *, embedding <=> $1 AS similarity FROM ${table} ORDER BY similarity LIMIT 10`,
-              [embedding_near]
-            )
-          : await database.queryGlobal(
-              table,
-              parseInt(page, 10),
-              true,
-              context
-            );
+        // TODO: support embedding_near once defined and used in the frontend
+        const response = await database.queryGlobal(
+          table,
+          parseInt(page, 10),
+          true,
+          context
+        );
+
         if (response && response.data) {
           return {
             columns: response.data.fields,
@@ -334,11 +330,12 @@ export default async function (server, opts) {
       database = global.indexingService.databases[slot];
     }
 
-    if (jsonQuery.filter?.embedding_near) {
-      query += `, embedding <=> $1 AS similarity`;
-      query += ` ORDER BY similarity LIMIT 10`;
-      params.push(jsonQuery.filter.embedding_near);
-    }
+    // TODO: assume raw SQL for now, query building should be a part of the SDK
+    // if (jsonQuery.filter?.embedding_near) {
+    //   query += `, embedding <=> $1 AS similarity`;
+    //   query += ` ORDER BY similarity LIMIT 10`;
+    //   params.push(jsonQuery.filter.embedding_near);
+    // }
 
     try {
       const response = await database.query(query, params);
@@ -362,4 +359,3 @@ export default async function (server, opts) {
     }
   });
 }
-
