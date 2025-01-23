@@ -23,7 +23,8 @@
   "scripts": {
     "build": "cd client && next build",
     "start": "cross-env NODE_ENV=production node index.js",
-    "dev": "npm run docker:start && node index.js",
+    "dev": "node index.js",
+    "dev:docker": "npm run docker:start && node index.js",
     "dev:debug": "cross-env LOG_LEVEL=debug node index.js",
     "dev:watch": "nodemon --ignore '*.json' index.js",
     "format": "prettier . --write",
