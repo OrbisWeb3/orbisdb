@@ -545,12 +545,11 @@ export default class Postgre {
           resolve: async (_, { filter, orderBy }) => {
             const client = await this.adminPool.connect();
             try {
-              let query = `SELECT * FROM ${modelId}`;
               const whereClauses = [];
+              const variables = [];
               const params = [];
               if (filter) {
                 Object.entries(filter).forEach(([field, value], index) => {
-                  let vectorQuery;
                   if (Array.isArray(value)) {
                     whereClauses.push(
                       `${field} IN (${value.map((v, i) => `$${index + i + 1}`).join(", ")})`
@@ -558,10 +557,12 @@ export default class Postgre {
                     params.push(...value);
                   } else if (field.endsWith("_near")) {
                     // Vector similarity query
-                    vectorQuery = {
-                      field: field.replace("_near", ""),
-                      vector: value,
-                    };
+                    const field_name = field.replace("_near", "");
+                    variables.push(
+                      `${field_name} <=> $${index + 1} AS ${field_name}_simil`
+                    );
+                    params.push(value);
+                    whereClauses.push(`${field_name}_simil IS NOT NULL`);
                   } else if (field.endsWith("_eq")) {
                     whereClauses.push(
                       `${field.replace("_eq", "")} = $${index + 1}`
@@ -620,19 +621,21 @@ export default class Postgre {
                     params.push(value);
                   }
                 });
-                if (vectorQuery) {
-                  query += `, ${vectorQuery.field} <=> $${params.length + 1} AS similarity`;
-                  whereClauses.push(`similarity IS NOT NULL`);
-                  params.push(vectorQuery.vector);
-                }
+
                 if (whereClauses.length > 0) {
-                  query += ` WHERE ${whereClauses.join(" AND ")}`;
+                  query += ` WHERE }`;
                 }
               }
-              if (orderBy) {
-                query += ` ORDER BY "${orderBy.field}" ${orderBy.direction}`;
-              }
-              query += ` LIMIT 50`;
+
+              const query = `
+                SELECT * 
+                  ${variables ? ", " + variables.join(",") : ""} 
+                FROM 
+                  ${modelId}
+                ${whereClauses.length ? `WHERE ` + whereClauses.join(" AND ") : ""}
+                ${orderBy ? `ORDER BY "${orderBy.field}" ${orderBy.direction}` : ""}
+                LIMIT 50`;
+
               const result = await client.query(query, params);
               return result.rows;
             } finally {
@@ -865,7 +868,7 @@ export default class Postgre {
 
     if (!fields.some((field) => field.name === "embedding")) {
       fields.push({ name: "embedding", type: "VECTOR(1536)" });
-  }
+    }
     const columns = fields
       .map((field) => {
         // Add UNIQUE constraint if field.unique is true
@@ -873,8 +876,6 @@ export default class Postgre {
         return `"${field.name}" ${field.type}${uniqueConstraint}`;
       })
       .join(", ");
-    
-  
 
     // Construct the full SQL statement for table creation
     const createTableQuery = `
@@ -1160,60 +1161,59 @@ export default class Postgre {
   }
 
   /** Will convert the properties from the JSON schemas into Postgre's fields to create the new table */
-jsonSchemaToPostgresFields(jsonSchema) {
-  const postgresFields = [];
+  jsonSchemaToPostgresFields(jsonSchema) {
+    const postgresFields = [];
 
-  for (const key in jsonSchema) {
-    const value = jsonSchema[key];
+    for (const key in jsonSchema) {
+      const value = jsonSchema[key];
 
-    // Determine PostgreSQL data type based on JSON schema
-    let postgresType;
+      // Determine PostgreSQL data type based on JSON schema
+      let postgresType;
 
-    // Check for specific "embedding" field
-    if (key === "embedding") {
-      postgresType = "VECTOR(1536)"; // Explicitly set the VECTOR type for embedding
-    } else if (Array.isArray(value.type)) {
-      if (value.type.includes("object") || value.type.includes("array")) {
-        postgresType = "JSONB";
-      } else {
-        // Handles basic types (string, number) with possible nulls
-        postgresType = this.jsonTypeToPostgresType(value.type[0]);
-      }
-    } else {
-      postgresType = this.jsonTypeToPostgresType(value.type);
-    }
-
-    // Detect additional fields using the $comment field
-    let additionalParameters;
-    let unique = false;
-    let convert_to;
-
-    if (value.$comment) {
-      // Try to parse comment field
-      try {
-        additionalParameters = JSON.parse(value.$comment);
-      } catch (e) {
-        console.log("Error parsing $comment field:", e);
-      }
-
-      if (additionalParameters) {
-        // Handle Unique
-        unique = additionalParameters.unique;
-
-        // Handle convert_to
-        convert_to = additionalParameters.convert_to;
-        if (convert_to === "object" || convert_to === "array") {
+      // Check for specific "embedding" field
+      if (key === "embedding") {
+        postgresType = "VECTOR(1536)"; // Explicitly set the VECTOR type for embedding
+      } else if (Array.isArray(value.type)) {
+        if (value.type.includes("object") || value.type.includes("array")) {
           postgresType = "JSONB";
+        } else {
+          // Handles basic types (string, number) with possible nulls
+          postgresType = this.jsonTypeToPostgresType(value.type[0]);
+        }
+      } else {
+        postgresType = this.jsonTypeToPostgresType(value.type);
+      }
+
+      // Detect additional fields using the $comment field
+      let additionalParameters;
+      let unique = false;
+      let convert_to;
+
+      if (value.$comment) {
+        // Try to parse comment field
+        try {
+          additionalParameters = JSON.parse(value.$comment);
+        } catch (e) {
+          console.log("Error parsing $comment field:", e);
+        }
+
+        if (additionalParameters) {
+          // Handle Unique
+          unique = additionalParameters.unique;
+
+          // Handle convert_to
+          convert_to = additionalParameters.convert_to;
+          if (convert_to === "object" || convert_to === "array") {
+            postgresType = "JSONB";
+          }
         }
       }
+
+      postgresFields.push({ name: key, type: postgresType, unique: unique });
     }
 
-    postgresFields.push({ name: key, type: postgresType, unique: unique });
+    return postgresFields;
   }
-
-  return postgresFields;
-}
-
 
   /** Simple converter between json format nomenclature and Postgre */
   jsonTypeToPostgresType(jsonType) {
@@ -1243,4 +1243,3 @@ jsonSchemaToPostgresFields(jsonSchema) {
     }
   }
 }
-
