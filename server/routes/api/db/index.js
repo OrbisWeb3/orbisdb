@@ -15,7 +15,8 @@ export default async function (server, opts) {
 
     // API endpoint to query a table
     server.post("/query/all", async (req, res) => {
-      const { table, page, context, order_by_indexed_at } = req.body;
+      const { table, page, context, order_by_indexed_at, embedding_near } =
+        req.body;
 
       // Retrieve admin
       let adminDid = req.adminDid;
@@ -30,12 +31,14 @@ export default async function (server, opts) {
       }
 
       try {
-        let response = await database.queryGlobal(
+        // TODO: support embedding_near once defined and used in the frontend
+        const response = await database.queryGlobal(
           table,
           parseInt(page, 10),
           true,
           context
         );
+
         if (response && response.data) {
           return {
             columns: response.data.fields,
@@ -126,7 +129,13 @@ export default async function (server, opts) {
             error: `There wasn't any results returned from table.`,
           });
         }
-
+        response.data.forEach((table) => {
+          table.columns.forEach((column) => {
+            if (column.data_type === "vector") {
+              column._near = true; // Mark vector fields for special filters
+            }
+          });
+        });
         return {
           data: response.data,
           totalCount: response.totalCount,
@@ -309,6 +318,13 @@ export default async function (server, opts) {
       database = global.indexingService.databases[slot];
     }
 
+    // TODO: assume raw SQL for now, query building should be a part of the SDK
+    // if (jsonQuery.filter?.embedding_near) {
+    //   query += `, embedding <=> $1 AS similarity`;
+    //   query += ` ORDER BY similarity LIMIT 10`;
+    //   params.push(jsonQuery.filter.embedding_near);
+    // }
+
     try {
       const response = await database.query(query, params);
       if (!response) {
@@ -331,4 +347,3 @@ export default async function (server, opts) {
     }
   });
 }
-

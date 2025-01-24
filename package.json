@@ -24,10 +24,15 @@
     "build": "cd client && next build",
     "start": "cross-env NODE_ENV=production node index.js",
     "dev": "node index.js",
+    "dev:docker": "npm run docker:start && node index.js",
     "dev:debug": "cross-env LOG_LEVEL=debug node index.js",
     "dev:watch": "nodemon --ignore '*.json' index.js",
     "format": "prettier . --write",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "docker:start": "docker start orbisdb-pgvector || docker run -d --name orbisdb-pgvector -e POSTGRES_PASSWORD=postgres -p 5432:5432 pgvector/pgvector:0.7.4-pg16",
+    "docker:stop": "docker stop orbisdb-pgvector",
+    "docker:restart": "npm run docker:stop && npm run docker:start || npm run docker:start",
+    "docker:remove": "docker rm orbisdb-pgvector || docker stop orbisdb-pgvector && docker rm orbisdb-pgvector",
+    "docker:status": "docker ps"
   },
   "main": "index.js",
   "type": "module",

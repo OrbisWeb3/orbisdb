@@ -676,7 +676,7 @@ const TableData = ({ sqlResult, showSuccessIfEmpty }) => {
                 <span className="flex items-center justify-center space-x-1.5">
                   <span className="flex-1">{header.name}</span>{" "}
                   <span className="font-mono text-[10px] bg-white font-normal rounded-full border border-slate-200 px-2 py-0.5">
-                    {pgTypeIDMapping[header.dataTypeID]}
+                    {pgTypeIDMapping[header.dataTypeID] || "custom"}
                   </span>
                   <CaretDown className="text-slate-500" />
                 </span>
@@ -890,4 +890,3 @@ const pgTypeIDMapping = {
   2951: "_uuid",
   3221: "_pg_lsn",
 };
-
