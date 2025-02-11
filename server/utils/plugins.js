@@ -1,7 +1,11 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath, pathToFileURL } from "url";
-import { getOrbisDBSettings } from "./helpers.js";
+import {
+  getOrbisDBSettings,
+  updateOrAddPlugin,
+  updateOrbisDBSettings,
+} from "./helpers.js";
 import logger from "../logger/index.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -48,6 +52,46 @@ export async function loadPlugins() {
 // This array will hold all the instantiated and initialized plugins
 let loadedPlugins = [];
 
+const getPluginClass = async (plugin) => {
+  const pluginsBaseDir = path.join(__dirname, "../plugins");
+  const pluginDir = path.join(pluginsBaseDir, plugin.plugin_id);
+  const pluginFile = path.join(pluginDir, "index.js");
+  const PluginModule = await import(pathToFileURL(pluginFile));
+
+  return PluginModule?.default;
+};
+
+export async function installPlugin(plugin, slot) {
+  // Retrieve settings for this slot
+  const settings = getOrbisDBSettings(slot);
+
+  try {
+    // Add the new plugin or update it if already exists
+    const updatedSettings = updateOrAddPlugin(settings, plugin);
+    const pluginClass = await getPluginClass(plugin);
+
+    // Rewrite the settings file
+    // Handle rollback in case of error
+    updateOrbisDBSettings(updatedSettings, slot);
+
+    const pluginMessage =
+      typeof pluginClass.onInstall === "function"
+        ? await pluginClass.onInstall({
+            slot: slot || "global",
+            variables: plugin.variables,
+            plugin_id: plugin.plugin_id,
+            orbisdb: global.indexingService.ceramics[slot]?.orbisdb,
+          })
+        : undefined;
+
+    return { updatedSettings: getOrbisDBSettings(slot), pluginMessage };
+  } catch (err) {
+    updateOrbisDBSettings(settings, slot);
+    logger.error(err);
+    return { error: "Failed to update settings." };
+  }
+}
+
 /** Will load all of the plugins being specified in the settings file and init them with their respective variables */
 export async function loadAndInitPlugins() {
   // Reset loaded plugins
@@ -60,7 +104,7 @@ export async function loadAndInitPlugins() {
 
   /** If instance is shared loop through all slots to find plugins */
   const pluginSettings = settings.is_shared
-    ? settings.slots ?? {}
+    ? (settings.slots ?? {})
     : { global: { plugins: settings.plugins } };
 
   for (const [key, slot] of Object.entries(pluginSettings) ?? []) {
