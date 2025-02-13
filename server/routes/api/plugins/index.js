@@ -7,7 +7,11 @@ import {
   updateOrAddPlugin,
   updateOrbisDBSettings,
 } from "../../../utils/helpers.js";
-import { loadPlugin, loadPlugins } from "../../../utils/plugins.js";
+import {
+  installPlugin,
+  loadPlugin,
+  loadPlugins,
+} from "../../../utils/plugins.js";
 import { __dirname } from "../../../utils/helpers.js";
 import logger from "../../../logger/index.js";
 
@@ -25,17 +29,24 @@ export default async function (server, opts) {
     }
   });
 
-  server.get('/readme/:pluginId', (req, res) => {
+  server.get("/readme/:pluginId", (req, res) => {
     const pluginId = req.params.pluginId;
-    const readmePath = path.join(__dirname, '../plugins', pluginId, 'README.md');
-  
-    fs.readFile(readmePath, 'utf8', (err, data) => {
+    const readmePath = path.join(
+      __dirname,
+      "../plugins",
+      pluginId,
+      "README.md"
+    );
+
+    fs.readFile(readmePath, "utf8", (err, data) => {
       if (err) {
-        if (err.code === 'ENOENT') {
-          console.log('README file not found for ' + pluginId + " / path:" + readmePath);
+        if (err.code === "ENOENT") {
+          console.log(
+            "README file not found for " + pluginId + " / path:" + readmePath
+          );
           return res.status(404).send();
         } else {
-          return res.status(500).send('Server error');
+          return res.status(500).send("Server error");
         }
       }
       res.send(data);
@@ -53,7 +64,7 @@ export default async function (server, opts) {
       try {
         const plugins = await loadPlugins(); // This loads all available plugins
         const plugin = plugins.find((p) => p.id === plugin_id); // Find the plugin with the corresponding id
-        
+
         // If no plugin matches the provided id, send an appropriate response
         if (!plugin) {
           return res.notFound(`Plugin with id "${plugin_id}" not found.`);
@@ -79,20 +90,21 @@ export default async function (server, opts) {
 
         // If no plugin matches the provided id, send an appropriate response
         if (!pluginDetails) {
-          return res.notFound(`Plugin instance with id "${plugin_uuid}" not found.`);
+          return res.notFound(
+            `Plugin instance with id "${plugin_uuid}" not found.`
+          );
         }
 
         // Retrieve plugin dynamic variables
-        if(pluginDetails.getDynamicVariables) {
-          let { results: dynamic_variables } = await pluginDetails.getDynamicVariables();
+        if (pluginDetails.getDynamicVariables) {
+          let { results: dynamic_variables } =
+            await pluginDetails.getDynamicVariables();
           return {
-            dynamic_variables
+            dynamic_variables,
           };
         } else {
-          return []
+          return [];
         }
-
-        
       } catch (error) {
         logger.error(error);
         return res.internalServerError(
@@ -106,28 +118,20 @@ export default async function (server, opts) {
       const { plugin } = req.body;
       const adminDid = req.adminDid;
 
-      try {
-        // Retrieve settings for this slot
-        const settings = getOrbisDBSettings(adminDid);
+      const { updatedSettings, pluginMessage, error } = await installPlugin(
+        plugin,
+        adminDid
+      );
 
-        // Add the new plugin or update it if already exists
-        const updatedSettings = updateOrAddPlugin(settings, plugin);
-
-        logger.debug("New settings:", updatedSettings);
-
-        // Rewrite the settings file
-        updateOrbisDBSettings(updatedSettings, adminDid);
-
-        // Send the response
-        return {
-          updatedSettings,
-          result: "New plugin added to the settings file.",
-        };
-      } catch (err) {
-        logger.error(err);
-
-        return res.internalServerError("Failed to update settings.");
+      if (error) {
+        return res.internalServerError(error);
       }
+
+      return {
+        updatedSettings,
+        pluginMessage,
+        result: "New plugin added to the settings file.",
+      };
     });
 
     // Assign a plugin to a specified context
@@ -245,22 +249,26 @@ export default async function (server, opts) {
         const settings = getOrbisDBSettings(adminDid);
 
         // TODO: Find plugin in settings.plugins using the plugin_id and uuid and delete it
-        const pluginIndex = settings.plugins.findIndex(plugin => plugin.plugin_id === plugin_id);
+        const pluginIndex = settings.plugins.findIndex(
+          (plugin) => plugin.plugin_id === plugin_id
+        );
         if (pluginIndex !== -1) {
-          const contextIndex = settings.plugins[pluginIndex].contexts.findIndex(context => context.uuid === uuid);
-    
+          const contextIndex = settings.plugins[pluginIndex].contexts.findIndex(
+            (context) => context.uuid === uuid
+          );
+
           if (contextIndex !== -1) {
             // Remove the context from the plugin
             settings.plugins[pluginIndex].contexts.splice(contextIndex, 1);
-    
+
             logger.debug("settings:", settings);
-    
+
             // Write the updated settings back to the file
             updateOrbisDBSettings(settings, adminDid);
-    
+
             // Reset plugins
             global.indexingService.restartPlugins();
-    
+
             // Return results
             return {
               message: "Plugin removed successfully",
@@ -274,7 +282,9 @@ export default async function (server, opts) {
         }
       } catch (err) {
         logger.error(err);
-        return res.internalServerError("Failed to remove plugin and update settings.");
+        return res.internalServerError(
+          "Failed to remove plugin and update settings."
+        );
       }
     });
   });

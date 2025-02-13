@@ -9,6 +9,8 @@ yarn-error.log*
 lerna-debug.log*
 .pnpm-debug.log*
 
+server/plugins/**/*.plugin_data
+
 # Excluding settings
 orbisdb-settings.json
 server/plugins/evm-blockchain-listener/blocks-indexed.json

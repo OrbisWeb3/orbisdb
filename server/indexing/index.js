@@ -1,10 +1,10 @@
-import { sleep, findSlotsWithContext } from "../utils/helpers.js";
+import { findSlotsWithContext } from "../utils/helpers.js";
 import { cliColors } from "../utils/cliColors.js";
 import { loadAndInitPlugins } from "../utils/plugins.js";
 import { EventSource } from "cross-eventsource";
-import { StreamID } from "@ceramicnetwork/streamid";
 import { Type, type, decode } from "codeco";
 import { commitIdAsString } from "@ceramicnetwork/codecs";
+import { ModelInstanceDocument } from "@ceramicnetwork/stream-model-instance";
 import logger from "../logger/index.js";
 
 /**
@@ -76,6 +76,7 @@ export default class IndexingService {
   /** Will init one plugin */
   async initPlugin(plugin) {
     let { HOOKS } = await plugin.init();
+
     logger.debug(
       cliColors.text.cyan,
       "🤖 Initialized plugin: ",
@@ -183,16 +184,16 @@ export default class IndexingService {
       if (plugin?.stop) {
         try {
           await plugin.stop();
-        } catch(e) {
+        } catch (e) {
           console.log("Error stopping plugin:", e);
         }
       }
 
       /** Reset the specified plugin's settings */
-      if(pluginToReset && plugin?.uuid == pluginToReset && plugin?.reset) {
+      if (pluginToReset && plugin?.uuid == pluginToReset && plugin?.reset) {
         try {
           await plugin.reset();
-        } catch(e) {
+        } catch (e) {
           console.log("Error resetting plugin:", e);
         }
       }
@@ -209,7 +210,7 @@ export default class IndexingService {
       if (plugin?.stop) {
         try {
           await plugin.stop();
-        } catch(e) {
+        } catch (e) {
           console.log("Error stopping plugin:", e);
         }
       }
@@ -234,8 +235,17 @@ export default class IndexingService {
     );
   }
 
+  async requestStreamIndexing(stream_id, slots = []) {
+    const stream = await ModelInstanceDocument.load(
+      this.ceramic.client,
+      stream_id
+    );
+
+    return this.indexStream({ stream }, slots);
+  }
+
   /** Will parse the stream details, process the plugins and save the stream in DB */
-  async indexStream({ stream }) {
+  async indexStream({ stream }, requestingSlots = []) {
     if (!stream) {
       logger.error(
         cliColors.text.red,
@@ -261,7 +271,10 @@ export default class IndexingService {
 
     try {
       // Get content
-      let content = JSON.parse(stream.content);
+      let content =
+        typeof stream.content === "object"
+          ? stream.content
+          : JSON.parse(stream.content);
 
       // Get model
       let model = stream.metadata.model;
@@ -315,7 +328,13 @@ export default class IndexingService {
           // Perform insert or update based on event type
           // Save the stream content and indexing data in the specified database
           if (this.is_shared) {
-            let slots = findSlotsWithContext(context);
+            let slots = Array.from(
+              new Set([
+                ...requestingSlots,
+                ...(findSlotsWithContext(context) || []),
+              ])
+            );
+
             logger.debug("slots:", slots);
 
             // Insert in each slot using this context
@@ -336,15 +355,15 @@ export default class IndexingService {
 
           // Will execute all of the post-processor plugins.
           this.hookHandler.executeHook(
-            "post_process", 
+            "post_process",
             {
               ...insertedContent,
               model,
-              pluginsData
-            }, 
+              pluginsData,
+            },
             context
           );
-        }       
+        }
       }
     } catch (e) {
       logger.error(
