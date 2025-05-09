@@ -9,9 +9,9 @@ html {
 
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
-    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
-    sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu",
+    "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   height: 100%;
@@ -21,27 +21,27 @@ body {
   height: 100%;
 }
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
-    monospace;
+  font-family:
+    source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
 }
 .text-active {
-  color: #4483FD;
+  color: #4483fd;
 }
 .bg-active {
-  background-color: #4483FD;
+  background-color: #4483fd;
 }
 .text-base {
   font-size: 0.925rem !important;
 }
 .text-xs {
   font-size: 0.825rem !important;
-  line-height: 1.17rem  !important;
+  line-height: 1.17rem !important;
 }
 .text-xxs {
   font-size: 0.75rem !important;
 }
 .text-xxxs {
-  font-size: 0.70rem !important;
+  font-size: 0.7rem !important;
 }
 
 .markdown-body h1 {
@@ -70,20 +70,20 @@ code {
   margin-top: 12px;
 }
 
-.markdown-body p, .markdown-body h4 {
+.markdown-body p,
+.markdown-body h4 {
   font-size: 0.925rem !important;
   color: #334155;
   margin-bottom: 15px;
 }
 
 .markdown-body a {
-  color: #4483FD;
+  color: #4483fd;
 }
 
 .markdown-body a:hover {
   text-decoration: underline;
 }
-
 
 .markdown-body h4 {
   font-weight: 700;
@@ -108,10 +108,12 @@ code {
   margin-bottom: 15px;
 }
 
-.markdown-body > code, .markdown-body p > code, .markdown-body li > code {
+.markdown-body > code,
+.markdown-body p > code,
+.markdown-body li > code {
   display: inline-block;
   background-color: #f1f5f9;
-  color: #D46E0F;
+  color: #d46e0f;
   border: 1px solid #e2e8f0;
   border-radius: 6px;
   padding-left: 7px;
@@ -124,7 +126,7 @@ code {
 .markdown-body > pre {
   display: inline-block;
   background-color: #f1f5f9;
-  color: #0C0C0C;
+  color: #0c0c0c;
   border: 1px solid #e2e8f0;
   border-radius: 6px;
   padding-left: 14px;
@@ -155,8 +157,9 @@ code {
 
 /** SQL Editor forced theme */
 .sql_editor .ace_placeholder {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-    "Liberation Mono", "Courier New", monospace !important;
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace !important;
   font:
     13px / normal ui-monospace,
     SFMono-Regular,
@@ -179,8 +182,9 @@ code {
     "Liberation Mono",
     "Courier New",
     monospace !important;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-    "Liberation Mono", "Courier New", monospace !important;
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace !important;
 }
 .ace-sqlserver .ace_comment {
   color: #1d4ed8;
@@ -255,12 +259,14 @@ body .graphiql-plugin {
 }
 /* Customize the GraphiQL container */
 .graphiql-container {
-  font-family: 'Fira Code', monospace;
+  font-family: "Fira Code", monospace;
   font-size: 12px;
   color: #2d2d2d;
-  background-color: #FFF !important;
+  background-color: #fff !important;
 }
-.graphiql-container .graphiql-sidebar button, button.graphiql-tab-add > svg, .graphiql-history-header {
+.graphiql-container .graphiql-sidebar button,
+button.graphiql-tab-add > svg,
+.graphiql-history-header {
   color: #020617 !important;
 }
 
@@ -303,17 +309,17 @@ body .graphiql-plugin {
 
 /* Customize the GraphiQL result table */
 .graphiql-container .result-window .CodeMirror {
-  background-color: #FFF;
+  background-color: #fff;
   color: #2d2d2d;
 }
 .graphiql-container .graphiql-sessions {
-  background-color: #FFF !important;
+  background-color: #fff !important;
 }
 .graphiql-logo-link {
   display: none;
 }
 button.graphiql-execute-button {
-  background-color: #4483FD !important;
+  background-color: #4483fd !important;
   opacity: 1;
 }
 button.graphiql-execute-button:hover {

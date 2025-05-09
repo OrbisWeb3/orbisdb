@@ -21,8 +21,14 @@
       "id": "action",
       "type": "select",
       "options": [
-        { "value": "validate", "label": "Gate one of your context based on the user's score" },
-        { "value": "add_metadata", "label": "Add the user's Gitcoin Passport score to streams created in your context" }
+        {
+          "value": "validate",
+          "label": "Gate one of your context based on the user's score"
+        },
+        {
+          "value": "add_metadata",
+          "label": "Add the user's Gitcoin Passport score to streams created in your context"
+        }
       ],
       "per_context": true
     },

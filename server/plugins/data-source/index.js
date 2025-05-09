@@ -16,12 +16,12 @@ export default class DataSourcePlugin {
 
   /** Will create cron job for the process task */
   start() {
-    if(this.cron_interval) {
+    if (this.cron_interval) {
       this.task = cron.schedule(this.cron_interval, () => {
         this.fetchApi();
-        console.log('Running the process task every:', this.cron_interval);
+        console.log("Running the process task every:", this.cron_interval);
       });
-    }  
+    }
   }
 
   /** Will make sure cron job is stopped if OrbisDB is restarted */
@@ -55,8 +55,6 @@ export default class DataSourcePlugin {
       }
     }
   }
-
-  
 
   /** Will return the result expected by the developer using the variables */
   async getResult() {

@@ -1,0 +1,4 @@
+
+#!/usr/bin/env sh
+
+node /Users/jeldonmusic/Documents/matrixblend_com/Datbase/orbisdb/server/ceramic-app/node_modules/.bin/ceramic "$@"

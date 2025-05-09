@@ -39,11 +39,11 @@ export default class HookHandler {
   // TODO: handle hooks that are able to return early (next())
   // TODO: figure our why having the same plugin installed on the same context with the same hook isn't working well (especially for update and add_metadata)
   /**
-   * 
-   * @param {*} hookName 
-   * @param {*} data 
+   *
+   * @param {*} hookName
+   * @param {*} data
    * @param {*} contextId : Context ID used by the stream on which the hook is executed. Can be a stream id or null
-   * @returns 
+   * @returns
    */
   async executeHook(hookName, data = {}, contextId) {
     // Retrieve options for the hook to be about to be executed.
@@ -63,15 +63,21 @@ export default class HookHandler {
 
     if (isContextualized) {
       // Retrieve handlers specific to the context if the hook is contextualized.
-      if (!this.hooks[hookName] || (!this.hooks[hookName][contextId] && !this.hooks[hookName]["global"])) {
+      if (
+        !this.hooks[hookName] ||
+        (!this.hooks[hookName][contextId] && !this.hooks[hookName]["global"])
+      ) {
         return data;
       }
-      const contextHandlers = this.hooks[hookName][contextId] ? Object.entries(this.hooks[hookName][contextId]) : [];
-      const globalHandlers = this.hooks[hookName]["global"] ? Object.entries(this.hooks[hookName]["global"]) : [];
+      const contextHandlers = this.hooks[hookName][contextId]
+        ? Object.entries(this.hooks[hookName][contextId])
+        : [];
+      const globalHandlers = this.hooks[hookName]["global"]
+        ? Object.entries(this.hooks[hookName]["global"])
+        : [];
 
       // We are using both the contextualized hook handlers as well as the global ones
       handlers = [...contextHandlers, ...globalHandlers];
-
     } else {
       // Retrieve all handlers for global hooks.
       if (!this.hooks[hookName]) {
@@ -81,11 +87,11 @@ export default class HookHandler {
     }
 
     // Loop through all handlers to execute them.
-    for (const [pluginId, contextualizedPlugin] of handlers) {    
+    for (const [pluginId, contextualizedPlugin] of handlers) {
       // Safely execute the hook.
       let result;
       try {
-        if(hookName == "generate") {
+        if (hookName == "generate") {
           result = this.safeExecute(
             contextualizedPlugin.handler,
             JSON.parse(JSON.stringify(data))
@@ -96,11 +102,10 @@ export default class HookHandler {
             JSON.parse(JSON.stringify(data))
           );
         }
-        
-      } catch(e) {
+      } catch (e) {
         console.log("Error executing hook:", e);
       }
-      
+
       // Handle hook executed based on its type
       if (result?.error) {
         logger.error(
@@ -113,10 +118,10 @@ export default class HookHandler {
       // Will handle the result of the executed hook based on the hook type
       switch (hookName) {
         case "add_metadata":
-          if(hookData.pluginsData[contextualizedPlugin.pluginId]) {
+          if (hookData.pluginsData[contextualizedPlugin.pluginId]) {
             hookData.pluginsData[contextualizedPlugin.pluginId].push(result);
           } else {
-            hookData.pluginsData[contextualizedPlugin.pluginId] = [result]
+            hookData.pluginsData[contextualizedPlugin.pluginId] = [result];
           }
           break;
         case "validate":
@@ -125,7 +130,7 @@ export default class HookHandler {
           }
           break;
         case "update":
-          //return result;
+        //return result;
         case "generate":
           console.log("Handling generate hook.");
           break;
@@ -141,7 +146,13 @@ export default class HookHandler {
   }
 
   // Used to add a specific hook (can be used at runtime as well)
-  addHookHandler(hookName, pluginId, pluginUuid, contextId, handler = () => {}) {
+  addHookHandler(
+    hookName,
+    pluginId,
+    pluginUuid,
+    contextId,
+    handler = () => {}
+  ) {
     const isContextualized = this.registeredHooks[hookName]?.isContextualized;
     const sanitizedPluginId = this.sanitizePluginId(pluginId);
 

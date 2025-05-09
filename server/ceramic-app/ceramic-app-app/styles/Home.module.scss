@@ -1,0 +1,20 @@
+@import "./colors.module.scss";
+@import "./mixins.scss";
+.title {
+  font-weight: regular;
+}
+
+.buttonContainer {
+  width: 240px;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+}
+.buttonContainer button {
+  width: 100%;
+}
+
+.accentColor {
+  color: $accent;
+}

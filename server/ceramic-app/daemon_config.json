@@ -1,0 +1,37 @@
+{
+  "anchor": {},
+  "http-api": {
+    "hostname": "127.0.0.1",
+    "port": 7007,
+    "admin-dids": [
+      "did:key:z6MkhmLkENpop72dxyiEikiNEAm3Fo6uwhosYVDT92bixV69",
+      "did:key:z6Mkpgjz7gsNTfcMdHJgRL5CNkRfXV2QM8eraqsYcZfdtZzp"
+    ]
+  },
+  "ipfs": {
+    "mode": "bundled"
+  },
+  "logger": {
+    "log-directory": "./log/ceramic",
+    "log-level": 2,
+    "log-to-files": true
+  },
+  "metrics": {
+    "metrics-exporter-enabled": false
+  },
+  "network": {
+    "name": "inmemory"
+  },
+  "node": {
+    "gateway": false
+  },
+  "state-store": {
+    "mode": "file",
+    "local-directory": "/etc/ceramic/data"
+  },
+  "indexing": {
+    "db": "sqlite:///Users/jeldonmusic/Documents/matrixblend_com/Datbase/orbisdb/server/ceramic-app/ceramic-indexing/ceramic.db",
+    "allow-queries-before-historical-sync": true,
+    "enable-historical-sync": false
+  }
+}

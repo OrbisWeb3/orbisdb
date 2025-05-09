@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from "uuid";
 export default class CSVUploaderPlugin {
   logs = [];
   progress = 0;
-  status = 0
+  status = 0;
 
   constructor() {
     this.progressStore = {};
@@ -28,7 +28,7 @@ export default class CSVUploaderPlugin {
         POST: {
           parse: (req, res) => this.parseRoute(req, res),
         },
-      }
+      },
     };
   }
 
@@ -48,40 +48,41 @@ export default class CSVUploaderPlugin {
     let results = [];
 
     // Set color for badges
-    let badgeReady = "flex bg-sky-50 text-sky-900 rounded-full px-3 py-1 text-xs font-medium border border-sky-200";
-    let badgeProcessing = "flex bg-orange-50 text-orange-900 rounded-full px-3 py-1 text-xs font-medium border border-orange-200"
+    let badgeReady =
+      "flex bg-sky-50 text-sky-900 rounded-full px-3 py-1 text-xs font-medium border border-sky-200";
+    let badgeProcessing =
+      "flex bg-orange-50 text-orange-900 rounded-full px-3 py-1 text-xs font-medium border border-orange-200";
 
     // Push logs
     results.push({
       name: "Status",
       value: this.status == 0 ? "Ready" : "Processing",
       className: this.status == 0 ? badgeReady : badgeProcessing,
-      type: "badge"
+      type: "badge",
     });
 
     // Push progress of upload started
-    if(this.progress > 0) {
+    if (this.progress > 0) {
       results.push({
         name: "Upload Progress",
         type: "slider",
         progress: this.progress ? this.progress : 0,
-        value: this.progress
-      })
-    }
-
-    // Push logs
-    if(this.logs && this.logs.length > 0) {
-      results.push({
-        name: "Logs",
-        value: this.logs,
-        type: "logs"
+        value: this.progress,
       });
     }
 
+    // Push logs
+    if (this.logs && this.logs.length > 0) {
+      results.push({
+        name: "Logs",
+        value: this.logs,
+        type: "logs",
+      });
+    }
 
     // Return dynamic variables as an array
     return {
-      results: results
+      results: results,
     };
   }
 
@@ -89,7 +90,7 @@ export default class CSVUploaderPlugin {
   addLog(newLog) {
     // Add the new log to the array
     this.logs.push(newLog);
-    
+
     // If the array length exceeds 50, remove the oldest logs
     if (this.logs.length > 50) {
       this.logs.splice(0, this.logs.length - 50);
@@ -104,31 +105,31 @@ export default class CSVUploaderPlugin {
 
     // If using an existing model ID we parse it to retrieve fields name
     let propertiesJson;
-    if(this.model_id && this.use_existing_model == 'yes') {
+    if (this.model_id && this.use_existing_model == "yes") {
       try {
-        const model_details = await this.orbisdb.ceramic.getModel(this.model_id);
+        const model_details = await this.orbisdb.ceramic.getModel(
+          this.model_id
+        );
         logger.debug("model_details:", model_details);
         const properties = model_details.schema.schema.properties;
         logger.debug("properties:", properties);
         // Serialize the properties object to a JSON string
         propertiesJson = JSON.stringify(properties);
-      } catch(e) {
+      } catch (e) {
         console.log("Error loading model details:", e.message);
         this.addLog({
           color: "red",
-          title: `Error loading model details (ID: ${this.model_id}): ${e.message}.`
+          title: `Error loading model details (ID: ${this.model_id}): ${e.message}.`,
         });
       }
-      
     }
-   
 
     // Generate HTML code to handle situation when plugin is already processing another file
     let uploadHtmlCode = ``;
-    if(this.status == 0) {
+    if (this.status == 0) {
       uploadHtmlCode = `<div id="fileUploadContainer" class="w-full flex justify-center mt-2">
               <input class="" type="file" id="csvFileInput" accept=".csv" onchange="handleFileSelect()" />
-            </div>`
+            </div>`;
     } else {
       uploadHtmlCode = `<h4 class="text-base font-bold mt-2">This plugin is already processing another CSV. Please wait for completion before uploading a new one.</h4>  `;
     }
@@ -287,7 +288,7 @@ export default class CSVUploaderPlugin {
           let dataToUpload = [];
           let JsonSchemaProperties = {};
           let modelName = "";
-          let model_id = "${this.use_existing_model == 'yes' ? this.model_id : ''}";
+          let model_id = "${this.use_existing_model == "yes" ? this.model_id : ""}";
           console.log("model_id:", model_id);
 
           function handleFileSelect() {
@@ -494,12 +495,15 @@ export default class CSVUploaderPlugin {
     // Log
     this.addLog({
       color: "sky",
-      title: `Starting uploading CSV with ${data.length} rows.`
+      title: `Starting uploading CSV with ${data.length} rows.`,
     });
 
     // Build schema
     let model_id;
-    if(this.use_existing_model == "yes" || (!this.use_existing_model && this.model_id)) {
+    if (
+      this.use_existing_model == "yes" ||
+      (!this.use_existing_model && this.model_id)
+    ) {
       // Assign selected model id
       model_id = this.model_id;
 
@@ -511,10 +515,9 @@ export default class CSVUploaderPlugin {
 
       this.addLog({
         color: "sky",
-        title: `Using existing model: ${this.model_id}`
+        title: `Using existing model: ${this.model_id}`,
       });
-    }
-    else {
+    } else {
       jsonProperties = properties;
       console.log("properties:", properties);
 
@@ -534,7 +537,7 @@ export default class CSVUploaderPlugin {
         }
       }*/
 
-      let cleanModelName = modelName.replace(/[^a-zA-Z0-9]/g, '');
+      let cleanModelName = modelName.replace(/[^a-zA-Z0-9]/g, "");
       let schema = {
         name: cleanModelName,
         version: "1.0",
@@ -546,8 +549,8 @@ export default class CSVUploaderPlugin {
           $schema: "https://json-schema.org/draft/2020-12/schema",
           additionalProperties: false,
           properties: jsonProperties,
-          required: []
-        }
+          required: [],
+        },
       };
 
       console.log("schema:", JSON.stringify(schema));
@@ -559,29 +562,29 @@ export default class CSVUploaderPlugin {
         model_id = model.id;
         this.addLog({
           color: "sky",
-          title: `Model created for dataset: ${model_id}.`
+          title: `Model created for dataset: ${model_id}.`,
         });
-      } catch(e) {
+      } catch (e) {
         console.log("Error creating model:", e);
         this.addLog({
           color: "red",
-          title: `Error creating model ${e.message}.`
+          title: `Error creating model ${e.message}.`,
         });
       }
-    } 
+    }
 
     // If model created with success we proceed computing the streams
-    if(model_id) {
+    if (model_id) {
       logger.debug("Received CSV Data:", data);
 
-      // Reset progress and errors 
+      // Reset progress and errors
       let i = 0;
       let iErrors = 0;
 
       // Log start
       this.addLog({
         color: "sky",
-        title: `Starting to process rows.`
+        title: `Starting to process rows.`,
       });
 
       // Loop through all rows and
@@ -594,7 +597,11 @@ export default class CSVUploaderPlugin {
               .filter((key) => key in jsonProperties) // Filter keys based on properties
               .reduce((obj, key) => {
                 const value = content[key];
-                obj[key] = this.convertToTypedObject(key, value, jsonProperties); // Convert and assign the value
+                obj[key] = this.convertToTypedObject(
+                  key,
+                  value,
+                  jsonProperties
+                ); // Convert and assign the value
                 console.log("obj[key]:", obj[key]);
                 return obj;
               }, {});
@@ -609,7 +616,7 @@ export default class CSVUploaderPlugin {
             let stream_id = stream.id?.toString();
             console.log("Created stream:", stream_id);
             stream_ids.push(stream_id);
-            
+
             // Increment processed rows
             i++;
 
@@ -624,7 +631,7 @@ export default class CSVUploaderPlugin {
 
             this.addLog({
               color: "red",
-              title: `Error creating stream (row #${index}): ${e.message}.`
+              title: `Error creating stream (row #${index}): ${e.message}.`,
             });
           }
         }
@@ -632,7 +639,7 @@ export default class CSVUploaderPlugin {
 
       this.addLog({
         color: "green",
-        title: `Uploaded ${i} rows from CSV file with ${iErrors} errors.`
+        title: `Uploaded ${i} rows from CSV file with ${iErrors} errors.`,
       });
 
       // Reset status
@@ -646,7 +653,7 @@ export default class CSVUploaderPlugin {
     } else {
       this.addLog({
         color: "red",
-        title: `Error creating model.`
+        title: `Error creating model.`,
       });
 
       // Reset status
@@ -654,7 +661,7 @@ export default class CSVUploaderPlugin {
 
       return {
         message: "Error uploading CSV",
-        streams: []
+        streams: [],
       };
     }
   }
@@ -663,25 +670,33 @@ export default class CSVUploaderPlugin {
   convertToTypedObject(key, value, properties) {
     const type = properties[key]?.type;
 
-    if(type) {
+    if (type) {
       if (type.includes("integer")) {
         return parseInt(value, 10) || 0;
       }
-  
+
       // Trying to parse numerical values and return 0 if failing
-      if (type.includes("float") || type.includes("numeric") || type.includes("number")) {
+      if (
+        type.includes("float") ||
+        type.includes("numeric") ||
+        type.includes("number")
+      ) {
         return parseFloat(value) || 0;
       }
-  
+
       // Trying to parse array or object and return valid empty value if failing
       if (type.includes("array") || type.includes("object")) {
         try {
           let parsedValue = JSON.parse(value);
-      
+
           // Check if parsed value is an array or an object, and return accordingly
           if (type.includes("array") && Array.isArray(parsedValue)) {
             return parsedValue;
-          } else if (type.includes("object") && typeof parsedValue === "object" && !Array.isArray(parsedValue)) {
+          } else if (
+            type.includes("object") &&
+            typeof parsedValue === "object" &&
+            !Array.isArray(parsedValue)
+          ) {
             return parsedValue;
           }
         } catch (e) {

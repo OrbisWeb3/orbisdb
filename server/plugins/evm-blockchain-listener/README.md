@@ -12,7 +12,7 @@ To install the EVM Event Listener Plugin, follow these steps:
 
 1. Install the plugin on your OrbisDB instance.
 2. Configure the plugin settings through the user interface.
-2. Assign the plugin to the context you want to use it on.
+3. Assign the plugin to the context you want to use it on.
 
 ## Configuration
 

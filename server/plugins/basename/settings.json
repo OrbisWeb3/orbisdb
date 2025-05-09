@@ -35,7 +35,10 @@
       "description": "Should this plugin be used only on a specific model?",
       "id": "only_model",
       "type": "select",
-      "options": [{"value": "no", "label": "No"}, {"value": "yes", "label": "Yes"}],
+      "options": [
+        { "value": "no", "label": "No" },
+        { "value": "yes", "label": "Yes" }
+      ],
       "per_context": true
     },
     {
@@ -43,7 +46,7 @@
       "description": "Paste the model ID on which this plugin should be used.",
       "id": "model_id",
       "type": "string",
-      "conditions": [{"id": "only_model", "value": "yes"}],
+      "conditions": [{ "id": "only_model", "value": "yes" }],
       "per_context": true
     }
   ]

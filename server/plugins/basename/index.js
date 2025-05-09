@@ -1,9 +1,8 @@
 import { ethers } from "ethers";
 import logger from "../../logger/index.js";
 import { getValueByPath } from "../../utils/helpers.js";
-import { getName, getAddress } from '@coinbase/onchainkit/identity';
-import { base } from 'viem/chains';
-
+import { getName, getAddress } from "@coinbase/onchainkit/identity";
+import { base } from "viem/chains";
 
 export default class BaseIdentityPlugin {
   /**
@@ -12,11 +11,11 @@ export default class BaseIdentityPlugin {
    */
   async init() {
     this.provider = new ethers.JsonRpcProvider(this.rpc_url);
-    this.getName('0x83593d13fec30806c989410f9325Fd18245b246B');
+    this.getName("0x83593d13fec30806c989410f9325Fd18245b246B");
     return {
       HOOKS: {
-        "add_metadata": (stream) => this.add_metadata(stream),
-      }
+        add_metadata: (stream) => this.add_metadata(stream),
+      },
     };
   }
 
@@ -25,46 +24,49 @@ export default class BaseIdentityPlugin {
     logger.debug("In add_metadata this.model:", this.model_id);
     logger.debug("In add_metadata stream.model:", stream.model);
 
-    if(this.only_model == "no" || (this.only_model == "yes" && stream.model == this.model_id)) {
+    if (
+      this.only_model == "no" ||
+      (this.only_model == "yes" && stream.model == this.model_id)
+    ) {
       let field;
 
       /** Will convert the field to the actual value and make an exception for controller to use the address instead of the full did */
-      if(this.field == "controller") {
+      if (this.field == "controller") {
         let { address } = getAddressFromDid(stream.controller);
         field = address;
       } else {
         field = getValueByPath(stream, this.field);
       }
-      
-      logger.debug("field:", field)
-      if(field) {
-        switch(this.action) {
+
+      logger.debug("field:", field);
+      if (field) {
+        switch (this.action) {
           // Will convert a Base name to an address
           case "name_to_address":
             const address = await this.getAddress(field);
-            logger.debug("address is: ", address );
+            logger.debug("address is: ", address);
             return {
-              address: address
+              address: address,
             };
-          
-            // Will convert an address to a Base name
+
+          // Will convert an address to a Base name
           case "address_to_name":
             const name = await this.getName(field);
             logger.debug("name is: ", name);
             return {
-              name: name
+              name: name,
             };
-          default :
+          default:
             return null;
         }
       } else {
         return {
-          error: "Couldn't retrieve the correct field with " + this.field
+          error: "Couldn't retrieve the correct field with " + this.field,
         };
       }
     } else {
       logger.debug("Base Identity Plugin shouldn't be used on this model.");
-    }    
+    }
   }
 
   /** Will convert a Base name into an address */
@@ -74,7 +76,7 @@ export default class BaseIdentityPlugin {
       const name = await getName({ address, chain: base });
       console.log("Base name is: ", name);
       return name;
-    } catch(e) {
+    } catch (e) {
       console.log("Error retrieving Base identity:", e);
       return null;
     }
@@ -87,20 +89,20 @@ export default class BaseIdentityPlugin {
       const address = await getAddress({ name: name, chain: base });
       console.log("address is: ", address);
       return address;
-    } catch(e) {
+    } catch (e) {
       console.log("Error retrieving address:", e);
       return null;
     }
-  }  
+  }
 }
 
 /** Returns a JSON object with the address and network based on the did */
 function getAddressFromDid(did) {
-  if(did) {
+  if (did) {
     let didParts = did.split(":");
-    if(did.substring(0, 7) == "did:pkh") {
+    if (did.substring(0, 7) == "did:pkh") {
       /** Explode address to retrieve did */
-      if(didParts.length >= 4) {
+      if (didParts.length >= 4) {
         let address = didParts[4];
         let network = didParts[2];
         let chain = didParts[2] + ":" + didParts[3];
@@ -109,37 +111,37 @@ function getAddressFromDid(did) {
         return {
           address: address,
           network: network,
-          chain: chain
-        }
+          chain: chain,
+        };
       } else {
         /** Return null object */
         return {
           address: null,
           network: null,
-          chain: null
-        }
+          chain: null,
+        };
       }
-    } else if(did.substring(0, 7) == "did:key") {
+    } else if (did.substring(0, 7) == "did:key") {
       /** Return did object */
       return {
         address: didParts[3],
-        network: 'key',
-        chain: 'key'
-      }
+        network: "key",
+        chain: "key",
+      };
     } else {
       /** Return null object */
       return {
         address: null,
         network: null,
-        chain: null
-      }
+        chain: null,
+      };
     }
   } else {
     /** Return null object */
     return {
       address: null,
       network: null,
-      chain: null
-    }
+      chain: null,
+    };
   }
 }

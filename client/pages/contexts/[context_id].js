@@ -156,7 +156,10 @@ export default function ContextDetails() {
           {nav == "Sub-contexts" && (
             <div className="w-full bg-white border border-slate-200 rounded-md px-6 py-6 mt-5 flex flex-col">
               <h2 className="text-lg font-bold text-slate-900">Sub-contexts</h2>
-              <p className="text-base text-slate-600">Create sub-contexts to manage your data more granularly within your application.</p>
+              <p className="text-base text-slate-600">
+                Create sub-contexts to manage your data more granularly within
+                your application.
+              </p>
               <div className="flex flex-col mt-3 space-y-2">
                 {context.contexts && context.contexts.length > 0 ? (
                   <Contexts contexts={context.contexts} />

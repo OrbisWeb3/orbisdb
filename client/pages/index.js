@@ -39,7 +39,11 @@ export default function Contexts() {
         {/** Left part */}
         <div className="w-2/3 pr-4">
           <h1 className="text-3xl font-bold text-slate-900">Contexts</h1>
-          <p className="text-slate-600 mt-1 text-base">Contexts can be viewed as projects or applications and can be used to divide your work into multiple parts, each with its own set of rules.</p>
+          <p className="text-slate-600 mt-1 text-base">
+            Contexts can be viewed as projects or applications and can be used
+            to divide your work into multiple parts, each with its own set of
+            rules.
+          </p>
           <div className="flex flex-col mt-4">
             {loading ? (
               <div className="flex w-full justify-center">

@@ -1,19 +1,17 @@
 import { DuneClient, ColumnType, ContentType } from "@duneanalytics/client-sdk";
 import logger from "../../logger/index.js";
-import { Parser } from 'json2csv';
+import { Parser } from "json2csv";
 import cron from "node-cron";
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const timestampFilePath = path.join(__dirname, 'timestamp.json');
-
+const timestampFilePath = path.join(__dirname, "timestamp.json");
 
 export default class DuneAnalyticsPlugin {
-  
   /**
    * This will initialize all of the hooks used by this plugin.
    * A plugin can register multiple hooks, each hook being linked to a function that will be executed when the hook is triggered
@@ -22,7 +20,7 @@ export default class DuneAnalyticsPlugin {
     console.log("In Dune :", this.uuid);
     this.headers = {
       "X-DUNE-API-KEY": this.dune_api_key,
-      "Content-Type": "text/csv"
+      "Content-Type": "text/csv",
     };
 
     this.client = new DuneClient(this.dune_api_key);
@@ -46,12 +44,12 @@ export default class DuneAnalyticsPlugin {
 
   /** Will create cron job for the process task */
   start() {
-    if(this.cron_interval) {
+    if (this.cron_interval) {
       this.task = cron.schedule(this.cron_interval, () => {
-        this.process()
-        console.log('Running the process task every:', this.cron_interval);
+        this.process();
+        console.log("Running the process task every:", this.cron_interval);
       });
-    }  
+    }
   }
 
   /** Will make sure cron job is stopped if OrbisDB is restarted */
@@ -71,15 +69,15 @@ export default class DuneAnalyticsPlugin {
         namespace: this.namespace,
         table_name: this.model_id,
         is_private: this.is_private == "yes" ? true : false,
-        schema: schema
+        schema: schema,
       });
 
       // Save table's name on Dune
-      if(result) {
+      if (result) {
         this.dune_table_name = result.full_name;
       }
       console.log("result creating table:", result);
-    } catch(e) {
+    } catch (e) {
       console.log("Error creating table on Dune:", e);
     }
   }
@@ -87,20 +85,22 @@ export default class DuneAnalyticsPlugin {
   /** Will fetch the table schema in order to  */
   async fetchTableSchema() {
     try {
-      const result = await global.indexingService.databases[this.slot].query(`
+      const result = await global.indexingService.databases[this.slot].query(
+        `
         SELECT column_name, data_type
         FROM information_schema.columns
         WHERE table_schema = 'public' AND table_name = $1
-      `, [this.model_id]);
+      `,
+        [this.model_id]
+      );
 
-  
-      this.schema = result?.data?.rows.map(row => ({
+      this.schema = result?.data?.rows.map((row) => ({
         name: sanitizeColumnName(row.column_name),
-        type: this.mapColumnType(row.data_type)
+        type: this.mapColumnType(row.data_type),
       }));
-  
+
       return this.schema;
-    } catch(e) {
+    } catch (e) {
       console.log("Error fething db schema:", e);
     }
   }
@@ -108,23 +108,23 @@ export default class DuneAnalyticsPlugin {
   // Define a function to map PostgreSQL data types to Dune's ColumnType
   mapColumnType(dataType) {
     switch (dataType) {
-      case 'integer':
-      case 'bigint':
-      case 'smallint':
+      case "integer":
+      case "bigint":
+      case "smallint":
         return ColumnType.Integer;
-      case 'decimal':
-      case 'numeric':
-      case 'real':
-      case 'double precision':
+      case "decimal":
+      case "numeric":
+      case "real":
+      case "double precision":
         return ColumnType.Double;
-      case 'timestamp without time zone':
-      case 'timestamp with time zone':
-      case 'date':
+      case "timestamp without time zone":
+      case "timestamp with time zone":
+      case "date":
         return ColumnType.Timestamp;
-      case 'boolean':
+      case "boolean":
         return ColumnType.Boolean;
-      case 'character varying':
-      case 'text':
+      case "character varying":
+      case "text":
         return ColumnType.Varchar;
       default:
         return ColumnType.Varchar; // default to varchar for other types
@@ -137,13 +137,13 @@ export default class DuneAnalyticsPlugin {
 
     // Read the current timestamps
     let timestamps = {};
-    let latestExecTimestamp = new Date(0).toISOString();  // Default to epoch time
+    let latestExecTimestamp = new Date(0).toISOString(); // Default to epoch time
     try {
       if (fs.existsSync(timestampFilePath)) {
-        const dataTimestamp = fs.readFileSync(timestampFilePath, 'utf8');
+        const dataTimestamp = fs.readFileSync(timestampFilePath, "utf8");
         timestamps = JSON.parse(dataTimestamp);
         console.log("timestamps:", timestamps);
-        if(timestamps && timestamps[this.uuid]) {
+        if (timestamps && timestamps[this.uuid]) {
           latestExecTimestamp = timestamps[this.uuid];
         }
       }
@@ -154,21 +154,25 @@ export default class DuneAnalyticsPlugin {
     // Find streams that should be processed by Dune
     let results;
     try {
-      results = await global.indexingService.databases[this.slot].query(`
+      results = await global.indexingService.databases[this.slot].query(
+        `
         SELECT *
         FROM ${this.model_id}
         WHERE indexed_at > $1 AND _metadata_context = $2
-      `, [latestExecTimestamp, this.context]);
-    } catch(e) {
+      `,
+        [latestExecTimestamp, this.context]
+      );
+    } catch (e) {
       console.log("Error loading results with orbisdb:", e);
       return;
     }
 
     // Process the upload only if the query returned results
-    if(results?.data?.rows && results.data.rows.length > 0) {
-
+    if (results?.data?.rows && results.data.rows.length > 0) {
       // Ensure the first row matches the schema structure
-      const fittedRows = results.data.rows.map(row => this.fitStreamToSchema(row, this.schema));
+      const fittedRows = results.data.rows.map((row) =>
+        this.fitStreamToSchema(row, this.schema)
+      );
 
       // Convert the JSON object to CSV
       const parser = new Parser();
@@ -178,15 +182,15 @@ export default class DuneAnalyticsPlugin {
       const url = `https://api.dune.com/api/v1/table/${this.namespace}/${this.model_id}/insert`;
 
       // Create the CSV file
-      const filePath = path.join(__dirname, 'data.csv');
-      fs.writeFileSync(filePath, csv, 'utf8');
+      const filePath = path.join(__dirname, "data.csv");
+      fs.writeFileSync(filePath, csv, "utf8");
 
       let responseData;
       try {
         const response = await fetch(url, {
-          method: 'POST',
+          method: "POST",
           headers: this.headers,
-          body: csv
+          body: csv,
         });
 
         responseData = await response.json();
@@ -195,9 +199,12 @@ export default class DuneAnalyticsPlugin {
         if (response.ok) {
           // Update the timestamp for this UUID after successful processing
           timestamps[this.uuid] = new Date().toISOString();
-          fs.writeFileSync(timestampFilePath, JSON.stringify(timestamps, null, 2), 'utf8');
+          fs.writeFileSync(
+            timestampFilePath,
+            JSON.stringify(timestamps, null, 2),
+            "utf8"
+          );
         }
-
       } catch (err) {
         console.error("Error inserting stream in Dune:", err);
       } finally {
@@ -206,15 +213,17 @@ export default class DuneAnalyticsPlugin {
 
         return {
           status: 200,
-          result: `Success uploading ${responseData.rows_written} to the ${responseData.name} table.`
-        }
+          result: `Success uploading ${responseData.rows_written} to the ${responseData.name} table.`,
+        };
       }
     } else {
-      console.log(`There wasn't any stream to upload to Dune (created after timestamp ${latestExecTimestamp}).`);
+      console.log(
+        `There wasn't any stream to upload to Dune (created after timestamp ${latestExecTimestamp}).`
+      );
       return {
         status: 300,
-        result: "Error uploading data to Dune."
-      }
+        result: "Error uploading data to Dune.",
+      };
     }
   }
 
@@ -223,8 +232,10 @@ export default class DuneAnalyticsPlugin {
     const sanitizedStream = sanitizeObjectKeys(stream);
     const fittedStream = {};
 
-    schema.forEach(field => {
-      fittedStream[field.name] = sanitizedStream.hasOwnProperty(field.name) ? sanitizedStream[field.name] : null;
+    schema.forEach((field) => {
+      fittedStream[field.name] = sanitizedStream.hasOwnProperty(field.name)
+        ? sanitizedStream[field.name]
+        : null;
     });
 
     return fittedStream;
@@ -312,7 +323,10 @@ export default class DuneAnalyticsPlugin {
 
 // Sanitize column names to fit Dune's expectations
 function sanitizeColumnName(name) {
-  return name.replace(/[^a-z0-9_]/g, '_').replace(/^[^a-z]+/, '').toLowerCase();
+  return name
+    .replace(/[^a-z0-9_]/g, "_")
+    .replace(/^[^a-z]+/, "")
+    .toLowerCase();
 }
 
 // Sanitize all keys in an object
@@ -329,5 +343,5 @@ function sanitizeObjectKeys(obj) {
 
 /** Will convert the JSON object to the type requested by Dune */
 function convertToNDJSON(data) {
-  return data.map(row => JSON.stringify(row)).join('\n');
+  return data.map((row) => JSON.stringify(row)).join("\n");
 }

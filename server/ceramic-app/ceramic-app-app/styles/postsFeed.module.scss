@@ -1,0 +1,38 @@
+@import "./colors.module.scss";
+@import "./mixins.scss";
+
+.postContainer {
+  flex-grow: 1;
+  padding: 0 0 30px;
+  @include scrollbar;
+  .post {
+    border: 1px solid $borders;
+    border-radius: 4px;
+    margin: 10px 0 25px;
+    padding: 20px 20px 15px;
+    white-space: pre;
+    font-size: 22px;
+    // Nice shadow
+    box-shadow: 0 4px 8px 0 rgba(255, 255, 255, 0.2), 0 6px 20px 0 rgba(255, 255, 255, 0.19);
+  }
+  .postBody {
+    margin-bottom: 20px;
+  }
+  .postMeta {
+    font-size: 16px;
+    display: flex;
+    flex-direction: row;
+    padding-top: 10px;
+    color: rgb(153, 216, 249);
+    background-image: linear-gradient(to right, $borders 33%, transparent 0%);
+    background-position: top;
+    background-size: 5px 1px;
+    background-repeat: repeat-x;
+  }
+  .postMeta > div {
+    flex: 1;
+  }
+  .postMeta a {
+    color: $accent;
+  }
+}

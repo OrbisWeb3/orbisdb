@@ -1,0 +1,20 @@
+type Posts @loadModel(id: "$POSTS_ID") {
+    id: ID!
+}
+
+type BasicProfile @loadModel(id: "$PROFILE_ID") {
+    id: ID!
+}
+
+type Comments
+    @createModel(accountRelation: LIST, description: "A comment on a post")
+    @createIndex(fields: [{ path: "created" }])
+    @createIndex(fields: [{ path: "edited" }]) {
+    comment: String! @string(minLength: 1, maxLength: 100)
+    edited: DateTime
+    created: DateTime!
+    profileId: StreamID! @documentReference(model: "BasicProfile")
+    profile: BasicProfile! @relationDocument(property: "profileId")
+    postId: StreamID! @documentReference(model: "Posts")
+    post: Posts! @relationDocument(property: "postId")
+}

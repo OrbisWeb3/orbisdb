@@ -64,7 +64,7 @@ export default class Ceramic {
         cliColors.reset,
         e
       );
-    }    
+    }
   }
 }
 
@@ -643,4 +643,3 @@ export const socialSettingsNotificationsRead = {
   },
   required: ["last_notifications_read_time"],
 };
-

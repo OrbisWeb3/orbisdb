@@ -4,11 +4,13 @@
   "logo": "/img/csv-uploader-logo.png",
   "description": "Plugin to allow you to upload entire CSV files to Ceramic.",
   "hooks": ["generate"],
-  "actions": [{
-    "type": "popup",
-    "label": "Upload",
-    "route": "upload" 
-  }],
+  "actions": [
+    {
+      "type": "popup",
+      "label": "Upload",
+      "route": "upload"
+    }
+  ],
   "variables": [
     {
       "name": "Do you want to use a specific model?",
@@ -22,7 +24,7 @@
       "per_context": true
     },
     {
-     "name": "Model",
+      "name": "Model",
       "type": "string",
       "description": "The model used by the streams created by the plugin. It must fit the columns names of your CSV file.",
       "id": "model_id",

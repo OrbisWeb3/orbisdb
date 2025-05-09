@@ -106,7 +106,11 @@ export const GlobalProvider = ({ children }) => {
   /** Load settings from file */
   async function init() {
     try {
-      let { admins, globalAdmins, globalSettings: _globalSettings } = await getAdmin(adminSession);
+      let {
+        admins,
+        globalAdmins,
+        globalSettings: _globalSettings,
+      } = await getAdmin(adminSession);
       setGlobalSettings(_globalSettings);
       if (admins) {
         checkAdmin(admins, globalAdmins);

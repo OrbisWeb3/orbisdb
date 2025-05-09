@@ -166,7 +166,10 @@ export default function PluginDetails() {
 
             {/** Show overview tab content */}
             {nav == "Overview" && (
-              <MarkdownRenderer filePath={"/api/plugins/readme/" + plugin_id} fallback={pluginDetails.description} />
+              <MarkdownRenderer
+                filePath={"/api/plugins/readme/" + plugin_id}
+                fallback={pluginDetails.description}
+              />
             )}
 
             {/** Show contexts tab content */}
@@ -315,7 +318,12 @@ export default function PluginDetails() {
   );
 }
 
-const OneContext = ({ plugin_id, context, setSelectedContext, pluginDetails }) => {
+const OneContext = ({
+  plugin_id,
+  context,
+  setSelectedContext,
+  pluginDetails,
+}) => {
   console.log("pluginDetails context:", context);
   const { settings, setSettings, sessionJwt } = useGlobal();
   const [dynamicVariables, setDynamicVariables] = useState(0);
@@ -323,20 +331,23 @@ const OneContext = ({ plugin_id, context, setSelectedContext, pluginDetails }) =
   useEffect(() => {
     async function loadDynamicVariables() {
       try {
-        let rawResponse = await fetch(`/api/plugins/${context.uuid}/dynamic-variables`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${sessionJwt}`,
-          },
-        });
+        let rawResponse = await fetch(
+          `/api/plugins/${context.uuid}/dynamic-variables`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${sessionJwt}`,
+            },
+          }
+        );
         const result = await rawResponse.json();
         console.log("Plugin dynamic variables:", result);
-        if(result && result.dynamic_variables) {
+        if (result && result.dynamic_variables) {
           setDynamicVariables(result.dynamic_variables);
         }
-      } catch(e) {
-        console.log("Couldn't load plugin dynamic variables:", e)
+      } catch (e) {
+        console.log("Couldn't load plugin dynamic variables:", e);
       }
     }
 
@@ -346,13 +357,14 @@ const OneContext = ({ plugin_id, context, setSelectedContext, pluginDetails }) =
     // Call loadDynamicVariables every 2.5 seconds
     const intervalId = setInterval(loadDynamicVariables, 2500);
 
-    // Cleanup interval function 
+    // Cleanup interval function
     return () => clearInterval(intervalId);
-  }, [])
+  }, []);
 
   async function deletePlugin(context) {
-    if (confirm('Are you sure you want to delete this plugin from this context?')) {
-      
+    if (
+      confirm("Are you sure you want to delete this plugin from this context?")
+    ) {
       // Delete it
       console.log("Deleting plugin from context:", context.uuid);
       console.log("pluginDetails:", pluginDetails);
@@ -365,71 +377,77 @@ const OneContext = ({ plugin_id, context, setSelectedContext, pluginDetails }) =
         },
         body: JSON.stringify({
           plugin_id: plugin_id,
-          uuid: context.uuid
+          uuid: context.uuid,
         }),
       });
       const response = await rawResponse.json();
       console.log("response:", response);
 
-      if(response.settings) {
-        console.log('Plugin was deleted.');
+      if (response.settings) {
+        console.log("Plugin was deleted.");
         setSettings(response.settings);
       } else {
         console.log("Error deleting plugin.");
       }
-
-      
     } else {
       // Do nothing!
-      console.log('Plugin was not deleted.');
+      console.log("Plugin was not deleted.");
     }
   }
 
   const handleAction = (actionName) => {
     try {
-       // Create a hidden file input dynamically
-       const input = document.createElement('input');
-       input.type = 'file';
-       input.accept = '.csv';
-       input.style.display = 'none';
- 
-       // Set up the file selection handler
-       input.addEventListener('change', async function () {
-         if (input.files.length > 0) {
-           const file = input.files[0];
-           const reader = new FileReader();
- 
-           reader.onload = async (event) => {
-             // Parse CSV data using PapaParse
-             const csvData = Papa.parse(event.target.result, { header: true }).data;
- 
-             // Send parsed CSV data to server
-             try {
-               const response = await fetch(`/api/plugins/${context.uuid}/parse`, {
-                 method: 'POST',
-                 headers: { 'Content-Type': 'application/json' },
-                 body: JSON.stringify({ data: csvData, sessionId: context.uuid })
-               });
-               const result = await response.json();
-               console.log('Upload result:', result);
-             } catch (error) {
-               console.error('Upload error:', error);
-             }
-           };
- 
-           // Read file as text
-           reader.readAsText(file);
-         }
-       });
- 
-       // Append input, trigger click, and clean up
-       document.body.appendChild(input);
-       input.click();
-       document.body.removeChild(input);
-    } catch(e) {
-      console.log("Error executing CSV upload")
+      // Create a hidden file input dynamically
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = ".csv";
+      input.style.display = "none";
+
+      // Set up the file selection handler
+      input.addEventListener("change", async function () {
+        if (input.files.length > 0) {
+          const file = input.files[0];
+          const reader = new FileReader();
+
+          reader.onload = async (event) => {
+            // Parse CSV data using PapaParse
+            const csvData = Papa.parse(event.target.result, {
+              header: true,
+            }).data;
+
+            // Send parsed CSV data to server
+            try {
+              const response = await fetch(
+                `/api/plugins/${context.uuid}/parse`,
+                {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    data: csvData,
+                    sessionId: context.uuid,
+                  }),
+                }
+              );
+              const result = await response.json();
+              console.log("Upload result:", result);
+            } catch (error) {
+              console.error("Upload error:", error);
+            }
+          };
+
+          // Read file as text
+          reader.readAsText(file);
+        }
+      });
+
+      // Append input, trigger click, and clean up
+      document.body.appendChild(input);
+      input.click();
+      document.body.removeChild(input);
+    } catch (e) {
+      console.log("Error executing CSV upload");
     }
-    
+
     /*if (actionName === 'upload') {
       // Trigger the action endpoint to open the file upload dialog
       fetch(`/api/plugins/${context.uuid}/actions/upload`)
@@ -447,10 +465,10 @@ const OneContext = ({ plugin_id, context, setSelectedContext, pluginDetails }) =
     const height = 600;
     const left = (window.screen.width - width) / 2;
     const top = (window.screen.height - height) / 2;
-  
+
     window.open(
       routeUrl,
-      '_blank', // Target: open in a new window
+      "_blank", // Target: open in a new window
       `width=${width},height=${height},top=${top},left=${left},resizable,scrollbars`
     );
   };
@@ -495,46 +513,64 @@ const OneContext = ({ plugin_id, context, setSelectedContext, pluginDetails }) =
       )}
 
       {/** Display dynamic variables if any */}
-      {(dynamicVariables != null && dynamicVariables.length > 0) &&
-        <div className="border-t border-slate-100 divide-y divide-slate-100" >
+      {dynamicVariables != null && dynamicVariables.length > 0 && (
+        <div className="border-t border-slate-100 divide-y divide-slate-100">
           {dynamicVariables.map((dynamic_variable, index) => (
             <div key={index} className="flex flex-col  p-3">
-               {/** Handle string */}
-               {(dynamic_variable.type == "string" || !dynamic_variable.type) &&
+              {/** Handle string */}
+              {(dynamic_variable.type == "string" ||
+                !dynamic_variable.type) && (
                 <div className="flex flex-col">
-                  <span className="font-medium text-xs mb-1">{dynamic_variable.name}: <span className="text-slate-600">{dynamic_variable.value}</span></span>
+                  <span className="font-medium text-xs mb-1">
+                    {dynamic_variable.name}:{" "}
+                    <span className="text-slate-600">
+                      {dynamic_variable.value}
+                    </span>
+                  </span>
                 </div>
-              }
-             
+              )}
+
               {/** Handle type progress bar */}
-              {dynamic_variable.type == "slider" &&
+              {dynamic_variable.type == "slider" && (
                 <ProgressBarVariable dynamic_variable={dynamic_variable} />
-              }
+              )}
 
               {/** Handle type badge */}
-              {dynamic_variable.type == "badge" &&
+              {dynamic_variable.type == "badge" && (
                 <div className="flex flex-row items-center space-x-1.5">
-                  <span className="font-medium text-xs">{dynamic_variable.name}:</span>
-                  <div className={dynamic_variable.className}>{dynamic_variable.value}</div>
+                  <span className="font-medium text-xs">
+                    {dynamic_variable.name}:
+                  </span>
+                  <div className={dynamic_variable.className}>
+                    {dynamic_variable.value}
+                  </div>
                 </div>
-              }
+              )}
 
               {/** Hanlde type logs */}
-              {dynamic_variable.type == "logs" && dynamic_variable.value.length  > 0 &&
-                <>
-                  <span className="font-medium text-xs mb-2">{dynamic_variable.name}:</span>
-                  <div className="flex flex-col-reverse space-y-1.5 space-y-reverse max-h-90 overflow-y-scroll" >
-                    {dynamic_variable.value.map((log, index) => (
-                      <Alert key={index} color={log.color} title={log.title} className="text-xs break-words" />
-                    ))}
-                  </div>
-                </>
-              }
+              {dynamic_variable.type == "logs" &&
+                dynamic_variable.value.length > 0 && (
+                  <>
+                    <span className="font-medium text-xs mb-2">
+                      {dynamic_variable.name}:
+                    </span>
+                    <div className="flex flex-col-reverse space-y-1.5 space-y-reverse max-h-90 overflow-y-scroll">
+                      {dynamic_variable.value.map((log, index) => (
+                        <Alert
+                          key={index}
+                          color={log.color}
+                          title={log.title}
+                          className="text-xs break-words"
+                        />
+                      ))}
+                    </div>
+                  </>
+                )}
             </div>
           ))}
-      </div>
-      }
-        
+        </div>
+      )}
+
       {/** Display active routes if any */}
       {pluginDetails.routes && (
         <div className="flex flex-row bg-white text-slate-600 text-sm cursor-pointer border-t border-slate-200 space-x-1 px-3 py-1.5 items-center justify-center">
@@ -560,18 +596,23 @@ const OneContext = ({ plugin_id, context, setSelectedContext, pluginDetails }) =
         <div className="flex flex-row bg-white text-slate-600 text-sm cursor-pointer border-t border-slate-200 space-x-1 px-3 py-1.5 items-center justify-center">
           <div className="mr-1 font-medium">Actions:</div>
           <>
-            {pluginDetails.actions.map((action, index) => (
-              /** If popup */
-              action.type === "popup" && (
-                <button
-                  onClick={() => openRouteInPopup(`/api/plugins/${context.uuid}/routes/${action.route}`)}
-                  className="bg-white border border-slate-200 hover:border-[#4483FD] rounded-md px-3 py-2 text-xs font-medium text-slate-800 space-x-1 flex flex-row items-center"
-                  key={index}
-                >
-                  <span>{action.label}</span>
-                </button>
-              )
-            ))}
+            {pluginDetails.actions.map(
+              (action, index) =>
+                /** If popup */
+                action.type === "popup" && (
+                  <button
+                    onClick={() =>
+                      openRouteInPopup(
+                        `/api/plugins/${context.uuid}/routes/${action.route}`
+                      )
+                    }
+                    className="bg-white border border-slate-200 hover:border-[#4483FD] rounded-md px-3 py-2 text-xs font-medium text-slate-800 space-x-1 flex flex-row items-center"
+                    key={index}
+                  >
+                    <span>{action.label}</span>
+                  </button>
+                )
+            )}
           </>
         </div>
       )}
@@ -581,42 +622,49 @@ const OneContext = ({ plugin_id, context, setSelectedContext, pluginDetails }) =
         {/** Configure CTA */}
         <div
           className="flex flex-row  text-slate-700 hover:text-slate-800 space-x-1 cursor-pointer items-center justify-center flex-1 px-3 py-1.5"
-          onClick={() => setSelectedContext(context)} >
+          onClick={() => setSelectedContext(context)}
+        >
           <SettingsIcon />
           <span className="text-sm font-medium">Configure</span>
         </div>
 
         {/** Delete CTA */}
-        <div className="flex flex-row text-red-600 hover:text-red-700 space-x-1 cursor-pointer items-center justify-center flex-1 border-l border-slate-200 px-3 py-1.5"
-          onClick={() => deletePlugin(context)}>
-            <DeleteIcon />
-            <span className="text-sm font-medium">Delete</span>
-          </div>
+        <div
+          className="flex flex-row text-red-600 hover:text-red-700 space-x-1 cursor-pointer items-center justify-center flex-1 border-l border-slate-200 px-3 py-1.5"
+          onClick={() => deletePlugin(context)}
+        >
+          <DeleteIcon />
+          <span className="text-sm font-medium">Delete</span>
+        </div>
       </div>
     </div>
   );
 };
 
-
-const ProgressBarVariable = ({dynamic_variable}) => {
+const ProgressBarVariable = ({ dynamic_variable }) => {
   // Will return a different bar color based on the current progress
   function getBarColor() {
     let progress = parseInt(dynamic_variable.progress);
-    if(progress == 100) {
+    if (progress == 100) {
       return "bg-green-400";
-    } else if(progress > 20) {
+    } else if (progress > 20) {
       return "bg-sky-400";
     } else {
       return "bg-amber-400";
     }
   }
-  return(
+  return (
     <div className="flex flex-col">
-        <span className="font-medium text-xs mb-1">{dynamic_variable.name}: <span className="text-slate-600">{dynamic_variable.progress}%</span></span>
-        <div className="w-full bg-slate-100 rounded-full h-2 rounded-full">
-          <div className={`${getBarColor(dynamic_variable.progress)} h-2 rounded-full`}
-            style={{ width: `${dynamic_variable.progress}%` }}></div>
-        </div>
+      <span className="font-medium text-xs mb-1">
+        {dynamic_variable.name}:{" "}
+        <span className="text-slate-600">{dynamic_variable.progress}%</span>
+      </span>
+      <div className="w-full bg-slate-100 rounded-full h-2 rounded-full">
+        <div
+          className={`${getBarColor(dynamic_variable.progress)} h-2 rounded-full`}
+          style={{ width: `${dynamic_variable.progress}%` }}
+        ></div>
       </div>
-  )
-}
+    </div>
+  );
+};

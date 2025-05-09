@@ -1,0 +1,7 @@
+type Posts @loadModel(id: "$POSTS_ID") {
+    id: ID!
+}
+
+type BasicProfile @loadModel(id: "$PROFILE_ID") {
+    posts: [Posts] @relationFrom(model: "Posts", property: "profileId")
+}

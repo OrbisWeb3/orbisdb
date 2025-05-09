@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useGlobal } from "../../contexts/Global.js";
 import Button from "../../components/Button.js";
-import ReactTimeAgo from 'react-time-ago'
+import ReactTimeAgo from "react-time-ago";
 
 export default function Logs() {
   const [logs, setLogs] = useState(false);
@@ -45,8 +45,8 @@ export default function Logs() {
       }
 
       const { level, logs } = await response.json();
-      const selectedLog = logs.find(log => log.level === 'debug');
-      
+      const selectedLog = logs.find((log) => log.level === "debug");
+
       /** Display logs available in dropdown */
       console.log("logs:", logs);
       setLogs(logs);
@@ -70,7 +70,7 @@ export default function Logs() {
     }
 
     const logData = await response.json();
-    console.log("logData:", logData)
+    console.log("logData:", logData);
     // Sort logs from newest to oldest
     logData.logs.sort(
       (logA, logB) => new Date(logB.timestamp) - new Date(logA.timestamp)
@@ -96,7 +96,7 @@ export default function Logs() {
     <>
       <div className="px-16 py-12 w-full">
         <h1 className="text-3xl font-bold text-slate-900">Node Logs</h1>
-        {(logs && logs.length > 0)  ? (
+        {logs && logs.length > 0 ? (
           <div className="flex mt-4">
             <select
               name="Current log"
@@ -176,28 +176,37 @@ export default function Logs() {
   );
 }
 
-const EventLevel = ({level}) => {
-  switch(level) {
+const EventLevel = ({ level }) => {
+  switch (level) {
     case "debug":
-      return(
-        <span class="inline-flex items-center rounded-md bg-gray-50 px-2 py-1 text-xs font-medium text-gray-700 ring-1 ring-inset ring-gray-600/20">{level.toUpperCase()}</span>
+      return (
+        <span class="inline-flex items-center rounded-md bg-gray-50 px-2 py-1 text-xs font-medium text-gray-700 ring-1 ring-inset ring-gray-600/20">
+          {level.toUpperCase()}
+        </span>
       );
     case "success":
-      return(
-        <span class="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">{level.toUpperCase()}</span>
+      return (
+        <span class="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
+          {level.toUpperCase()}
+        </span>
       );
     case "info":
-      return(
-        <span class="inline-flex items-center rounded-md bg-sky-50 px-2 py-1 text-xs font-medium text-sky-700 ring-1 ring-inset ring-sky-600/20">{level.toUpperCase()}</span>
+      return (
+        <span class="inline-flex items-center rounded-md bg-sky-50 px-2 py-1 text-xs font-medium text-sky-700 ring-1 ring-inset ring-sky-600/20">
+          {level.toUpperCase()}
+        </span>
       );
     case "error":
-      return(
-        <span class="inline-flex items-center rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/20">{level.toUpperCase()}</span>
+      return (
+        <span class="inline-flex items-center rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/20">
+          {level.toUpperCase()}
+        </span>
       );
     default:
-      return(
-        <span class="inline-flex items-center rounded-md bg-amber-50 px-2 py-1 text-xs font-medium text-amber-700 ring-1 ring-inset ring-amber-600/20">{level.toUpperCase()}</span>
+      return (
+        <span class="inline-flex items-center rounded-md bg-amber-50 px-2 py-1 text-xs font-medium text-amber-700 ring-1 ring-inset ring-amber-600/20">
+          {level.toUpperCase()}
+        </span>
       );
   }
-  
-}
+};

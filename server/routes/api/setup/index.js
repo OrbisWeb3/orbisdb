@@ -16,7 +16,6 @@ const generateSeed = async () => {
   return array;
 };
 
-
 /** Prefixed with /api/setup/ */
 export default async function (server, opts) {
   /** Authenticated scope */
@@ -36,7 +35,7 @@ export default async function (server, opts) {
         const databaseName = toValidDbName(adminDid);
         try {
           await global.indexingService.database.createDatabase(databaseName);
-        } catch(e) {
+        } catch (e) {
           console.log("Error creating db:", e);
         }
 
@@ -72,9 +71,11 @@ export default async function (server, opts) {
         console.log("After restartIndexingService");
 
         // If user enabled some presets we run those
-        if(presets && presets.length > 0) {
-          console.log("presets:", presets)
-          await Promise.all(presets.map(preset => enablePreset(preset, adminDid)));
+        if (presets && presets.length > 0) {
+          console.log("presets:", presets);
+          await Promise.all(
+            presets.map((preset) => enablePreset(preset, adminDid))
+          );
           console.log("Presets enabled for shared instance:", presets);
         }
 
@@ -87,8 +88,8 @@ export default async function (server, opts) {
         logger.error("Error setup shared configuration db:", e);
 
         return {
-          result: "Error creating database."
-        }
+          result: "Error creating database.",
+        };
       }
     });
   });

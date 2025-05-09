@@ -1,0 +1,98 @@
+@import "./layout.module.scss";
+@import "./colors.module.scss";
+@import "./mixins.scss";
+@import url("https://fonts.googleapis.com/css2?family=Fira+Sans:ital,wght@0,100;0,200;0,400;0,500;0,600;0,700;0,900;1,400&display=swap");
+
+html,
+body {
+  padding: 0;
+  margin: 0;
+  font-family: Fira Sans, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Droid Sans,
+    Helvetica Neue, sans-serif;
+  background-color: $bgColor;
+  font-size: 18px;
+  font-weight: 400;
+  color: #f5f5f5;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+h1 {
+}
+
+button {
+  border: none;
+  border-radius: 5px;
+  margin-top: 15px;
+  padding: 10px 15px;
+  color: #f5f5f5;
+  background: $accent;
+  cursor: pointer;
+}
+
+input {
+  background: #f5f5f5;
+  color: #292828;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.content {
+  height: calc(100vh - 80px);
+  display: flex;
+  flex-direction: column;
+  // justify-content: center;
+  width: 100%;
+  padding: 20px;
+}
+
+.composite {
+  white-space: pre;
+}
+
+.popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  z-index: 9999;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: hidden;
+
+  h2 {
+    text-align: center;
+  }
+  .popup-content {
+    border-radius: 10px;
+    padding: 30px;
+    background-color: $bgColor;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.2), 0 6px 40px 0 rgba(255, 255, 255, 0.19);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+
+    span {
+      padding: 4px;
+    }
+  }
+}
+
+button {
+  height: 60px;
+  margin: 10px;
+  border-radius: 6px;
+  padding: 0 30px;
+  font-size: 20px;
+  font-weight: 600;
+}

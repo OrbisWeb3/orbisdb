@@ -201,11 +201,13 @@ export const STATUS = {
 };
 
 export async function fetchTablesAndColumns(token, tableName = null) {
-  const url = tableName ? `/api/db/tables/${tableName}/columns` : '/api/db/tables';
+  const url = tableName
+    ? `/api/db/tables/${tableName}/columns`
+    : "/api/db/tables";
   const response = await fetch(url, {
-    method: 'GET',
+    method: "GET",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     },
   });
@@ -213,11 +215,17 @@ export async function fetchTablesAndColumns(token, tableName = null) {
   return data;
 }
 
-export async function setForeignKey(token, table, column, referencedTable, referencedColumn) {
-  const response = await fetch('/api/db/foreign-key', {
-    method: 'POST',
+export async function setForeignKey(
+  token,
+  table,
+  column,
+  referencedTable,
+  referencedColumn
+) {
+  const response = await fetch("/api/db/foreign-key", {
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({ table, column, referencedTable, referencedColumn }),
@@ -225,7 +233,6 @@ export async function setForeignKey(token, table, column, referencedTable, refer
   const data = await response.json();
   return data;
 }
-
 
 // Method to get the model ID for a human-readable table name
 export function getCleanTableName(settings, model_id) {

@@ -1,21 +1,21 @@
 {
-    "models": [
-        "kjzl6hvfrbw6cajk0869qi0tthihoy9q8kycwymavzho6b66p9d9qi3yplnv4is",
-        "kjzl6hvfrbw6c9aeyljgdwk1s0wwl8w33gvs1oc9cp7apddx1vmmuch3rr6un06",
-        "kjzl6hvfrbw6caca84g61qjl4v4zyhlnzfknowvaitq1c35gl54yb6jg71gxohc",
-        "kjzl6hvfrbw6c5pvv8xw2rli5ynsl1v48uptzn21xunlq8x91wvdx66p0d5fnou",
-        "kjzl6hvfrbw6c9hjy2q78dszq4hfkl9fazkg7w6vmobgmf0oiq4hx2pzw5o67yj", 
-        "kjzl6hvfrbw6c6yozziffnpz4ya62wmeq4f5quqifxznbfqv7w46u2k36hfy27l",
-        "kjzl6hvfrbw6c5qv32r1uznt2hfa46uj3r9da8n2nnzzrr7jq0ivrvl5nfzq37v"
-    ],
-    "views": [
-        {
-            "name": "v_posts",
-            "query": "CREATE OR REPLACE VIEW v_posts AS SELECT posts.stream_id, posts.controller, posts.body, posts.data, posts.tags, posts.media, posts.title, posts.master, posts.context, posts.mentions, posts.reply_to, posts.sourceurl, posts.encryptedbody, posts._metadata_context, posts.plugins_data, posts.indexed_at, jsonb_build_object('did', posts.controller, 'stream_id', profile.stream_id, 'username', profile.username, 'description', profile.description, 'pfp', profile.pfp, 'plugins_data', profile.plugins_data) AS profile FROM kjzl6hvfrbw6cajk0869qi0tthihoy9q8kycwymavzho6b66p9d9qi3yplnv4is AS posts LEFT JOIN kjzl6hvfrbw6c9aeyljgdwk1s0wwl8w33gvs1oc9cp7apddx1vmmuch3rr6un06 AS profile ON profile.controller = posts.controller ORDER BY posts.indexed_at DESC NULLS LAST;"
-        },
-        {
-            "name": "v_followers",
-            "query": "CREATE OR REPLACE VIEW v_followers AS SELECT kjzl6hvfrbw6c5pvv8xw2rli5ynsl1v48uptzn21xunlq8x91wvdx66p0d5fnou.stream_id, kjzl6hvfrbw6c5pvv8xw2rli5ynsl1v48uptzn21xunlq8x91wvdx66p0d5fnou.did AS did_followed, kjzl6hvfrbw6c5pvv8xw2rli5ynsl1v48uptzn21xunlq8x91wvdx66p0d5fnou.controller AS did_following, json_build_object('did', kjzl6hvfrbw6c5pvv8xw2rli5ynsl1v48uptzn21xunlq8x91wvdx66p0d5fnou.did, 'username', orbis_profiles_followed.username, 'description', orbis_profiles_followed.description, 'pfp', orbis_profiles_followed.pfp, 'plugins_data', orbis_profiles_followed.plugins_data) AS did_followed_details, json_build_object('did', kjzl6hvfrbw6c5pvv8xw2rli5ynsl1v48uptzn21xunlq8x91wvdx66p0d5fnou.controller, 'username', orbis_profiles_following.username, 'description', orbis_profiles_following.description, 'pfp', orbis_profiles_following.pfp, 'plugins_data', orbis_profiles_following.plugins_data) AS did_following_details, kjzl6hvfrbw6c5pvv8xw2rli5ynsl1v48uptzn21xunlq8x91wvdx66p0d5fnou.active FROM ((kjzl6hvfrbw6c5pvv8xw2rli5ynsl1v48uptzn21xunlq8x91wvdx66p0d5fnou LEFT JOIN kjzl6hvfrbw6c9aeyljgdwk1s0wwl8w33gvs1oc9cp7apddx1vmmuch3rr6un06 orbis_profiles_following ON ((orbis_profiles_following.controller = kjzl6hvfrbw6c5pvv8xw2rli5ynsl1v48uptzn21xunlq8x91wvdx66p0d5fnou.controller))) LEFT JOIN kjzl6hvfrbw6c9aeyljgdwk1s0wwl8w33gvs1oc9cp7apddx1vmmuch3rr6un06 orbis_profiles_followed ON ((orbis_profiles_followed.controller = kjzl6hvfrbw6c5pvv8xw2rli5ynsl1v48uptzn21xunlq8x91wvdx66p0d5fnou.did))) ORDER BY kjzl6hvfrbw6c5pvv8xw2rli5ynsl1v48uptzn21xunlq8x91wvdx66p0d5fnou.indexed_at DESC;"
-        }
-    ]
+  "models": [
+    "kjzl6hvfrbw6cajk0869qi0tthihoy9q8kycwymavzho6b66p9d9qi3yplnv4is",
+    "kjzl6hvfrbw6c9aeyljgdwk1s0wwl8w33gvs1oc9cp7apddx1vmmuch3rr6un06",
+    "kjzl6hvfrbw6caca84g61qjl4v4zyhlnzfknowvaitq1c35gl54yb6jg71gxohc",
+    "kjzl6hvfrbw6c5pvv8xw2rli5ynsl1v48uptzn21xunlq8x91wvdx66p0d5fnou",
+    "kjzl6hvfrbw6c9hjy2q78dszq4hfkl9fazkg7w6vmobgmf0oiq4hx2pzw5o67yj",
+    "kjzl6hvfrbw6c6yozziffnpz4ya62wmeq4f5quqifxznbfqv7w46u2k36hfy27l",
+    "kjzl6hvfrbw6c5qv32r1uznt2hfa46uj3r9da8n2nnzzrr7jq0ivrvl5nfzq37v"
+  ],
+  "views": [
+    {
+      "name": "v_posts",
+      "query": "CREATE OR REPLACE VIEW v_posts AS SELECT posts.stream_id, posts.controller, posts.body, posts.data, posts.tags, posts.media, posts.title, posts.master, posts.context, posts.mentions, posts.reply_to, posts.sourceurl, posts.encryptedbody, posts._metadata_context, posts.plugins_data, posts.indexed_at, jsonb_build_object('did', posts.controller, 'stream_id', profile.stream_id, 'username', profile.username, 'description', profile.description, 'pfp', profile.pfp, 'plugins_data', profile.plugins_data) AS profile FROM kjzl6hvfrbw6cajk0869qi0tthihoy9q8kycwymavzho6b66p9d9qi3yplnv4is AS posts LEFT JOIN kjzl6hvfrbw6c9aeyljgdwk1s0wwl8w33gvs1oc9cp7apddx1vmmuch3rr6un06 AS profile ON profile.controller = posts.controller ORDER BY posts.indexed_at DESC NULLS LAST;"
+    },
+    {
+      "name": "v_followers",
+      "query": "CREATE OR REPLACE VIEW v_followers AS SELECT kjzl6hvfrbw6c5pvv8xw2rli5ynsl1v48uptzn21xunlq8x91wvdx66p0d5fnou.stream_id, kjzl6hvfrbw6c5pvv8xw2rli5ynsl1v48uptzn21xunlq8x91wvdx66p0d5fnou.did AS did_followed, kjzl6hvfrbw6c5pvv8xw2rli5ynsl1v48uptzn21xunlq8x91wvdx66p0d5fnou.controller AS did_following, json_build_object('did', kjzl6hvfrbw6c5pvv8xw2rli5ynsl1v48uptzn21xunlq8x91wvdx66p0d5fnou.did, 'username', orbis_profiles_followed.username, 'description', orbis_profiles_followed.description, 'pfp', orbis_profiles_followed.pfp, 'plugins_data', orbis_profiles_followed.plugins_data) AS did_followed_details, json_build_object('did', kjzl6hvfrbw6c5pvv8xw2rli5ynsl1v48uptzn21xunlq8x91wvdx66p0d5fnou.controller, 'username', orbis_profiles_following.username, 'description', orbis_profiles_following.description, 'pfp', orbis_profiles_following.pfp, 'plugins_data', orbis_profiles_following.plugins_data) AS did_following_details, kjzl6hvfrbw6c5pvv8xw2rli5ynsl1v48uptzn21xunlq8x91wvdx66p0d5fnou.active FROM ((kjzl6hvfrbw6c5pvv8xw2rli5ynsl1v48uptzn21xunlq8x91wvdx66p0d5fnou LEFT JOIN kjzl6hvfrbw6c9aeyljgdwk1s0wwl8w33gvs1oc9cp7apddx1vmmuch3rr6un06 orbis_profiles_following ON ((orbis_profiles_following.controller = kjzl6hvfrbw6c5pvv8xw2rli5ynsl1v48uptzn21xunlq8x91wvdx66p0d5fnou.controller))) LEFT JOIN kjzl6hvfrbw6c9aeyljgdwk1s0wwl8w33gvs1oc9cp7apddx1vmmuch3rr6un06 orbis_profiles_followed ON ((orbis_profiles_followed.controller = kjzl6hvfrbw6c5pvv8xw2rli5ynsl1v48uptzn21xunlq8x91wvdx66p0d5fnou.did))) ORDER BY kjzl6hvfrbw6c5pvv8xw2rli5ynsl1v48uptzn21xunlq8x91wvdx66p0d5fnou.indexed_at DESC;"
+    }
+  ]
 }

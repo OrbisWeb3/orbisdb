@@ -267,4 +267,3 @@ export async function startIndexing() {
 
 /** Initialize indexing service */
 startIndexing();
-

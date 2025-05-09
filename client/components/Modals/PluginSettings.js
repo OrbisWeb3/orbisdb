@@ -31,7 +31,11 @@ export default function PluginSettingsModal({
           />
         )}
         <div className="flex flex-row justify-center">
-          <Button title={defaultVariables ? "Save" : "Save"} status={status} successTitle="Saved" />
+          <Button
+            title={defaultVariables ? "Save" : "Save"}
+            status={status}
+            successTitle="Saved"
+          />
         </div>
       </form>
     </Modal>

@@ -40,7 +40,10 @@ export default function Plugins() {
             Experimental
           </span>
         </h1>
-        <p className="text-slate-600 mt-1 text-base">Plugins can be used to extend OrbisDB's capabilities. Select the plugins you would like to use here.</p>
+        <p className="text-slate-600 mt-1 text-base">
+          Plugins can be used to extend OrbisDB's capabilities. Select the
+          plugins you would like to use here.
+        </p>
         <div className="grid grid-cols-3 gap-4 mt-4 items-start">
           <LoopPlugins plugins={plugins} />
         </div>

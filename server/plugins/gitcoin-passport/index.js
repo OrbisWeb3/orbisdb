@@ -10,7 +10,7 @@ export default class GitcoinPassportPlugin {
     let HOOKS = {};
     switch (this.action) {
       case "validate":
-        HOOKS.validate =  (stream) => this.isValid(stream);
+        HOOKS.validate = (stream) => this.isValid(stream);
         break;
       case "add_metadata":
         HOOKS.add_metadata = (stream) => this.getScore(stream);
@@ -18,7 +18,7 @@ export default class GitcoinPassportPlugin {
     }
 
     return {
-      HOOKS: HOOKS
+      HOOKS: HOOKS,
     };
   }
 
@@ -28,14 +28,14 @@ export default class GitcoinPassportPlugin {
     let field;
 
     /** Will convert the field to the actual value and make an exception for controller to use the address instead of the full did */
-    if(this.field == "controller") {
+    if (this.field == "controller") {
       let { address } = getAddressFromDid(stream.controller);
       field = address;
     } else {
       field = getValueByPath(stream, this.field);
     }
-    
-    logger.debug("address to use:", field)
+
+    logger.debug("address to use:", field);
 
     if (field) {
       let score = await this.computeScore(field);
@@ -60,17 +60,17 @@ export default class GitcoinPassportPlugin {
     let field;
 
     /** Will convert the field to the actual value and make an exception for controller to use the address instead of the full did */
-    if(this.field == "controller") {
+    if (this.field == "controller") {
       let { address } = getAddressFromDid(stream.controller);
       field = address;
     } else {
       field = getValueByPath(stream, this.field);
     }
 
-    if(field) {
+    if (field) {
       score = await this.computeScore(field);
     }
-    
+
     return {
       score: score,
     };
@@ -97,7 +97,7 @@ export default class GitcoinPassportPlugin {
         let passportScore = await this.getPassportScore(address);
         score = Number(passportScore.score);
       }
-    } catch(e) {
+    } catch (e) {
       score = undefined;
     }
     logger.debug("score:", score);

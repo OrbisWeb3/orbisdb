@@ -1,0 +1,8 @@
+type BasicProfile @loadModel(id: "$PROFILE_ID") {
+    id: ID!
+}
+
+type Following @createModel(accountRelation: LIST, description: "Who do you follow?") {
+    profileId: StreamID! @documentReference(model: "BasicProfile")
+    profile: BasicProfile! @relationDocument(property: "profileId")
+}

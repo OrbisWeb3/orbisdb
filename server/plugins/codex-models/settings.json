@@ -1,10 +1,9 @@
 {
-    "id": "codex-models",
-    "name": "CODEX Research Data",
-    "logo": "/img/codex-models-logo.png",
-    "description": "Plugin used to initialize CODEX environment.",
-    "full_description": "Plugin used to initialize shared CODEX contexts and backfill ResearchObject instances, fetched from the API.",
-    "hooks": ["generate"],
-    "variables": []
-  }
-  
+  "id": "codex-models",
+  "name": "CODEX Research Data",
+  "logo": "/img/codex-models-logo.png",
+  "description": "Plugin used to initialize CODEX environment.",
+  "full_description": "Plugin used to initialize shared CODEX contexts and backfill ResearchObject instances, fetched from the API.",
+  "hooks": ["generate"],
+  "variables": []
+}

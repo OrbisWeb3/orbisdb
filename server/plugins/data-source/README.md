@@ -40,6 +40,7 @@ The **Keys Mapping** setting allows you to map the structure of the API response
 #### Example
 
 For an API returning this API Response:
+
 ```json
 {
   "data": {
@@ -54,14 +55,16 @@ For an API returning this API Response:
 ```
 
 You can use the following mapping:
+
 ```json
 [
-    {
-      "keys": [
-        { "key": "asset", "value": "bitcoin" }, { "key": "price", "path": ["bitcoin", "usd"], "type": "numeric" }
-      ]
-    }
-  ]
+  {
+    "keys": [
+      { "key": "asset", "value": "bitcoin" },
+      { "key": "price", "path": ["bitcoin", "usd"], "type": "numeric" }
+    ]
+  }
+]
 ```
 
 **In this example:**

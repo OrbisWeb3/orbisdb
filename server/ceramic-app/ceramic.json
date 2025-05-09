@@ -1,0 +1,41 @@
+{
+  "ipfs": "Bundled",
+  "state_store": {
+    "LocalDirectory": "/etc/ceramic/data"
+  },
+  "http_api": {
+    "hostname": "127.0.0.1",
+    "port": 7007,
+    "cors_allowed_origins": [],
+    "admin_dids": [
+      "did:key:z6MkhmLkENpop72dxyiEikiNEAm3Fo6uwhosYVDT92bixV69",
+      "did:key:z6Mkpgjz7gsNTfcMdHJgRL5CNkRfXV2QM8eraqsYcZfdtZzp"
+    ]
+  },
+  "network": {
+    "id": "InMemory",
+    "pubsub_topic": null
+  },
+  "anchor": "None",
+  "indexing": {
+    "db": "sqlite:///Users/jeldonmusic/Documents/matrixblend_com/Datbase/orbisdb/server/ceramic-app/ceramic-indexing/ceramic.db",
+    "allow_queries_before_historical_sync": true,
+    "enable_historical_sync": false
+  },
+  "did_resolvers": {
+    "Ethr": {}
+  },
+  "node": {
+    "gateway": false,
+    "sync_override": false,
+    "stream_cache_limit": 100
+  },
+  "logger": {
+    "file": {
+      "enabled": true,
+      "directory": "./log/ceramic"
+    },
+    "level": "Info"
+  },
+  "metrics": "Disabled"
+}

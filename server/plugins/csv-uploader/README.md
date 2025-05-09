@@ -21,7 +21,7 @@ The plugin exposes an `upload` route which users can use to push the CSV file th
 
 ### CSV Structure
 
-Ensure that your CSV file's columns match the fields of the model you are using in OrbisDB. 
+Ensure that your CSV file's columns match the fields of the model you are using in OrbisDB.
 
 - **Field Matching**: The column names in the CSV must precisely match the field names of your model.
 - **Array and Object Fields**: For columns of type array or object, use default values like `[]` or `{}` to respect the format.

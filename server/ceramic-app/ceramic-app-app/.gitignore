@@ -1,0 +1,10 @@
+.next
+node_modules/*
+package.lock
+
+
+admin_seed.txt
+composedb.config.json
+src/__generated__/
+
+.ceramic/

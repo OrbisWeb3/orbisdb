@@ -1,0 +1,21 @@
+.formGroup {
+  margin-top: 10vh;
+  margin-bottom: 10px;
+  font-size: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  label {
+    display: block;
+    padding-bottom: 3px;
+    font-weight: 600;
+  }
+  input {
+    border: 2px solid black;
+    color: #333;
+    border-radius: 5px;
+    font-size: 20px;
+    padding: 7px 10px;
+    margin-bottom: 15px;
+  }
+}

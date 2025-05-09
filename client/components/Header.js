@@ -12,7 +12,7 @@ export default function Header({ showItems }) {
     { title: "Contexts", path: "/", type: "equal" },
     { title: "Plugins", path: "/plugins", type: "includes" },
     { title: "Data", path: "/data", type: "includes" },
-    { title: "Model builder", path: "/models", type: "equal" }
+    { title: "Model builder", path: "/models", type: "equal" },
   ];
 
   return (
@@ -47,7 +47,7 @@ export default function Header({ showItems }) {
             <button onClick={() => restart()} className='bg-red-50 border border-dashed hover:border-solid cursor-pointer border-red-200 text-red-600 px-3 py-1 rounded-md text-xs'>Restart</button>
           </div>
           */}
-          
+
           <div className="text-sm text-slate-500 ">
             <NavItem
               key="Documentation"
@@ -66,11 +66,15 @@ export default function Header({ showItems }) {
           </div>
 
           {/** Show instance type */}
-          {isShared ?
-            <div className="bg-amber-50 text-amber-900 rounded-full px-3 py-1 text-xs ml-6 font-medium border border-amber-200">Shared</div>
-          :
-            <div className="bg-sky-50 text-sky-900 rounded-full px-3 py-1 text-xs ml-6 font-medium border border-sky-200">Dedicated</div>
-          }
+          {isShared ? (
+            <div className="bg-amber-50 text-amber-900 rounded-full px-3 py-1 text-xs ml-6 font-medium border border-amber-200">
+              Shared
+            </div>
+          ) : (
+            <div className="bg-sky-50 text-sky-900 rounded-full px-3 py-1 text-xs ml-6 font-medium border border-sky-200">
+              Dedicated
+            </div>
+          )}
         </>
       ) : (
         <div className="flex space-x-9 flex-row items-center ml-6 text-sm text-slate-500 h-full">

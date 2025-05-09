@@ -1,34 +1,72 @@
-# Include any files or directories that you don't want to be copied to your
-# container here (e.g., local build artifacts, temporary files, etc.).
-#
-# For more help, visit the .dockerignore file reference guide at
-# https://docs.docker.com/go/build-context-dockerignore/
+# .dockerignore file for optimal Docker builds
 
-**/.classpath
-**/.dockerignore
-**/.env
-**/.git
-**/.gitignore
-**/.project
-**/.settings
-**/.toolstarget
-**/.vs
-**/.vscode
-**/.next
-**/.cache
-**/*.*proj.user
-**/*.dbmdl
-**/*.jfm
-**/charts
-**/docker-compose*
-**/compose*
-**/Dockerfile*
-**/node_modules
-**/npm-debug.log
-**/obj
-**/secrets.dev.yaml
-**/values.dev.yaml
-**/build
-**/dist
-LICENSE
-README.md
+# Node.js dependencies
+node_modules/
+npm-debug.log
+yarn-debug.log
+
+# Python artifacts
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.coverage
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Build outputs
+dist/
+build/
+out/
+
+# Test files
+test/
+tests/
+*_test.go
+
+# Debug files
+debug/
+*.log
+
+# Version control
+.git/
+.gitignore
+
+# Environment and secrets
+.env*
+*.env
+*.pem
+*.key
+*.crt
+
+# Documentation
+docs/
+*.md
+README*
+
+# Docker files
+Dockerfile*
+docker-compose*
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Local development
+.local/
+local/
+
+# Project-specific patterns
+.DS_Store
+.next/
+public/uploads/
+server/logs/
+
+# Exclude Dockerfile and .dockerignore
+!Dockerfile
+!.dockerignore

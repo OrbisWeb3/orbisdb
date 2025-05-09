@@ -10,4 +10,3 @@ export default async function (server, opts) {
   // TODO: Deprecate and replace with a prefixed /api/ping
   server.get("/health", async () => "OK");
 }
-

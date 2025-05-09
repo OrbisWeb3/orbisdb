@@ -115,8 +115,10 @@ export default async function (server, opts) {
         await restartIndexingService();
 
         // If user enabled some presets we run those
-        if(presets && presets.length > 0) {
-          await Promise.all(presets.map(preset => enablePreset(preset, slot)));
+        if (presets && presets.length > 0) {
+          await Promise.all(
+            presets.map((preset) => enablePreset(preset, slot))
+          );
           console.log("Presets enabled:", presets);
         }
 
@@ -144,13 +146,14 @@ export default async function (server, opts) {
           return res.notFound(`Slot ${slot} not found.`);
         }*/
 
-        let _isGlobalAdmin = globalSettings?.configuration?.admins?.includes(slot);
+        let _isGlobalAdmin =
+          globalSettings?.configuration?.admins?.includes(slot);
 
         // (slot === adminDid for the slot)
         return {
           admins: [slot],
           globalAdmins: globalSettings?.configuration?.admins,
-          globalSettings: _isGlobalAdmin ? globalSettings : null
+          globalSettings: _isGlobalAdmin ? globalSettings : null,
         };
       }
 
@@ -168,7 +171,7 @@ export default async function (server, opts) {
     try {
       const globalSettings = getOrbisDBSettings();
       return {
-        count_slots: globalSettings.slots ? globalSettings.slots.length : 0
+        count_slots: globalSettings.slots ? globalSettings.slots.length : 0,
       };
     } catch (err) {
       logger.error(err);

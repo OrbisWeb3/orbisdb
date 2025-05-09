@@ -16,10 +16,13 @@ export default class EthereumUnitConverter {
 
   /** Returns a simple hello:world key value pair which will be added to the plugins_data field */
   async convert(stream) {
-    if(this.only_model == "no" || (this.only_model == "yes" && stream.model == this.model_id)) {
+    if (
+      this.only_model == "no" ||
+      (this.only_model == "yes" && stream.model == this.model_id)
+    ) {
       // Get field value
       let fieldVal = getValueByPath(stream, this.field);
-      console.log("fieldVal:", fieldVal)
+      console.log("fieldVal:", fieldVal);
 
       // Perform conversion
       let value = formatValue(fieldVal, this.decimals);
@@ -35,8 +38,8 @@ export default class EthereumUnitConverter {
 /** Will convert the value to the expected decimal */
 function formatValue(value, decimals) {
   if (decimals === undefined) {
-      console.error("Decimals not loaded");
-      return value?.toString();
+    console.error("Decimals not loaded");
+    return value?.toString();
   }
 
   const divisor = Math.pow(10, decimals);

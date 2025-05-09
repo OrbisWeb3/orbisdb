@@ -1,0 +1,127 @@
+@import "colors.module.scss";
+
+.container {
+  width: 70%;
+  @media screen and (max-width: 540px) {
+    width: 100%;
+  }
+  margin: 0 auto;
+
+  /* Flex positioning */
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  flex: 1;
+  .sidebar,
+  .ctas {
+    margin: auto 0;
+    height: 100vh;
+    position: sticky;
+
+    max-width: 250px;
+  }
+  .sidebar .top a {
+    border-radius: 5px;
+  }
+  @media screen and (max-width: 540px) {
+    .sidebar {
+      max-width: 120px !important;
+      .logoContainer {
+        width: 100px !important;
+      }
+      a {
+        font-size: 18px !important;
+      }
+    }
+  }
+  .sidebar {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+
+    padding: 0 5px;
+
+    .top {
+      .logoContainer {
+        margin: 30px 0 30px 5px;
+        width: 180px;
+      }
+      a {
+        font-size: 24px;
+        font-weight: bold;
+        letter-spacing: 1px;
+        cursor: pointer;
+        padding: 5px 10px;
+        margin-bottom: 10px;
+        width: 100%;
+
+        display: inline-flex;
+        align-items: center;
+
+        transition: ease all 0.1s;
+        svg {
+          margin-right: 10px;
+        }
+        &:hover {
+          background-color: $accent;
+          transition: ease all 0.25s;
+        }
+      }
+    }
+    .bottom {
+      margin-bottom: 30px;
+    }
+  }
+  .body {
+    $border: 1px solid $borders;
+
+    margin: 0 15px;
+    border-left: $border;
+    border-right: $border;
+
+    display: flex;
+    flex-grow: 1;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .footer {
+    background-color: $bgColor;
+
+    position: relative;
+    bottom: 0px;
+    right: 0px;
+    width: 100%;
+
+    padding: 20px;
+
+    display: flex;
+    flex-grow: 1;
+    flex-wrap: nowrap;
+    align-items: center;
+
+    font-size: 18px;
+    &:before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: calc((100% - 240px) / 2);
+      width: 240px;
+      @media screen and (max-width: 540px) {
+        width: 100px;
+        left: calc((100% - 100px) / 2);
+      }
+      text-align: center;
+      height: 2px;
+      background-color: #eb4a27;
+    }
+    div {
+      display: inline-block;
+      width: 100%;
+      text-align: center;
+    }
+    a {
+      display: block;
+    }
+  }
+}

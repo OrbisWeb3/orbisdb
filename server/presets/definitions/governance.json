@@ -1,12 +1,12 @@
 {
-    "models": [
-        "kjzl6hvfrbw6c6czaljcbq6gbzmhsehcb9edaxov0wa0qoxby3fgq1m213u0pfp",
-        "kjzl6hvfrbw6carr31lps2ujx1wngyyl5mm09fmaj22v5bhg1vgxbms08k1mnn5"
-    ],
-    "views": [
-        {
-            "name": "proposals_with_vote_counts",
-            "query": "CREATE OR REPLACE VIEW proposals_with_vote_counts AS SELECT p.stream_id, p.name, p.options, v.total_votes, p._metadata_context, COALESCE(jsonb_object_agg(v.option, jsonb_build_object('count', v.vote_count, 'percentage', round((((v.vote_count)::numeric / v.total_votes) * (100)::numeric), 2))) FILTER (WHERE (v.option IS NOT NULL)), '{}'::jsonb) AS votes FROM (kjzl6hvfrbw6c6czaljcbq6gbzmhsehcb9edaxov0wa0qoxby3fgq1m213u0pfp p LEFT JOIN ( SELECT kjzl6hvfrbw6carr31lps2ujx1wngyyl5mm09fmaj22v5bhg1vgxbms08k1mnn5.proposal_id, kjzl6hvfrbw6carr31lps2ujx1wngyyl5mm09fmaj22v5bhg1vgxbms08k1mnn5.option, count(*) AS vote_count, sum(count(*)) OVER (PARTITION BY kjzl6hvfrbw6carr31lps2ujx1wngyyl5mm09fmaj22v5bhg1vgxbms08k1mnn5.proposal_id) AS total_votes FROM kjzl6hvfrbw6carr31lps2ujx1wngyyl5mm09fmaj22v5bhg1vgxbms08k1mnn5 GROUP BY kjzl6hvfrbw6carr31lps2ujx1wngyyl5mm09fmaj22v5bhg1vgxbms08k1mnn5.proposal_id, kjzl6hvfrbw6carr31lps2ujx1wngyyl5mm09fmaj22v5bhg1vgxbms08k1mnn5.option) v ON ((p.stream_id = v.proposal_id))) GROUP BY p.stream_id, p.name, v.total_votes"
-        }
-    ]
+  "models": [
+    "kjzl6hvfrbw6c6czaljcbq6gbzmhsehcb9edaxov0wa0qoxby3fgq1m213u0pfp",
+    "kjzl6hvfrbw6carr31lps2ujx1wngyyl5mm09fmaj22v5bhg1vgxbms08k1mnn5"
+  ],
+  "views": [
+    {
+      "name": "proposals_with_vote_counts",
+      "query": "CREATE OR REPLACE VIEW proposals_with_vote_counts AS SELECT p.stream_id, p.name, p.options, v.total_votes, p._metadata_context, COALESCE(jsonb_object_agg(v.option, jsonb_build_object('count', v.vote_count, 'percentage', round((((v.vote_count)::numeric / v.total_votes) * (100)::numeric), 2))) FILTER (WHERE (v.option IS NOT NULL)), '{}'::jsonb) AS votes FROM (kjzl6hvfrbw6c6czaljcbq6gbzmhsehcb9edaxov0wa0qoxby3fgq1m213u0pfp p LEFT JOIN ( SELECT kjzl6hvfrbw6carr31lps2ujx1wngyyl5mm09fmaj22v5bhg1vgxbms08k1mnn5.proposal_id, kjzl6hvfrbw6carr31lps2ujx1wngyyl5mm09fmaj22v5bhg1vgxbms08k1mnn5.option, count(*) AS vote_count, sum(count(*)) OVER (PARTITION BY kjzl6hvfrbw6carr31lps2ujx1wngyyl5mm09fmaj22v5bhg1vgxbms08k1mnn5.proposal_id) AS total_votes FROM kjzl6hvfrbw6carr31lps2ujx1wngyyl5mm09fmaj22v5bhg1vgxbms08k1mnn5 GROUP BY kjzl6hvfrbw6carr31lps2ujx1wngyyl5mm09fmaj22v5bhg1vgxbms08k1mnn5.proposal_id, kjzl6hvfrbw6carr31lps2ujx1wngyyl5mm09fmaj22v5bhg1vgxbms08k1mnn5.option) v ON ((p.stream_id = v.proposal_id))) GROUP BY p.stream_id, p.name, v.total_votes"
+    }
+  ]
 }
